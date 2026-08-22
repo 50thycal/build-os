@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.1**
+**Build OS v0.2**
 
 ---
 
@@ -109,3 +109,94 @@ changed?" from a judgment call into a checklist.
 - Review gains a mechanical check it would otherwise have to perform by intuition.
 - Escalation is defined narrowly, on purpose: it is for product behavior, not technical
   uncertainty.
+
+---
+
+### DEC-004 — Durable design state lives in the repository as workstreams, not in chat history
+
+**Date:** 2026-08-22
+**Status:** Accepted
+
+**Context**
+v0.1 assumed one design conversation per feature. Real projects run several efforts at once,
+across many conversations, over weeks. The state of those efforts — what is settled, what is
+open, what the current model is — lived only in chat history and in the owner's memory of
+which chat said what. Resuming meant the owner reconstructing context by hand, and a new
+agent could not start at all.
+
+**Decision**
+Introduce the workstream: one meaningful design/build thread with a stable `WS-###` ID, a
+phase from a defined lifecycle, and a file in the project repository. Add
+`docs/workstreams/` as a third project-memory layer with an `ACTIVE.md` control board.
+Persist conclusions, models, decisions, unresolved questions, and current state at
+meaningful checkpoints. Never archive whole chat transcripts.
+
+**Rationale**
+The unit of design work is a thread of intent, not a conversation, a branch, or a PR — all
+three of which a single effort routinely outlives. Giving that thread an ID and a file makes
+it addressable from a chat, a Build Card, a spec, a PR, and a decision entry. Distillation
+rather than transcript archiving is what keeps the layer readable: a transcript records
+thinking, a workstream file records what the thinking produced, and only the second is worth
+reading three weeks later.
+
+**Alternatives considered**
+- **Track design state in GitHub issues.** Native, linkable, already there. Rejected: issues
+  are a task list, not a mental model; long-form design state renders badly in comment
+  threads and cannot be diffed or reviewed alongside the code it describes.
+- **One long-lived design document per project.** Simpler. Rejected: parallel efforts in
+  different phases collapse into one narrative, and the board view — what is in flight and
+  where — disappears.
+- **Archive chat transcripts in the repository.** Complete by construction. Rejected: at
+  volume it is unreadable, and it buries the conclusions it was meant to preserve.
+
+**Consequences**
+- Projects gain a third memory layer, and with it the obligation to keep three files from
+  drifting. `PROJECT_MEMORY.md` and `WORKSTREAMS.md` both address this by assigning each
+  layer a narrower home and preferring links over restatement.
+- Workstream completion becomes the moment that feeds the other two layers: outcome to
+  `PROJECT_MODEL.md`, rationale to `DECISIONS.md`. `COMPLETE` now means more than merged.
+- Review gains a tenth item, checking the workstream record against what happened.
+- The checkpoint policy is deliberately loose. Requiring a write per exchange would be
+  precise and would be abandoned within a week.
+
+---
+
+### DEC-005 — Persistence is never claimed without write access
+
+**Date:** 2026-08-22
+**Status:** Accepted
+
+**Context**
+Design agents run in environments with varying GitHub access: full write, read-only, or none
+at all. A protocol whose value rests on "the repository is authoritative" fails completely if
+an agent reports a checkpoint it could not actually perform. The owner then believes state is
+durable when it is not, and discovers otherwise at the worst moment — when resuming from it.
+
+**Decision**
+Define three explicit cases. With write access, the agent updates the checkpoint directly and
+says what it wrote. With read-only access, it produces a precise repository-update block —
+exact file, exact fields, exact replacement text — carried into the next implementation
+handoff for an authorized agent to apply. With no access, it continues the Design Room and
+states clearly that repository state is not synchronized. In all three:
+**never falsely claim durable persistence.**
+
+**Rationale**
+Degraded capability is fine; silent degradation is not. Making the read-only path produce a
+mechanically applicable block means the checkpoint is only delayed, not lost — which removes
+the incentive to paper over the gap. Making the implementation agent's application of that
+block an explicit step of the handoff protocol closes the loop.
+
+**Alternatives considered**
+- **Require write access to run the protocol.** Clean guarantee. Rejected: it excludes the
+  most common ChatGPT configuration, which is exactly where this framework's design work
+  happens.
+- **Let the agent decide how to report partial persistence.** Rejected: this is precisely the
+  situation where a helpful-sounding summary does the most damage.
+
+**Consequences**
+- The implementation agent inherits a duty it did not have in v0.1: apply the design agent's
+  update block, and report it if the block conflicts with what was built.
+- Build Specs gain a home for that block, in *Required documentation updates*.
+- "Phantom persistence" is named as an anti-pattern in both `WORKSTREAMS.md` and
+  `DESIGN_ROOM.md`, because it is the single failure that would make the whole memory layer
+  worthless.

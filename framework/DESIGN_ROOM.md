@@ -1,6 +1,6 @@
 # Design Room
 
-**Build OS v0.1**
+**Build OS v0.2**
 
 The Design Room is where an abstract idea becomes something buildable. It is run by the
 design agent with the owner. It ends with two artifacts: a **Build Card** the owner
@@ -17,6 +17,12 @@ A. Explore  →  B. Model  →  C. Decide  →  D. Build Card  →  E. Build Spe
 
 Stages A–C loop. Stage D happens once the design is coherent. Stage E happens only after
 the Build Card is settled.
+
+The room runs across many sessions, not one. Each session belongs to a **workstream** — one
+meaningful design/build thread, with a stable ID and durable state in the repository. The
+five stages map onto the workstream lifecycle exactly: `EXPLORE` → `MODEL` → `DECIDE` →
+`BUILD_CARD` → `READY_TO_BUILD`. See `framework/WORKSTREAMS.md`; how to run the room from a
+ChatGPT Project is at the end of this document.
 
 The single rule that governs the whole room: **do not write an implementation
 specification before the design is understood.** A specification produced too early
@@ -236,6 +242,69 @@ Structure, contents, and the owner-decision / discretion / escalation split:
 
 ---
 
+## Running the Design Room from a ChatGPT Project
+
+The Design Room is usually a ChatGPT Project. The recommended operating model:
+
+**One ChatGPT Project per software/project repository.**
+
+Multiple separate chats exist inside that Project. Each chat may start a new workstream,
+resume an existing one, review an implementation, or investigate an adjacent question. None
+of them is the record.
+
+The ChatGPT Project should carry explicit project instructions identifying the canonical
+GitHub repository:
+
+```text
+Canonical repository: 50thycal/example-project
+```
+
+Template: `templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md`.
+
+### Durable state is in the repository, not the chat
+
+**Do not assume conversational memory alone is authoritative.** Before resuming substantial
+existing work, the design agent should use the repository's workstream state,
+`PROJECT_MODEL.md`, and the relevant `DECISIONS.md` entries as the durable checkpoint, when
+accessible.
+
+Conversational memory may enrich that state. It should not contradict durable project
+records without surfacing the conflict — say plainly that the file says one thing and you
+remember another, and let the owner settle which is current. Silently trusting either one is
+how a design drifts from the system it is supposed to be changing.
+
+### Session start
+
+The owner should not need to manually summarize previous conversations. Avoid ceremonial
+status reporting when it is unnecessary.
+
+**For a clearly new idea:** check whether it belongs to an existing workstream — new ideas
+are often the unresolved part of something already open. Otherwise establish a new
+workstream and begin at `IDEA`/`EXPLORE`, in stage A.
+
+**For a continuation:** identify the workstream, inspect its current phase and its open
+decisions, orient the owner in a sentence or two, and continue from the unresolved point.
+
+```text
+WS-004 is currently in DECIDE. We've settled X and Y; the remaining question is Z.
+```
+
+Then continue directly into the work. Orientation confirms you are both in the same place;
+it is not a status report and it is not evidence that you read the file.
+
+### Checkpointing
+
+Design conversations produce conclusions faster than they produce artifacts. Persist
+workstream state at meaningful checkpoints — a new workstream, a materially clearer mental
+model, an owner decision, a ready Build Card, a spec issued — not after every exchange. The
+full list, and what to do when the design agent cannot write to GitHub, is in
+`framework/WORKSTREAMS.md`.
+
+One rule from that document is worth repeating here, because the Design Room is where it is
+most easily broken: **never claim that state has been written to GitHub when it has not.**
+
+---
+
 ## Anti-patterns
 
 | Anti-pattern | What it looks like | Why it hurts |
@@ -246,3 +315,6 @@ Structure, contents, and the owner-decision / discretion / escalation split:
 | Card bloat | A Build Card that takes five minutes and mentions modules | Owner stops reading; the contract goes unread |
 | Silent resolution | An ambiguity resolved quietly during spec writing | The owner learns the answer from the shipped product |
 | Infinite exploration | Stages A–C looping with no card | Nothing gets built; the owner loses confidence |
+| Chat as memory | Resuming from what the agent remembers rather than the workstream file | The design drifts from the system it is changing |
+| Ceremonial orientation | Re-summarizing goal, model, and settled decisions every session | The owner stops reading the orientation that matters |
+| Phantom persistence | "I've updated the workstream" without write access | Destroys the guarantee the memory layer exists to provide |

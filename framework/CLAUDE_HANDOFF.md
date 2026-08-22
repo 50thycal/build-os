@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.1**
+**Build OS v0.2**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -42,8 +42,18 @@ body describes the PR as it stands now, not as it stood at first push.
 
 **6. Update project memory where required.**
 `PROJECT_MODEL.md` when architecture, flows, invariants, or system responsibilities
-materially changed. `DECISIONS.md` when a consequential decision was made. These are
-commits in the same PR, not a follow-up task. See `framework/PROJECT_MEMORY.md`.
+materially changed. `DECISIONS.md` when a consequential decision was made. The workstream
+file and `ACTIVE.md` when the change belongs to a workstream — at minimum its `Phase`,
+`Status`, `Updated`, `Implementation State`, `Related PRs`, and `Next Step`. These are
+commits in the same PR, not a follow-up task. See `framework/PROJECT_MEMORY.md` and
+`framework/WORKSTREAMS.md`.
+
+**7. Apply any repository-update block supplied with the spec.**
+A design agent that can read but not write to GitHub hands over its checkpoint as a precise
+update block — exact file, exact fields, exact replacement text. Applying it is part of the
+implementation, not optional cleanup: until it lands, the design work it records exists only
+in a chat window. Apply it as given; if it conflicts with what was actually built, apply
+what is true and say so under *Spec Deviations*.
 
 ---
 
@@ -124,6 +134,16 @@ the bodies are — where the logic is subtle, where a spec requirement was hard 
 where a decision could reasonably have gone the other way. Naming three specific places
 beats "please review carefully."
 
+### Workstream
+
+The workstream ID, its phase before and after this PR, and whether the PR completes it.
+`None` if the change does not belong to one.
+
+```markdown
+WS-001 — Procurement redesign. BUILDING → REVIEW. Does not complete the workstream; the
+cost-clock tuning pass is still to come.
+```
+
 ### Follow-up Work
 Intentional deferrals, with the reason each was deferred. Distinguish "out of scope per
 the Build Card's non-goals" from "should be done soon" from "will become a problem at
@@ -195,6 +215,8 @@ Before considering the work complete:
 - [ ] *Major Areas Changed* explains shape, not a file dump
 - [ ] `PROJECT_MODEL.md` updated if architecture, flows, invariants, or responsibilities changed
 - [ ] `DECISIONS.md` entry added for any consequential decision
+- [ ] Workstream file and `ACTIVE.md` updated: phase, status, implementation state, PR, next step
+- [ ] Any repository-update block supplied by the design agent has been applied
 - [ ] Owner Summary is under ~100 words and free of jargon
 - [ ] The final chat response is two or three lines
 

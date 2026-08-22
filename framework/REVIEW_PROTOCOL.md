@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.1**
+**Build OS v0.2**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -11,6 +11,10 @@ The reviewer compares:
 ```text
 Build Card  →  Build Spec  →  PR Handoff  →  Actual Code  →  Tests
 ```
+
+Where the change belongs to a workstream, the workstream file is read first — it says which
+Build Card is current, which decisions the owner settled, and what the effort was and was
+not meant to cover.
 
 **Do not simply trust Claude's handoff. Validate the actual implementation.**
 
@@ -37,6 +41,11 @@ review exists to find.
 4. **Actual code** — the diff, and enough surrounding code to know whether the diff is
    correct in context. A diff can be individually correct and collectively wrong.
 5. **Tests** — what they actually assert. Run them if you can.
+
+If the change belongs to a workstream (`WS-###`), read that file before step 1. It is the
+fastest way to load the effort's context — its goal, its non-goals, the decisions already
+settled, and whether this PR is meant to complete the workstream or only part of it. A PR
+that lands mid-workstream is not measured against the whole Build Card.
 
 ---
 
@@ -136,6 +145,25 @@ Check the Build Card's non-goals: did any get quietly built? Check the blast rad
 changed shared code — a modified utility function can change behavior in ten call sites
 nobody looked at.
 
+### 10. Does the workstream's recorded state match what happened?
+
+Where the change belongs to a workstream, check the file was checkpointed:
+
+- Is the phase right? A merged PR that completes the effort should not leave the workstream
+  in `BUILDING`.
+- Do `Implementation State` and `Related PRs` name this PR?
+- Were decisions made during implementation recorded — in `Decisions Made` if they were the
+  owner's, in `DECISIONS.md` if they were consequential?
+- If the workstream is marked `COMPLETE`, did steps 2 and 3 of the completion sequence
+  actually happen (see `framework/WORKSTREAMS.md`)? A `COMPLETE` workstream whose outcome
+  never reached `PROJECT_MODEL.md` is a false record, and the next agent will act on it.
+- If a design agent supplied a repository-update block because it could not write to GitHub,
+  was it applied?
+
+This is deliberately the last item, and it is cheap to check. It is here because the memory
+layer decays silently: nothing breaks today when a workstream is left stale, and everything
+is harder in three weeks.
+
 ---
 
 ## Severity
@@ -189,6 +217,9 @@ would not want as built. Each with options and a recommendation.
 ### Recommended next action
 One clear instruction: merge; merge and file the follow-ups; fix the blocking items and
 re-review; answer the decisions above first.
+
+Where the change belongs to a workstream, say what happens to it: does this PR complete it,
+or does it return to `BUILDING` with the findings above?
 
 Template: `templates/REVIEW_SUMMARY.template.md`
 

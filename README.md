@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.1** — a reusable development framework for building software with a human
+**Build OS v0.2** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -18,6 +18,11 @@ can say why the system behaves the way it does, what was decided deliberately, o
 was quietly improvised.
 
 Chat is a good place to think and a terrible place to remember.
+
+It fails a second way once a project has more than one thing going on. Design happens across
+many conversations, in more than one tool, over weeks. Four efforts are live at once, each in
+a different state, and the only thing holding their state together is the owner's memory of
+which chat said what.
 
 ---
 
@@ -51,6 +56,13 @@ and it trusts the last two most.
 `PROJECT_MODEL.md` answers *how does this system work today?* `DECISIONS.md` answers
 *why does it work this way?* Any agent, on any day, should be able to read those two
 files and be useful.
+
+**Parallel design threads need durable state, not chat history.**
+A project runs several efforts at once. Each is a **workstream** with a stable ID, a phase,
+and a file in the repository recording what has been settled and what has not.
+`workstreams/` answers *what are we currently designing and building, and what remains?* A
+new conversation reads it and resumes; it never asks the owner to paste in old transcripts.
+Conclusions, models, decisions, and open questions are persisted — never whole transcripts.
 
 ---
 
@@ -86,6 +98,17 @@ Project Memory Update  (PROJECT_MODEL.md, DECISIONS.md)
 Each arrow is a handoff, and each handoff has a defined artifact. Work does not move
 forward on the strength of "we discussed it."
 
+That lifecycle is one **workstream**. Several run at once, each in its own phase, each with
+durable state in the repository:
+
+```text
+IDEA → EXPLORE → MODEL → DECIDE → BUILD_CARD → READY_TO_BUILD → BUILDING → REVIEW → COMPLETE
+                                                        ( PAUSED · BLOCKED · ABANDONED )
+```
+
+The two views are the same process: the stages above are what happens, the phases here are
+where each effort currently is. See `framework/WORKSTREAMS.md`.
+
 ---
 
 ## Roles
@@ -93,7 +116,7 @@ forward on the strength of "we discussed it."
 | Role | Owns | Does not own |
 |---|---|---|
 | **Owner** (human) | Product intent, decisions surfaced in Design Room, approval of the Build Card | Reviewing the Build Spec line by line |
-| **Design agent** (e.g. ChatGPT) | Exploration, the mental model, surfacing decisions, the Build Card, faithful translation into the Build Spec | Choosing product behavior on the owner's behalf |
+| **Design agent** (e.g. ChatGPT) | Exploration, the mental model, surfacing decisions, the Build Card, faithful translation into the Build Spec, checkpointing workstream state | Choosing product behavior on the owner's behalf |
 | **Implementation agent** (e.g. Claude) | Code, tests, validation, the PR handoff, memory updates | Changing owner-approved behavior |
 | **Reviewer** (human or a separate agent) | Verifying code against intent, the owner-facing review summary | Rewriting the feature |
 | **GitHub** | The durable record | Nothing else — it is a filing cabinet, not a participant |
@@ -107,10 +130,12 @@ forward on the strength of "we discussed it."
 | `framework/DESIGN_ROOM.md` | The five-stage design process: Explore → Model → Decide → Build Card → Build Spec |
 | `framework/BUILD_SPEC.md` | The standard implementation packet, and the owner-decision / discretion / escalation split |
 | `framework/CLAUDE_HANDOFF.md` | What the implementation agent must do, and what the PR handoff must contain |
-| `framework/PROJECT_MEMORY.md` | The two durable artifacts and the rules for maintaining them |
+| `framework/PROJECT_MEMORY.md` | The three durable memory layers and the rules for maintaining them |
+| `framework/WORKSTREAMS.md` | Parallel design threads: lifecycle, workstream files, the active-work board, checkpointing, and the GitHub capability boundary |
 | `framework/REVIEW_PROTOCOL.md` | Independent review after implementation |
-| `templates/` | Fill-in templates for each artifact — Build Card, Build Spec, PR handoff, review summary, project model, decisions |
+| `templates/` | Fill-in templates for each artifact — Build Card, Build Spec, PR handoff, review summary, project model, decisions, workstream, active work, ChatGPT Project instructions |
 | `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish |
+| `examples/WORKSTREAM_SCENARIO.example.md` | Five parallel workstreams, and a new conversation resuming from repository memory alone |
 | `VERSION.md` | The canonical version identifier and what each version level means |
 | `DECISIONS.md` | Build OS's own decision log — the framework dogfoods its protocol |
 
@@ -118,20 +143,37 @@ forward on the strength of "we discussed it."
 
 ## Adopting Build OS in another repository
 
-Build OS is referenced, not forked. Adopting it in a project takes four steps.
+Build OS is referenced, not forked. Adopting it in a project takes five steps.
 
 **1. Create the project's memory files.**
 
 ```bash
-mkdir -p docs
+mkdir -p docs/workstreams
 BASE=https://raw.githubusercontent.com/50thycal/build-os/main/templates
 curl -sL $BASE/PROJECT_MODEL.template.md -o docs/PROJECT_MODEL.md
 curl -sL $BASE/DECISIONS.template.md     -o docs/DECISIONS.md
+curl -sL $BASE/ACTIVE_WORK.template.md   -o docs/workstreams/ACTIVE.md
 ```
 
-Or copy them by hand. Fill in `PROJECT_MODEL.md` with how the system works *today*, even
-if the description is rough — a rough true model beats an empty file. Leave `DECISIONS.md`
-empty except for the header until there is a real decision to record.
+Or copy them by hand:
+
+```text
+docs/
+├── PROJECT_MODEL.md     how the system works today
+├── DECISIONS.md         why it works this way
+└── workstreams/
+    ├── ACTIVE.md        what is in flight right now
+    └── WS-###-<slug>.md one file per design/build thread
+```
+
+Fill in `PROJECT_MODEL.md` with how the system works *today*, even if the description is
+rough — a rough true model beats an empty file. Leave `DECISIONS.md` empty except for the
+header until there is a real decision to record. Then add a workstream file for each effort
+already in flight; an existing project usually has three or four, and writing them down is
+the first time anyone sees the whole board.
+
+A repository with a strong existing documentation convention can put these elsewhere —
+preserve the three-layer structure, and name the location in `CLAUDE.md`.
 
 **2. Point the project at Build OS.**
 
@@ -140,25 +182,45 @@ Add to the project's `CLAUDE.md` (or equivalent agent instructions file):
 ```markdown
 ## Development protocol
 
-This project follows **Build OS v0.1** — see 50thycal/build-os.
+This project follows **Build OS v0.2** — see 50thycal/build-os.
 
-- Features arrive as a Build Card plus a Build Spec. Implement to the spec.
+- Project memory lives in `docs/`: `PROJECT_MODEL.md` (how the system works today),
+  `DECISIONS.md` (why), and `workstreams/` (what is being designed and built now).
+- Features arrive as a Build Card plus a Build Spec, belonging to a workstream. Implement
+  to the spec.
 - Owner decisions in the spec may not be silently changed. Implementation discretion is yours.
 - Finish by pushing a branch, opening a PR, and writing the Implementation Handoff into
   the PR body per `framework/CLAUDE_HANDOFF.md`. The PR is the handoff; chat is not.
 - Update `docs/PROJECT_MODEL.md` when architecture, flows, invariants, or responsibilities
-  materially change. Add a `docs/DECISIONS.md` entry for consequential choices.
+  materially change. Add a `docs/DECISIONS.md` entry for consequential choices. Update the
+  workstream file and `docs/workstreams/ACTIVE.md` with phase, PR, and next step.
+- Apply any repository-update block the design agent supplied with the spec.
 - Keep the final chat response minimal — one or two lines and the PR reference.
 ```
 
-**3. Add the templates the team will actually use.**
+**3. Set up the Design Room.**
 
-Copy `templates/BUILD_CARD.template.md` and `templates/PR_HANDOFF.template.md` into the
-project (commonly `.github/` or `docs/templates/`). Wiring `PR_HANDOFF.template.md` up as
+Create one ChatGPT Project for this repository and paste
+`templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md` into its custom instructions, replacing
+the placeholder:
+
+```text
+Canonical repository: <OWNER/REPOSITORY>
+```
+
+Every design conversation for the project happens in chats inside that Project. Each chat
+starts a workstream, resumes one, reviews an implementation, or investigates a question —
+and none of them is the record.
+
+**4. Add the templates the team will actually use.**
+
+Copy `templates/BUILD_CARD.template.md`, `templates/PR_HANDOFF.template.md`, and
+`templates/WORKSTREAM.template.md` into the project (commonly `.github/` or
+`docs/templates/`). Wiring `PR_HANDOFF.template.md` up as
 `.github/pull_request_template.md` is a good default — it makes the handoff structure the
 path of least resistance.
 
-**4. Record the adoption.**
+**5. Record the adoption.**
 
 Add the first entry to the project's `DECISIONS.md`:
 
@@ -189,4 +251,4 @@ slowly rotting variant of the same process, with no way to tell which one is cur
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.1** — see `VERSION.md`.
+**Current version: Build OS v0.2** — see `VERSION.md`.

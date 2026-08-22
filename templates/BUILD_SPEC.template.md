@@ -4,7 +4,7 @@
      Mark sections that don't apply as `N/A` rather than deleting them.
      Number everything — OD-n, R-n, AC-n — so handoffs and reviews can reference it. -->
 
-**Build Card:** <link> · **Build OS v0.1**
+**Workstream:** WS-### · **Build Card:** <link> · **Build OS v0.2**
 
 ---
 
@@ -107,6 +107,11 @@ Illegal transitions: <what happens.>
 
 - [ ] `PROJECT_MODEL.md` — <which sections>
 - [ ] `DECISIONS.md` — <expected decisions>
+- [ ] `docs/workstreams/WS-###-<slug>.md` — phase, implementation state, PR, next step
+- [ ] `docs/workstreams/ACTIVE.md` — row for WS-###
+
+<!-- If the design agent could not write to GitHub, put its precise repository-update block
+     here for the implementation agent to apply. -->
 
 ## 20. Handoff requirements
 

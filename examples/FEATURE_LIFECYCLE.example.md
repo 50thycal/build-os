@@ -1,6 +1,6 @@
 # Worked Example — a feature through the full lifecycle
 
-**Build OS v0.1**
+**Build OS v0.2**
 
 A fictional product, taken end to end. The product is **Harbour**, an invoicing tool for
 freelancers. Harbour sends invoices, tracks whether they are paid, and chases overdue ones
@@ -9,6 +9,10 @@ with automatic reminder emails.
 Nothing here is real. It exists to show the shape of each artifact and how one feeds the
 next. The example is deliberately imperfect in one place — the review finds a real defect
 and an undisclosed deviation, because that is what review is for.
+
+In workstream terms this is **WS-011 — Client payment claims**, taken from `IDEA` to
+`COMPLETE` in a single pass. For several workstreams running in parallel at different
+phases, see `WORKSTREAM_SCENARIO.example.md`.
 
 Contents:
 
@@ -198,7 +202,7 @@ told about it as it happens.
 ```markdown
 # Build Card — Client payment claims
 
-**Status:** Approved · **Date:** 2026-02-04 · **Build Spec:** docs/specs/2026-02-payment-claims.md
+**Workstream:** WS-011 · **Status:** Approved · **Date:** 2026-02-04 · **Build Spec:** docs/specs/2026-02-payment-claims.md
 
 ## Goal
 Stop chasing clients who have already paid, without giving up the ability to chase clients
@@ -350,8 +354,8 @@ full.
 ```markdown
 # Implementation Handoff
 
-**Build Card:** docs/cards/2026-02-payment-claims.md ·
-**Build Spec:** docs/specs/2026-02-payment-claims.md · **Build OS v0.1**
+**Workstream:** WS-011 · **Build Card:** docs/cards/2026-02-payment-claims.md ·
+**Build Spec:** docs/specs/2026-02-payment-claims.md · **Build OS v0.2**
 
 ## Goal
 > After this change, the system should stop sending reminders for up to seven days when a
@@ -423,6 +427,9 @@ None
 - `invoices/claims.py::create_claim` — the locking and the R-3 guard
 - Ordering in `jobs/reminders.py::run` — AC-3 depends on it
 - The freelancer-confirms-while-claim-open path in `invoices/state.py`
+
+## Workstream
+WS-011 — Client payment claims. BUILDING → REVIEW. Completes the workstream if review passes.
 
 ## Follow-up Work
 - Index on `(state, claimed_at)` before volume grows (deferred: not needed yet)
@@ -611,6 +618,36 @@ above.
 ## Recommended next action
 Fix the CSV export, then merge. File the database index as a follow-up.
 ```
+
+### Workstream closure
+
+The export fix landed, the PR merged, and WS-011 closed:
+
+```diff
+-**Phase:** REVIEW · **Status:** Active
+-**Updated:** 2026-02-07
++**Phase:** COMPLETE · **Status:** Complete
++**Updated:** 2026-02-10
+
+ ## Review State
+-Not started.
++Reviewed 2026-02-09. One should-fix (CSV export status) corrected in #341 before merge.
++One difference from approved behavior noted and accepted: the 7-day window resolves once
++daily, giving an effective 7–8 days.
+
+ ## Related Decisions
+-None yet.
++DEC-007
+```
+
+`ACTIVE.md` lost its WS-011 row. `PROJECT_MODEL.md` and `DECISIONS.md` were updated in the
+same PR — sections 8 and 9 above. The workstream file stayed where it was, as the record of
+how the design was arrived at.
+
+Note what did *not* happen: the workstream's mental model was not copied into
+`PROJECT_MODEL.md`. The model file got the rule that outlives the feature — client signals
+never determine financial state — while the workstream kept its design-time picture. Three
+files, three jobs.
 
 ### What this demonstrates
 

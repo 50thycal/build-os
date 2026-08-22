@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.1**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.2**
 
 ## Goal
 
@@ -62,6 +62,12 @@ deploy risk.>
 <Where an independent reviewer should scrutinize. Name specific places.>
 
 - 
+
+## Workstream
+
+<!-- ID, phase before → after, and whether this PR completes it. `None` if not applicable. -->
+
+WS-### — <title>. <PHASE> → <PHASE>. <Completes / does not complete> the workstream.
 
 ## Follow-up Work
 

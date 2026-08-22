@@ -3,6 +3,7 @@
 <!-- Owner-facing. Should be understandable in 30–60 seconds. If it takes longer,
      the feature is too big or this card is doing the Build Spec's job. -->
 
+**Workstream:** WS-###
 **Status:** Draft · Approved
 **Date:** YYYY-MM-DD
 **Build Spec:** <link, once written>

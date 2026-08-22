@@ -1,22 +1,47 @@
 # Project Memory
 
-**Build OS v0.1**
+**Build OS v0.2**
 
-Two durable project-level artifacts live in every project that adopts Build OS. Together
-they are the memory that outlives any chat session, any agent, and any individual
-contributor.
+Project memory has **three layers**. Together they are the memory that outlives any chat
+session, any agent, and any individual contributor.
 
-| File | Answers |
-|---|---|
-| `PROJECT_MODEL.md` | **How does this system work today?** |
-| `DECISIONS.md` | **Why does the system work this way?** |
+| Layer | Answers | Shape |
+|---|---|---|
+| `PROJECT_MODEL.md` | **How does the system work today?** | Overwritten; always current |
+| `DECISIONS.md` | **Why does the system work this way?** | Appended; never rewritten |
+| `workstreams/` | **What are we currently designing/building, what have we settled, and what remains?** | Living while active; frozen when done |
 
-Conventional location: `docs/PROJECT_MODEL.md` and `docs/DECISIONS.md`. Anywhere is fine
-as long as it is consistent and the project's `CLAUDE.md` points at it.
+The first two are defined in this document. The third — the active design/build state, one
+file per workstream plus a control board — is defined in `framework/WORKSTREAMS.md`.
+
+Conventional location:
+
+```text
+docs/
+├── PROJECT_MODEL.md
+├── DECISIONS.md
+└── workstreams/
+    ├── ACTIVE.md
+    └── WS-###-<slug>.md
+```
+
+Anywhere is fine as long as it is consistent and the project's `CLAUDE.md` points at it.
 
 These are not optional documentation. They are the mechanism by which an agent that has
 never seen the project becomes useful in ten minutes instead of two hours — and the
 mechanism by which the reasoning behind the system stops evaporating.
+
+**Avoid duplicating large amounts of information between the three.** They describe the same
+system from three angles, and when they drift, nobody knows which one is true. Where they
+overlap, prefer the narrower home and link:
+
+- A model of the system **as it is** belongs in `PROJECT_MODEL.md`. A workstream's mental
+  model describes the system **as it will be**, and is superseded at completion rather than
+  copied forward.
+- An **open** question belongs in the workstream. An accepted and consequential decision
+  belongs in `DECISIONS.md`; the workstream links to the `DEC-n` instead of restating it.
+- Most owner decisions are ordinary product choices that live and die in the Build Card.
+  Only the consequential ones become `DEC-n` entries.
 
 ---
 
@@ -167,28 +192,41 @@ Template: `templates/DECISIONS.template.md`
 
 ---
 
-## How the two files relate
+## How the layers relate
 
 They answer different questions and should not be merged.
 
 `PROJECT_MODEL.md` is **overwritten** as the system changes — it always describes now.
 `DECISIONS.md` is **appended to** — it never describes now, it describes a sequence of
-choices.
+choices. `workstreams/` is **neither**: each file is live and edited while its thread is
+active, then frozen as a historical record when it completes.
 
 A reader who wants to change the system reads the model. A reader who wants to change the
-system *and is about to argue with a past choice* reads the decisions first.
+system *and is about to argue with a past choice* reads the decisions first. A reader who
+wants to know what is in flight reads `workstreams/ACTIVE.md`.
 
 Cross-reference freely: the model can cite `DEC-004` where a constraint exists for a
 recorded reason, and that citation is often the fastest way to stop a bad refactor.
+
+Workstream completion is what feeds the other two layers:
+
+```text
+Workstream outcome    →  PROJECT_MODEL
+Workstream rationale  →  DECISIONS
+```
+
+A workstream marked `COMPLETE` while `PROJECT_MODEL.md` still describes the old behavior has
+moved the problem rather than finished the work.
 
 ---
 
 ## Reviewer's obligation
 
-Review checks both files (see `framework/REVIEW_PROTOCOL.md`, items 6 and 7):
+Review checks all three layers (see `framework/REVIEW_PROTOCOL.md`, items 6, 7, and 10):
 
 - Does `PROJECT_MODEL.md` reflect current reality after this change?
 - Are new consequential decisions captured in `DECISIONS.md`?
+- Does the workstream's recorded state match what actually happened?
 
 Memory that is only maintained when someone remembers to maintain it is memory that
 decays. Making it a review item is what keeps these files true.

@@ -3,7 +3,7 @@
 <!-- Owner-facing. Must be understandable without reading the PR. No file names, no
      function names, no diffs. Findings from the code, not from the handoff. -->
 
-**PR:** <link> · **Build Card:** <link> · **Reviewer:** <name> · **Date:** YYYY-MM-DD
+**PR:** <link> · **Workstream:** WS-### · **Build Card:** <link> · **Reviewer:** <name> · **Date:** YYYY-MM-DD
 
 ## Verdict
 
@@ -40,7 +40,8 @@ None
 
 ## Recommended next action
 
-<One clear instruction.>
+<One clear instruction. Where this belongs to a workstream, say what happens to it: does
+this PR complete it, or does it return to BUILDING with the findings above?>
 
 ---
 

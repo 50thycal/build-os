@@ -4,7 +4,7 @@
      Consequential decisions only. Never rewrite an accepted entry because architecture
      later changed — supersede it with a new one and update only the old status line. -->
 
-**Build OS v0.2**
+**Build OS v0.3**
 
 ---
 

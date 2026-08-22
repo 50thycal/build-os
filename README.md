@@ -1,0 +1,192 @@
+# Build OS
+
+**Build OS v0.1** — a reusable development framework for building software with a human
+owner, a design agent, an implementation agent, and GitHub.
+
+Build OS is not an application. It is a protocol: a set of documents, roles, and
+artifacts that govern how work moves from a vague idea to reviewed, shipped code —
+and how the understanding behind that code survives after the chat window closes.
+
+---
+
+## The problem it solves
+
+Working with agents tends to fail in a specific way. The idea is discussed in a chat.
+The agent writes a large specification. The human skims it, because it is written for a
+machine. Code appears. It mostly works. Three weeks later nobody — human or agent —
+can say why the system behaves the way it does, what was decided deliberately, or what
+was quietly improvised.
+
+Chat is a good place to think and a terrible place to remember.
+
+---
+
+## Philosophy
+
+**GitHub is durable shared memory.**
+Branches, pull requests, and committed documents are the record. If a decision, a
+deviation, or an architectural change exists only in a chat transcript, it does not exist.
+
+**Chat interfaces are temporary transport.**
+Design Room conversations and implementation sessions are how work moves, not where it
+lives. Every session should end with the durable artifact updated in the repository.
+
+**Humans should understand behavior without reading agent-oriented specifications.**
+The Build Card is the owner's contract with the system: what it will do, in plain
+language, in under a minute. The Build Spec is exhaustive and written for the
+implementation agent. The owner is not expected to read it line by line, and the
+framework is designed so they do not have to.
+
+**Product decisions and implementation decisions are separated.**
+Whether a paused subscription keeps its seats is a product decision. Whether that state
+lives in an enum column or a join table is not. Conflating the two either drowns the
+owner in detail or lets an agent silently redesign the product.
+
+**Actual code must be independently checked against design intent.**
+An implementation agent's own account of its work is a claim, not evidence. Review reads
+the Build Card, the Build Spec, the handoff, and then the code and tests — in that order,
+and it trusts the last two most.
+
+**Architecture and decisions must survive individual chat sessions and agents.**
+`PROJECT_MODEL.md` answers *how does this system work today?* `DECISIONS.md` answers
+*why does it work this way?* Any agent, on any day, should be able to read those two
+files and be useful.
+
+---
+
+## The lifecycle
+
+```text
+Abstract Idea
+      │
+      ▼
+Design Room ──────────────► Mental Model ──────► Decisions
+(explore, question,          (compact,            (only what needs
+ challenge, alternatives)     diagrammable)        owner judgment)
+      │
+      ▼
+Build Card  ◄── the owner reads this (30–60 seconds)
+      │
+      ▼
+Build Spec  ◄── the implementation agent reads this (exhaustive)
+      │
+      ▼
+Claude Implementation
+      │
+      ▼
+GitHub PR Handoff  ◄── authoritative record of what was actually built
+      │
+      ▼
+Independent Review  ◄── code and tests checked against intent
+      │
+      ▼
+Project Memory Update  (PROJECT_MODEL.md, DECISIONS.md)
+```
+
+Each arrow is a handoff, and each handoff has a defined artifact. Work does not move
+forward on the strength of "we discussed it."
+
+---
+
+## Roles
+
+| Role | Owns | Does not own |
+|---|---|---|
+| **Owner** (human) | Product intent, decisions surfaced in Design Room, approval of the Build Card | Reviewing the Build Spec line by line |
+| **Design agent** (e.g. ChatGPT) | Exploration, the mental model, surfacing decisions, the Build Card, faithful translation into the Build Spec | Choosing product behavior on the owner's behalf |
+| **Implementation agent** (e.g. Claude) | Code, tests, validation, the PR handoff, memory updates | Changing owner-approved behavior |
+| **Reviewer** (human or a separate agent) | Verifying code against intent, the owner-facing review summary | Rewriting the feature |
+| **GitHub** | The durable record | Nothing else — it is a filing cabinet, not a participant |
+
+---
+
+## The documents
+
+| File | Purpose |
+|---|---|
+| `framework/DESIGN_ROOM.md` | The five-stage design process: Explore → Model → Decide → Build Card → Build Spec |
+| `framework/BUILD_SPEC.md` | The standard implementation packet, and the owner-decision / discretion / escalation split |
+| `framework/CLAUDE_HANDOFF.md` | What the implementation agent must do, and what the PR handoff must contain |
+| `framework/PROJECT_MEMORY.md` | The two durable artifacts and the rules for maintaining them |
+| `framework/REVIEW_PROTOCOL.md` | Independent review after implementation |
+| `templates/` | Fill-in templates for each artifact — Build Card, Build Spec, PR handoff, review summary, project model, decisions |
+| `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish |
+| `VERSION.md` | The canonical version identifier and what each version level means |
+| `DECISIONS.md` | Build OS's own decision log — the framework dogfoods its protocol |
+
+---
+
+## Adopting Build OS in another repository
+
+Build OS is referenced, not forked. Adopting it in a project takes four steps.
+
+**1. Create the project's memory files.**
+
+```bash
+mkdir -p docs
+BASE=https://raw.githubusercontent.com/50thycal/build-os/main/templates
+curl -sL $BASE/PROJECT_MODEL.template.md -o docs/PROJECT_MODEL.md
+curl -sL $BASE/DECISIONS.template.md     -o docs/DECISIONS.md
+```
+
+Or copy them by hand. Fill in `PROJECT_MODEL.md` with how the system works *today*, even
+if the description is rough — a rough true model beats an empty file. Leave `DECISIONS.md`
+empty except for the header until there is a real decision to record.
+
+**2. Point the project at Build OS.**
+
+Add to the project's `CLAUDE.md` (or equivalent agent instructions file):
+
+```markdown
+## Development protocol
+
+This project follows **Build OS v0.1** — see 50thycal/build-os.
+
+- Features arrive as a Build Card plus a Build Spec. Implement to the spec.
+- Owner decisions in the spec may not be silently changed. Implementation discretion is yours.
+- Finish by pushing a branch, opening a PR, and writing the Implementation Handoff into
+  the PR body per `framework/CLAUDE_HANDOFF.md`. The PR is the handoff; chat is not.
+- Update `docs/PROJECT_MODEL.md` when architecture, flows, invariants, or responsibilities
+  materially change. Add a `docs/DECISIONS.md` entry for consequential choices.
+- Keep the final chat response minimal — one or two lines and the PR reference.
+```
+
+**3. Add the templates the team will actually use.**
+
+Copy `templates/BUILD_CARD.template.md` and `templates/PR_HANDOFF.template.md` into the
+project (commonly `.github/` or `docs/templates/`). Wiring `PR_HANDOFF.template.md` up as
+`.github/pull_request_template.md` is a good default — it makes the handoff structure the
+path of least resistance.
+
+**4. Record the adoption.**
+
+Add the first entry to the project's `DECISIONS.md`:
+
+```markdown
+### DEC-001 — Adopt Build OS for development workflow
+**Date:** YYYY-MM-DD · **Status:** Accepted
+...
+```
+
+That is the whole adoption. No dependencies, no tooling, no build step.
+
+---
+
+## Evolving Build OS
+
+Build OS improves through **versioned changes to this repository**, not by copying
+divergent instructions into every project.
+
+When a project discovers that the protocol is wrong, incomplete, or awkward:
+
+1. Fix it here, in this repository, as a normal PR.
+2. Bump the version in `VERSION.md` according to the rules there.
+3. Record consequential protocol changes in this repository's own `DECISIONS.md`.
+4. Projects upgrade by updating the version they reference in their `CLAUDE.md`.
+
+The failure mode this prevents is a fleet of projects each running a slightly different,
+slowly rotting variant of the same process, with no way to tell which one is current.
+If a project genuinely needs different behavior, that is either a project-specific
+addendum clearly marked as such, or evidence that Build OS itself should change.
+
+**Current version: Build OS v0.1** — see `VERSION.md`.

@@ -8,7 +8,7 @@
 
 **Canonical repository: `<OWNER/REPOSITORY>`**
 
-This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.2**
+This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.3**
 (github.com/50thycal/build-os). Every conversation in this project is a session in that
 Design Room.
 
@@ -24,6 +24,24 @@ The repository is authoritative, not this chat:
 Conversational memory may enrich these records. It does not override them. If what you
 remember contradicts what the repository says, **surface the conflict** rather than picking
 a side silently.
+
+## Framework version
+
+The repository's `CLAUDE.md` records which Build OS version this project follows. Before
+substantial design work — a new workstream, resuming one, or writing a Build Spec — compare
+it against `VERSION.md` in the canonical repository.
+
+- **Same** — continue, say nothing.
+- **Canonical newer** — read the migration notes between the two versions, tell me in a line
+  or two what changed and whether it affects us, apply what the notes require to our protocol
+  files, then continue under the new version.
+- **Can't reach the canonical repo** — say the check couldn't be done and continue under the
+  pinned version. Never record a check that didn't happen.
+
+Don't blindly adopt whatever is on `main` without reading the delta, and don't quietly keep
+working under an old version. Rules in our `CLAUDE.md` marked `Project-specific:` are ours,
+not Build OS — if one conflicts with a newer Build OS requirement, tell me rather than
+picking one.
 
 ## Starting a session
 

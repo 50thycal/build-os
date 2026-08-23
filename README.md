@@ -133,6 +133,9 @@ where each effort currently is. See `framework/WORKSTREAMS.md`.
 | `framework/PROJECT_MEMORY.md` | The three durable memory layers and the rules for maintaining them |
 | `framework/WORKSTREAMS.md` | Parallel design threads: lifecycle, workstream files, the active-work board, checkpointing, and the GitHub capability boundary |
 | `framework/REVIEW_PROTOCOL.md` | Independent review after implementation |
+| `framework/AGENT_SESSION_CHECKPOINT.md` | Protocol contract: how agents publish session state — never transcripts |
+| `framework/BUILD_OS_PARSE_CONTRACT.md` | Protocol contract: the subset of Build OS artifacts machine consumers may rely on |
+| `contracts/` | Machine-readable schemas for the contracts above |
 | `templates/` | Fill-in templates for each artifact — Build Card, Build Spec, PR handoff, review summary, project model, decisions, workstream, active work, ChatGPT Project instructions |
 | `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish |
 | `examples/WORKSTREAM_SCENARIO.example.md` | Five parallel workstreams, and a new conversation resuming from repository memory alone |

@@ -200,3 +200,174 @@ block an explicit step of the handoff protocol closes the loop.
 - "Phantom persistence" is named as an anti-pattern in both `WORKSTREAMS.md` and
   `DESIGN_ROOM.md`, because it is the single failure that would make the whole memory layer
   worthless.
+
+---
+
+### DEC-008 — The Project Intelligence Companion is a separate application, staged out of this repository
+
+**Date:** 2026-08-23
+**Status:** Accepted
+
+<!-- DEC-006 and DEC-007 are reserved by the open Build OS v0.3 pull request. -->
+
+**Context**
+Build OS defines itself as a protocol, not an application: documentation, templates, and
+contracts, with no code, dependencies, or services. The Companion (design PR #4,
+`plans/PROJECT_INTELLIGENCE_FEED.md`) is the opposite — a web service with a database,
+background workers, GitHub authentication, and eventually an audio pipeline. Putting it in this
+repository would make "Build OS is a protocol" false the moment the first dependency lands.
+
+**Decision**
+The Companion application targets a dedicated repository, `50thycal/build-os-companion`.
+Protocol contracts and Build OS integration specifications stay here:
+`framework/AGENT_SESSION_CHECKPOINT.md`, `framework/BUILD_OS_PARSE_CONTRACT.md`, and
+`contracts/`.
+
+Because that repository does not exist yet and could not be created from the implementing
+session, the move is **staged**:
+
+1. Phase 0 — pure domain, parsers, attention rules, fixtures, and tests — lands here as a
+   self-contained package under `companion/`, with its own manifest and no imports from anything
+   outside that directory.
+2. The package is extracted to `50thycal/build-os-companion` before any infrastructure —
+   database, web server, authentication, hosting — is added.
+
+**Rationale**
+The boundary matters more than the timing. A self-contained package with its own manifest can be
+extracted in one commit; a Companion whose modules reach into the protocol documentation cannot
+be extracted at all. Staging lets the domain work proceed immediately, which is what the owner
+asked for, without pre-committing this repository to housing a web service.
+
+Phase 0 is also the safest thing to host temporarily: it is pure logic with test-only
+dependencies, so this repository gains nothing that would survive the extraction.
+
+**Alternatives considered**
+- **Build the whole Companion here under `companion/`.** Simplest today. Rejected: the first
+  Postgres migration and the first server process turn the protocol repository into an
+  application repository, and nothing later un-does that.
+- **Block until the dedicated repository exists.** Cleanest boundary. Rejected: the owner
+  explicitly asked that this question not block the domain-model work, and the domain model is
+  the part that most needs to be settled early.
+- **Split protocol contracts into a third repository.** Rejected: the contracts describe Build OS
+  artifacts, so they belong with Build OS. A third repository would be one more thing to keep in
+  version step.
+
+**Consequences**
+- The extraction is a scheduled, named piece of work rather than a vague intention. Until it
+  happens, `companion/` must not import from outside itself, and this repository must not gain
+  runtime dependencies on its account.
+- `50thycal/build-os-companion` must be created by the owner; the implementing session's GitHub
+  app could not create repositories.
+- The Companion's workstream board lives in `docs/workstreams/` here for now and moves with the
+  package. Build OS thereby runs its own protocol on itself, which had been an open follow-up
+  since v0.2.
+
+---
+
+### DEC-009 — One normalized event ledger; the feed and the podcast are renderers
+
+**Date:** 2026-08-23
+**Status:** Accepted
+
+**Context**
+The Companion has to answer both "what changed across my projects" on screen and "read me a
+catch-up" as audio. The obvious implementation — a feed that reads GitHub directly, and a
+briefing generator that also reads GitHub directly — produces two pipelines over the same
+sources.
+
+**Decision**
+All sources normalize into one append-only event ledger. A state projection is built from it.
+Feed, written briefing, and podcast are renderers over that shared state and have no source
+access of their own.
+
+Every event carries a `source_fingerprint` derived from the source facts, making ingestion
+idempotent, and provenance identifying exactly which source produced it.
+
+When sources disagree, precedence is fixed:
+
+```text
+canonical Build OS artifact in GitHub
+    > GitHub PR / review / CI state
+    > explicit agent session checkpoint
+    > AI-derived inference
+```
+
+Disagreements are surfaced, never silently merged. LLM output is derived content and may never
+become canonical state.
+
+**Rationale**
+Two pipelines over one set of sources drift, and the drift shows up as the feed and the podcast
+telling the owner different things — at which point the owner has to reconcile them, which is
+the burden the product exists to remove. The plan names this as a failure condition outright.
+
+Idempotency and precedence are cheap to build in and effectively impossible to retrofit: they
+determine the shape of the ledger table and the ingestion path.
+
+**Alternatives considered**
+- **Query GitHub per renderer, cache aggressively.** Simpler, no ledger. Rejected: no history, so
+  "what changed since I last checked" cannot be answered, and each renderer re-derives meaning
+  independently.
+- **Store raw webhook payloads and interpret at read time.** Rejected: pushes interpretation into
+  every renderer, which is the drift problem in a different place.
+- **Let an LLM resolve source conflicts.** Rejected: conflicts are precisely where the owner
+  needs to see both facts, and a plausible merge is worse than a visible contradiction.
+
+**Consequences**
+- Ingestion must compute a stable fingerprint per source fact before writing. Getting this wrong
+  produces duplicate feed cards, which is the most visible possible failure.
+- The written briefing becomes a required intermediate for the podcast — it is the layer where
+  factual errors are caught before they are spoken.
+- Adding a renderer later (weekly retrospective, notifications, health scoring) is cheap, because
+  none of them need source access.
+
+---
+
+### DEC-010 — Agent session checkpoints carry state, never transcripts
+
+**Date:** 2026-08-23
+**Status:** Accepted
+
+**Context**
+Between durable Build OS checkpoints there is a visibility gap: an agent may work for hours with
+nothing observable outside its chat window. The obvious fix is to read the transcript. Build OS
+exists partly to prevent exactly that, and DEC-002 and DEC-004 already say chat is transport,
+not memory.
+
+**Decision**
+Agents publish structured session checkpoints describing state — objective, phase, completed,
+in progress, blockers, next step, related PR — against
+`contracts/agent-session-checkpoint.v1.schema.json`. The schema has no field capable of holding
+conversation text and sets `additionalProperties: false` so one cannot be added by accident.
+
+A checkpoint committed to GitHub is durable and authoritative. A checkpoint posted to a service
+is ephemeral, marked derived, and outranked by durable state.
+
+`UNKNOWN` is excluded from the status enum: a session that stops checkpointing is assigned
+`UNKNOWN` by the consumer. Silence never becomes `COMPLETED`.
+
+**Rationale**
+State is what anyone actually needs — the owner wants to know whether a session is live, on
+what, and whether it is stuck. A transcript is a recording of thinking, unreadable at volume, and
+making it the integration would quietly reinstate chat as the source of truth.
+
+Excluding `UNKNOWN` from the enum enforces the important asymmetry in the schema rather than in
+prose: an agent can report what it knows, but only a consumer can conclude that a session went
+quiet.
+
+**Alternatives considered**
+- **Scrape transcripts.** Richest data, zero agent cooperation required. Rejected on the
+  framework's central principle, and because it makes an unreviewable artifact load-bearing.
+- **Infer session state from commit and CI patterns.** No agent cooperation needed. Rejected:
+  inference is bottom of the precedence order for good reason, and a wrong inference about
+  whether work is live is exactly the error the owner would act on.
+- **Let agents report `UNKNOWN`.** Rejected: it invites an agent to close out its own ambiguity,
+  which is the one thing it cannot do honestly.
+
+**Consequences**
+- Adoption depends on the checkpoint being one small POST. Anything heavier will not be called,
+  and the contract is deliberately small for that reason.
+- Consumers must run a staleness sweep, and must show a checkpoint that contradicts GitHub as a
+  contradiction rather than resolving it.
+- The visibility gap narrows but does not close: a session that never checkpoints is invisible,
+  which is the correct outcome — invisible is honest, inferred is not.
+

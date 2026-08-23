@@ -1,6 +1,6 @@
 # Worked Example — a feature through the full lifecycle
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 A fictional product, taken end to end. The product is **Harbour**, an invoicing tool for
 freelancers. Harbour sends invoices, tracks whether they are paid, and chases overdue ones
@@ -355,7 +355,7 @@ full.
 # Implementation Handoff
 
 **Workstream:** WS-011 · **Build Card:** docs/cards/2026-02-payment-claims.md ·
-**Build Spec:** docs/specs/2026-02-payment-claims.md · **Build OS v0.2**
+**Build Spec:** docs/specs/2026-02-payment-claims.md · **Build OS v0.4**
 
 ## Goal
 > After this change, the system should stop sending reminders for up to seven days when a
@@ -427,6 +427,12 @@ None
 - `invoices/claims.py::create_claim` — the locking and the R-3 guard
 - Ordering in `jobs/reminders.py::run` — AC-3 depends on it
 - The freelancer-confirms-while-claim-open path in `invoices/state.py`
+
+## Framework
+Framework:
+- Project adopted: v0.3
+- Canonical checked: v0.3
+- Compatibility: current
 
 ## Workstream
 WS-011 — Client payment claims. BUILDING → REVIEW. Completes the workstream if review passes.

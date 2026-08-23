@@ -1,6 +1,6 @@
 # Worked Example — five parallel workstreams, one new conversation
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 This is the acceptance scenario for the workstream protocol. A fictional project —
 **Meridian**, a digital strategy board game — has five design/build threads that have run
@@ -44,7 +44,7 @@ docs/
 ```markdown
 # Active Work
 
-**Updated:** 2026-08-20 · **Build OS v0.2**
+**Updated:** 2026-08-20 · **Build OS v0.4**
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|

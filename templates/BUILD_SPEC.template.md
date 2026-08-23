@@ -4,7 +4,8 @@
      Mark sections that don't apply as `N/A` rather than deleting them.
      Number everything — OD-n, R-n, AC-n — so handoffs and reviews can reference it. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build OS v0.2**
+**Workstream:** WS-### · **Build Card:** <link> · **Written under Build OS v0.x**
+<!-- Run the framework compatibility check before writing a spec — framework/FRAMEWORK_SYNC.md -->
 
 ---
 

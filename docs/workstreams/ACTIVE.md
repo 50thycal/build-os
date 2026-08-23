@@ -1,6 +1,6 @@
 # Active Work
 
-**Updated:** 2026-08-23 · **Build OS v0.2**
+**Updated:** 2026-08-23 · **Build OS v0.4**
 
 Build OS's own active-work board. The Project Intelligence Companion program (design: PR #4,
 plan: `plans/PROJECT_INTELLIGENCE_FEED.md`) is tracked here until the Companion application is

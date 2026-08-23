@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 ---
 
@@ -203,12 +203,110 @@ block an explicit step of the handoff protocol closes the loop.
 
 ---
 
+### DEC-006 — Adopted versions are pinned, and a preflight makes staleness visible
+
+**Date:** 2026-08-22
+**Status:** Accepted
+
+**Context**
+Downstream projects reference a Build OS version rather than forking the framework, which
+keeps work reproducible and stops a framework change from redefining an in-flight effort. But
+nothing required anyone to notice when canonical moved. A real case: `50thycal/build-os`
+reached v0.2 while `50thycal/party-games` still declared v0.1, so any session on that project
+would run the pre-workstream process indefinitely, with nothing looking wrong.
+
+**Decision**
+Keep pinning. Add a framework compatibility check — compare the project's adopted version
+against canonical `VERSION.md` before substantial design work, a Build Spec, significant
+architectural implementation, or review of a significant PR. Act on the delta according to
+version semantics: acknowledge a patch, inspect and migrate a minor, migrate before continuing
+on a major. Explicitly not for every trivial edit or message.
+
+**Rationale**
+The two failure modes are symmetric and both silent: working under a version that no longer
+exists, and adopting whatever is on `main` without reading what changed. A pin without a check
+produces the first; dropping the pin produces the second. A preflight at four named moments
+costs one file read per session and converts the pin from an accident into a decision.
+
+Migration notes live in `VERSION.md` because that is the file the check already reads —
+splitting "what version" from "what changed" across two files would mean an agent reads the
+first and skips the second.
+
+**Alternatives considered**
+- **Track `main`.** No staleness by construction. Rejected: an in-flight effort silently
+  changes shape mid-design, which is the thing pinning exists to prevent.
+- **Check on every message.** Maximally safe. Rejected: it becomes ceremony, then noise, then
+  the first thing skipped.
+- **CI that opens issues on stale repositories.** Attractive, and documented as possible
+  future work. Rejected for now: automation built before the manual protocol has been
+  exercised encodes guesses, and a bot filing upgrade issues nobody acts on is worse than no
+  bot. The protocol must work through agents first.
+
+**Consequences**
+- Every version bump now owes a migration-notes entry, including "no project changes
+  required" — that entry is what lets a downstream agent stop reading quickly.
+- Review gains an eleventh item, and the handoff a `Framework:` field, so a claimed check is
+  falsifiable.
+- Projects may legitimately sit behind canonical after inspecting a delta. That is a decision
+  and should be recorded as one; what is ruled out is sitting behind with nobody having
+  looked.
+- A migration is bounded to protocol artifacts. Rewriting a project's architecture or decision
+  log because the framework changed is a defect, not thoroughness.
+
+---
+
+### DEC-007 — Framework state lives in the agent-instructions file, and local rules are marked
+
+**Date:** 2026-08-22
+**Status:** Accepted
+
+**Context**
+The compatibility check needs three facts from an adopted repository: where canonical lives,
+which version the project follows, and which version was last compared against. It also needs
+to tell the difference between a deliberate project-specific rule and a leftover from an old
+framework version — otherwise a migration either clobbers local decisions or preserves
+staleness, and cannot tell which it is doing.
+
+**Decision**
+Record the three fields as a small block in the project's existing agent-instructions file
+(`CLAUDE.md` or equivalent) — no new metadata file, no schema, no tooling. Require
+project-specific protocol additions to be marked `Project-specific:`. When a project-specific
+rule conflicts with a newer Build OS requirement, surface the conflict to the owner rather
+than resolving it silently.
+
+**Rationale**
+`CLAUDE.md` is already read at the start of every session by every agent that matters; a
+dedicated metadata file would be read by nothing that does not already read it, and would be
+one more thing to forget to update. Keeping last-checked separate from adopted version is what
+distinguishes *checked and unchanged* from *never checked* — the adopted version alone cannot
+express the difference, and that difference is the entire signal.
+
+The `Project-specific:` marker is cheap and load-bearing: without it, local additions and
+framework staleness are textually identical.
+
+**Alternatives considered**
+- **A `.buildos.yml` or similar.** Machine-readable, easy to lint later. Rejected: unnecessary
+  infrastructure for three fields, and it would need its own discovery mechanism.
+- **Infer the version from which artifacts exist.** No metadata at all. Rejected: unreliable,
+  and silently wrong for a project that partially migrated.
+- **Let agents resolve project-vs-framework conflicts themselves.** Rejected: the project rule
+  may exist for a reason the framework does not know about. Either answer can be right, so the
+  owner picks.
+
+**Consequences**
+- Adoption gains three lines in a file every project already has.
+- Future automation, if built, has a stable thing to read — noted in `FRAMEWORK_SYNC.md`
+  rather than built.
+- Projects that never mark their local rules will have them treated as framework text during a
+  migration. The marker is documented in adoption instructions and in the ChatGPT Project
+  template to make that unlikely.
+
+---
+
 ### DEC-008 — The Project Intelligence Companion is a separate application, staged out of this repository
 
 **Date:** 2026-08-23
 **Status:** Accepted
-
-<!-- DEC-006 and DEC-007 are reserved by the open Build OS v0.3 pull request. -->
 
 **Context**
 Build OS defines itself as a protocol, not an application: documentation, templates, and

@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -26,6 +26,10 @@ from the handoff's description of them.
 An implementation agent's failure mode is not usually dishonesty. It is that it reports
 what it meant to do, and the difference between that and what it did is exactly what
 review exists to find.
+
+Before reviewing a significant PR, run the framework compatibility check
+(`framework/FRAMEWORK_SYNC.md`). A reviewer working from an older protocol than the
+implementation — or a newer one — will measure the work against the wrong standard.
 
 ---
 
@@ -163,6 +167,20 @@ Where the change belongs to a workstream, check the file was checkpointed:
 This is deliberately the last item, and it is cheap to check. It is here because the memory
 layer decays silently: nothing breaks today when a workstream is left stale, and everything
 is harder in three weeks.
+
+### 11. Was the framework compatibility check done, and is it honest?
+
+For a significant PR, check the handoff's `Framework:` field against reality:
+
+- Does the project's `CLAUDE.md` adopted version match what the field claims?
+- If it reports an upgrade, did the migration actually happen in this PR — and did it stop at
+  protocol artifacts, rather than rewriting project architecture or decisions?
+- If it reports `current`, is that true against canonical `VERSION.md`?
+- If a project-specific rule conflicts with a newer Build OS requirement, was the conflict
+  surfaced rather than silently resolved?
+
+A field claiming a check that did not happen is the same class of finding as an undisclosed
+deviation: it removes the signal the protocol exists to provide.
 
 ---
 

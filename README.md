@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.2** — a reusable development framework for building software with a human
+**Build OS v0.4** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -56,6 +56,13 @@ and it trusts the last two most.
 `PROJECT_MODEL.md` answers *how does this system work today?* `DECISIONS.md` answers
 *why does it work this way?* Any agent, on any day, should be able to read those two
 files and be useful.
+
+**A pinned framework version must be a decision, not an accident.**
+Projects pin a Build OS version so work stays reproducible. Pinning without checking becomes
+drift — a project running v0.1 while the framework is on v0.3, with every session working
+under a process that no longer exists. Agents run a compatibility check before substantial
+work, inspect what actually changed, and upgrade the project's protocol when it matters.
+Neither the pin nor `main` is automatically right.
 
 **Parallel design threads need durable state, not chat history.**
 A project runs several efforts at once. Each is a **workstream** with a stable ID, a phase,
@@ -132,6 +139,7 @@ where each effort currently is. See `framework/WORKSTREAMS.md`.
 | `framework/CLAUDE_HANDOFF.md` | What the implementation agent must do, and what the PR handoff must contain |
 | `framework/PROJECT_MEMORY.md` | The three durable memory layers and the rules for maintaining them |
 | `framework/WORKSTREAMS.md` | Parallel design threads: lifecycle, workstream files, the active-work board, checkpointing, and the GitHub capability boundary |
+| `framework/FRAMEWORK_SYNC.md` | The framework compatibility check: keeping an adopted project's Build OS version honest without blindly tracking `main` |
 | `framework/REVIEW_PROTOCOL.md` | Independent review after implementation |
 | `framework/AGENT_SESSION_CHECKPOINT.md` | Protocol contract: how agents publish session state — never transcripts |
 | `framework/BUILD_OS_PARSE_CONTRACT.md` | Protocol contract: the subset of Build OS artifacts machine consumers may rely on |
@@ -139,6 +147,7 @@ where each effort currently is. See `framework/WORKSTREAMS.md`.
 | `templates/` | Fill-in templates for each artifact — Build Card, Build Spec, PR handoff, review summary, project model, decisions, workstream, active work, ChatGPT Project instructions |
 | `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish |
 | `examples/WORKSTREAM_SCENARIO.example.md` | Five parallel workstreams, and a new conversation resuming from repository memory alone |
+| `examples/FRAMEWORK_UPGRADE.example.md` | A project one minor version behind, detected and migrated at session start |
 | `VERSION.md` | The canonical version identifier and what each version level means |
 | `DECISIONS.md` | Build OS's own decision log — the framework dogfoods its protocol |
 
@@ -183,9 +192,18 @@ preserve the three-layer structure, and name the location in `CLAUDE.md`.
 Add to the project's `CLAUDE.md` (or equivalent agent instructions file):
 
 ```markdown
-## Development protocol
+## Build OS
 
-This project follows **Build OS v0.2** — see 50thycal/build-os.
+- Canonical framework: 50thycal/build-os
+- Adopted version: v0.4
+- Last compatibility check: v0.4 on YYYY-MM-DD
+
+Before substantial design or architectural work, compare the adopted version against
+`VERSION.md` in the canonical repository and act on the delta — see
+`framework/FRAMEWORK_SYNC.md`. Mark any project-specific protocol additions as
+`Project-specific:` so they are never mistaken for Build OS itself.
+
+## Development protocol
 
 - Project memory lives in `docs/`: `PROJECT_MODEL.md` (how the system works today),
   `DECISIONS.md` (why), and `workstreams/` (what is being designed and built now).
@@ -198,8 +216,13 @@ This project follows **Build OS v0.2** — see 50thycal/build-os.
   materially change. Add a `docs/DECISIONS.md` entry for consequential choices. Update the
   workstream file and `docs/workstreams/ACTIVE.md` with phase, PR, and next step.
 - Apply any repository-update block the design agent supplied with the spec.
+- Include the `Framework:` field in handoffs for significant PRs.
 - Keep the final chat response minimal — one or two lines and the PR reference.
 ```
+
+The three framework fields are the whole mechanism: where canonical lives, which version this
+project follows, and which version was last compared against. No extra config file, no
+tooling.
 
 **3. Set up the Design Room.**
 
@@ -247,11 +270,15 @@ When a project discovers that the protocol is wrong, incomplete, or awkward:
 1. Fix it here, in this repository, as a normal PR.
 2. Bump the version in `VERSION.md` according to the rules there.
 3. Record consequential protocol changes in this repository's own `DECISIONS.md`.
-4. Projects upgrade by updating the version they reference in their `CLAUDE.md`.
+4. Add a migration-notes entry to `VERSION.md` saying what an adopting project must do —
+   including "nothing" when that is the answer.
+5. Projects pick the change up at their next compatibility check, inspect the delta, and
+   upgrade their protocol artifacts if it affects them.
 
 The failure mode this prevents is a fleet of projects each running a slightly different,
-slowly rotting variant of the same process, with no way to tell which one is current.
+slowly rotting variant of the same process, with no way to tell which one is current. Version
+pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.2** — see `VERSION.md`.
+**Current version: Build OS v0.4** — see `VERSION.md`.

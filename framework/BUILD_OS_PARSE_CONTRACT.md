@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS — protocol contract**
+**Build OS v0.4 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without

@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.2**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.4**
 
 ## Goal
 
@@ -62,6 +62,16 @@ deploy risk.>
 <Where an independent reviewer should scrutinize. Name specific places.>
 
 - 
+
+## Framework
+
+<!-- Omit for small PRs. Never record a check that did not happen. -->
+
+Framework:
+- Project adopted: v0.x
+- Canonical checked: v0.x
+- Compatibility: current
+<!-- or: upgrade required / Migration performed: <what> -->
 
 ## Workstream
 

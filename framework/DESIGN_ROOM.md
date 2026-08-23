@@ -1,6 +1,6 @@
 # Design Room
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 The Design Room is where an abstract idea becomes something buildable. It is run by the
 design agent with the owner. It ends with two artifacts: a **Build Card** the owner
@@ -23,6 +23,11 @@ meaningful design/build thread, with a stable ID and durable state in the reposi
 five stages map onto the workstream lifecycle exactly: `EXPLORE` → `MODEL` → `DECIDE` →
 `BUILD_CARD` → `READY_TO_BUILD`. See `framework/WORKSTREAMS.md`; how to run the room from a
 ChatGPT Project is at the end of this document.
+
+Before beginning or resuming substantial work in this room, run the **framework
+compatibility check** — is the project's adopted Build OS version still current? See
+`framework/FRAMEWORK_SYNC.md`. Once per session, before the first substantial piece of work;
+not before every message.
 
 The single rule that governs the whole room: **do not write an implementation
 specification before the design is understood.** A specification produced too early
@@ -217,6 +222,10 @@ Template: `templates/BUILD_CARD.template.md`
 **Only after the conceptual design is settled** should the detailed implementation
 specification be produced.
 
+Producing a Build Spec is one of the four moments that warrant a framework compatibility
+check (`framework/FRAMEWORK_SYNC.md`). A spec is the most expensive artifact to have written
+against an obsolete protocol, because everything downstream inherits its shape.
+
 The Build Spec is written for the implementation agent. It is exhaustive, technical, and
 long. **The owner is not expected to review it line by line.**
 
@@ -292,6 +301,20 @@ WS-004 is currently in DECIDE. We've settled X and Y; the remaining question is 
 Then continue directly into the work. Orientation confirms you are both in the same place;
 it is not a status report and it is not evidence that you read the file.
 
+### Framework compatibility
+
+At session start, alongside orienting on the workstream, confirm the project's adopted Build
+OS version against canonical. If the project is behind, say so before the design work rather
+than after it:
+
+```text
+Project is on Build OS v0.1; canonical is v0.3. v0.2 added persistent workstreams — I'll set
+that up before we continue on WS-004.
+```
+
+The full protocol, including what to do about the delta, is in `framework/FRAMEWORK_SYNC.md`.
+Do not announce a version check that returned "unchanged" — silence is the correct report.
+
 ### Checkpointing
 
 Design conversations produce conclusions faster than they produce artifacts. Persist
@@ -318,3 +341,4 @@ most easily broken: **never claim that state has been written to GitHub when it 
 | Chat as memory | Resuming from what the agent remembers rather than the workstream file | The design drifts from the system it is changing |
 | Ceremonial orientation | Re-summarizing goal, model, and settled decisions every session | The owner stops reading the orientation that matters |
 | Phantom persistence | "I've updated the workstream" without write access | Destroys the guarantee the memory layer exists to provide |
+| Framework drift | Designing under a pinned version months behind canonical | The session runs a process that no longer exists |

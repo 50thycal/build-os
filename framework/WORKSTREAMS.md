@@ -1,6 +1,6 @@
 # Workstreams
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 A **workstream** is one meaningful design/build thread — procurement redesign, an
 authentication rewrite, a scoring rebalance, a new simulation system. Several may proceed
@@ -324,6 +324,11 @@ even mid-phase. Sessions rarely end where you expect them to.
 The owner should not need to manually summarize previous conversations. **Avoid ceremonial
 status reporting when it is unnecessary.**
 
+Run the **framework compatibility check** at session start, before either path below —
+once per session, before the first substantial piece of work. See
+`framework/FRAMEWORK_SYNC.md`. If the project is behind canonical, that is part of the
+orientation; if it is current, say nothing about it.
+
 ### For a clearly new idea
 
 1. Identify whether it belongs to an existing workstream. Check `ACTIVE.md` first — new
@@ -462,3 +467,4 @@ voices, at which point nobody knows which one is true.
 | Zombie completion | `COMPLETE` with `PROJECT_MODEL.md` untouched | The next agent trusts a model that is now false |
 | Phantom persistence | "I've updated the workstream" with no write access | Destroys the guarantee the whole layer exists to provide |
 | Workstream sprawl | One per idea anyone mentions | The board stops distinguishing real work from noise |
+| Unchecked framework | Resuming a workstream without confirming the adopted Build OS version | The effort continues under a protocol that has since changed |

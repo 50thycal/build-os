@@ -1,6 +1,6 @@
 # Build Spec
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 The Build Spec is the standard implementation packet handed to Claude or another coding
 agent. It is produced by the design agent in stage E of the Design Room, after the Build
@@ -13,6 +13,10 @@ responsible for the spec being a faithful translation of it.
 **Property to preserve:** an implementation agent with no memory of the Design Room
 conversation should be able to build the right thing from the Build Card plus this spec
 plus the repository.
+
+**Before writing one:** run the framework compatibility check
+(`framework/FRAMEWORK_SYNC.md`). A spec written against an obsolete protocol propagates that
+protocol into the implementation, the handoff, and the review.
 
 ---
 
@@ -97,8 +101,9 @@ Include every section that applies. Mark the ones that do not as `N/A` rather th
 deleting them — an explicit `N/A` tells the reviewer the question was considered.
 
 ### 1. Objective
-One paragraph. What this change accomplishes and why now. Link the Build Card, and name the
-workstream (`WS-###`) the change belongs to, if there is one. Where the workstream will take
+One paragraph. What this change accomplishes and why now. Link the Build Card, name the
+workstream (`WS-###`) the change belongs to, if there is one, and state the Build OS version
+this spec was written under. Where the workstream will take
 more than one PR, say which part of it this spec covers.
 
 ### 2. Owner-approved behavior

@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.2**
+**Build OS v0.4**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -11,6 +11,17 @@ ends. Everything that matters about an implementation goes into the pull request
 
 This applies to any implementation agent. "Claude" is used throughout because it is the
 common case.
+
+---
+
+## Before significant implementation
+
+Run the framework compatibility check (`framework/FRAMEWORK_SYNC.md`) before significant
+architectural implementation — is the project's adopted Build OS version still current? A
+small fix on an existing design does not need one; a change that reshapes a subsystem does.
+
+If the project is behind canonical and the delta affects how the work should be done, perform
+the migration as part of this PR and record it in the `Framework:` field below.
 
 ---
 
@@ -134,6 +145,29 @@ the bodies are — where the logic is subtle, where a spec requirement was hard 
 where a decision could reasonably have gone the other way. Naming three specific places
 beats "please review carefully."
 
+### Framework
+
+Which Build OS version the work was done under, and whether a migration happened. Four lines
+at most. Omit for small PRs; include it on anything significant.
+
+```markdown
+Framework:
+- Project adopted: v0.3
+- Canonical checked: v0.3
+- Compatibility: current
+```
+
+```markdown
+Framework:
+- Project adopted: v0.1 → v0.2
+- Canonical checked: v0.2
+- Compatibility: upgrade required
+- Migration performed: workstreams added
+```
+
+If the check could not be performed — no access to canonical `VERSION.md` — say so here.
+Never record a check that did not happen.
+
 ### Workstream
 
 The workstream ID, its phase before and after this PR, and whether the PR completes it.
@@ -217,6 +251,7 @@ Before considering the work complete:
 - [ ] `DECISIONS.md` entry added for any consequential decision
 - [ ] Workstream file and `ACTIVE.md` updated: phase, status, implementation state, PR, next step
 - [ ] Any repository-update block supplied by the design agent has been applied
+- [ ] Framework compatibility checked for significant work, and the `Framework:` field reflects what actually happened
 - [ ] Owner Summary is under ~100 words and free of jargon
 - [ ] The final chat response is two or three lines
 

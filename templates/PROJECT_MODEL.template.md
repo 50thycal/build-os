@@ -3,7 +3,7 @@
 <!-- How does this system work TODAY? Present tense. Not a roadmap, not a history.
      A mental model, not generated API documentation. -->
 
-**Last updated:** YYYY-MM-DD · **Build OS v0.3**
+**Last updated:** YYYY-MM-DD · **Build OS v0.4**
 
 ---
 

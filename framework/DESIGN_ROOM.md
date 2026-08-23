@@ -1,6 +1,6 @@
 # Design Room
 
-**Build OS v0.3**
+**Build OS v0.4**
 
 The Design Room is where an abstract idea becomes something buildable. It is run by the
 design agent with the owner. It ends with two artifacts: a **Build Card** the owner

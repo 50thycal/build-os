@@ -1,10 +1,10 @@
 # Build OS Version
 
-**Build OS v0.3**
+**Build OS v0.4**
 
 | Field | Value |
 |---|---|
-| Version | 0.3 |
+| Version | 0.4 |
 | Status | Draft — protocol and templates only |
 | Scope | Documentation, protocol, reusable templates |
 | Contains code | No |
@@ -34,6 +34,39 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.3 → v0.4 — Protocol contracts for machine consumers
+
+**Type:** Minor. **Date:** 2026-08-23.
+
+**What changed**
+
+- `framework/AGENT_SESSION_CHECKPOINT.md` and
+  `contracts/agent-session-checkpoint.v1.schema.json` — how an agent publishes the *state* of a
+  working session, so tooling and owners can see what is live without anyone reading a chat
+  window. The schema has no field capable of holding conversation text and forbids additional
+  properties; `UNKNOWN` is excluded from its status enum, because silence is a conclusion a
+  consumer draws, never a state an agent claims.
+- `framework/BUILD_OS_PARSE_CONTRACT.md` — the subset of `ACTIVE.md`, workstream files, and
+  `DECISIONS.md` that machine consumers may rely on, plus detection, path overrides, and the
+  integrity warnings raised when artifacts disagree.
+
+**What an adopting project must do**
+
+**Nothing, for most projects.** Both documents describe surfaces that already exist; neither
+changes how a project writes Build OS artifacts, and neither adds an obligation to a project
+that has no tooling reading it.
+
+Act only if one of these applies:
+
+1. **Your agents will publish session checkpoints.** Have them POST against
+   `contracts/agent-session-checkpoint.v1.schema.json`, at the moments listed in
+   `framework/AGENT_SESSION_CHECKPOINT.md`. State only — never transcripts.
+2. **You are building something that reads Build OS artifacts.** Follow
+   `framework/BUILD_OS_PARSE_CONTRACT.md`: parse conservatively, surface disagreements rather
+   than merging them, and keep workstream-to-PR relationships many-to-many.
+
+No project memory, workstream, or decision content needs rewriting.
 
 ### v0.2 → v0.3 — Framework compatibility protocol
 

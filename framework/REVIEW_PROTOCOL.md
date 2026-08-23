@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.3**
+**Build OS v0.4**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human

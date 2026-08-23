@@ -1,6 +1,6 @@
 # Framework Sync
 
-**Build OS v0.3**
+**Build OS v0.4**
 
 Adopted repositories **pin** a Build OS version. Pinning keeps work reproducible and stops a
 framework change from silently redefining an effort that is already in flight.
@@ -100,8 +100,8 @@ An adopted repository records its framework state in its existing agent-instruct
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.3
-- Last compatibility check: v0.3 on 2026-08-22
+- Adopted version: v0.4
+- Last compatibility check: v0.4 on 2026-08-23
 ```
 
 Three fields, and each earns its place:
@@ -184,8 +184,8 @@ OS itself:
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.3
-- Last compatibility check: v0.3 on 2026-08-22
+- Adopted version: v0.4
+- Last compatibility check: v0.4 on 2026-08-23
 
 ### Project-specific: additions to Build OS
 

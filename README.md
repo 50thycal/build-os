@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.3** — a reusable development framework for building software with a human
+**Build OS v0.4** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -141,6 +141,9 @@ where each effort currently is. See `framework/WORKSTREAMS.md`.
 | `framework/WORKSTREAMS.md` | Parallel design threads: lifecycle, workstream files, the active-work board, checkpointing, and the GitHub capability boundary |
 | `framework/FRAMEWORK_SYNC.md` | The framework compatibility check: keeping an adopted project's Build OS version honest without blindly tracking `main` |
 | `framework/REVIEW_PROTOCOL.md` | Independent review after implementation |
+| `framework/AGENT_SESSION_CHECKPOINT.md` | Protocol contract: how agents publish session state — never transcripts |
+| `framework/BUILD_OS_PARSE_CONTRACT.md` | Protocol contract: the subset of Build OS artifacts machine consumers may rely on |
+| `contracts/` | Machine-readable schemas for the contracts above |
 | `templates/` | Fill-in templates for each artifact — Build Card, Build Spec, PR handoff, review summary, project model, decisions, workstream, active work, ChatGPT Project instructions |
 | `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish |
 | `examples/WORKSTREAM_SCENARIO.example.md` | Five parallel workstreams, and a new conversation resuming from repository memory alone |
@@ -192,8 +195,8 @@ Add to the project's `CLAUDE.md` (or equivalent agent instructions file):
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.3
-- Last compatibility check: v0.3 on YYYY-MM-DD
+- Adopted version: v0.4
+- Last compatibility check: v0.4 on YYYY-MM-DD
 
 Before substantial design or architectural work, compare the adopted version against
 `VERSION.md` in the canonical repository and act on the delta — see
@@ -278,4 +281,4 @@ pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.3** — see `VERSION.md`.
+**Current version: Build OS v0.4** — see `VERSION.md`.

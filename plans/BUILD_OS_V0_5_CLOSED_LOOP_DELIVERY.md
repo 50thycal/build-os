@@ -64,6 +64,12 @@ OD-1 through OD-8 are the complete owner-visible protocol contract. No automatio
 - `examples/FEATURE_LIFECYCLE.example.md` and a new or extended recovery example demonstrate end-to-end use.
 - `companion/` currently parses Build OS artifacts but must remain self-contained per DEC-008.
 
+> **Resolved, 2026-08-24.** The Companion was extracted to `50thycal/build-os-companion` while this
+> work was in review (`DEC-011`, folded in from PR #8). The constraint held and then expired: the
+> package stayed self-contained, which is why the move was mechanical, and this repository is
+> protocol only again. The v0.5 parser support named in R-18 lands in that repository instead;
+> the text above is left as written, because it is the constraint that produced the outcome.
+
 ## 4. Architecture constraints
 
 - Build OS remains documentation, protocol, templates, and contracts; it does not gain a required runtime, CI job, GitHub App, or package dependency.

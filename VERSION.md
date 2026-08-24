@@ -7,18 +7,18 @@
 | Version | 0.5 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts |
-| Contains code | Yes — `companion/` only. The protocol itself is documentation and templates. |
+| Contains code | No |
 
 This file is canonical. An adopted repository's framework compatibility check reads the
 version above and the migration notes below. See `framework/FRAMEWORK_SYNC.md`.
 
-**What "contains code" means here.** Adopting Build OS still requires no dependency, no build
-step, and no runtime: everything an adopting project uses is Markdown plus the JSON schemas in
-`contracts/`. The `companion/` directory is the Project Intelligence Companion — an application
-that *reads* Build OS artifacts, staged in this repository until it is extracted per `DEC-008`.
-It is not part of the framework an adopting project follows, and nothing in the protocol depends
-on it existing. It is named here because saying "contains code: no" while a TypeScript package
-sits in the tree is exactly the kind of stale durable record v0.5 exists to prevent.
+**"Contains code: No" is true again as of 2026-08-24.** It briefly was not: the Project
+Intelligence Companion was staged here as a self-contained `companion/` package under `DEC-008`,
+and while it sat in the tree this line was stale — exactly the kind of durable record v0.5 exists
+to catch. The application has since moved to `50thycal/build-os-companion` (`DEC-011`), and what
+remains is Markdown plus the JSON schemas in `contracts/`. Adopting Build OS requires no
+dependency, no build step, and no runtime, and nothing in the protocol depends on the Companion
+existing.
 
 ---
 

@@ -471,7 +471,58 @@ quiet.
 
 ---
 
-### DEC-011 — Owner input is captured before it is processed
+### DEC-011 — The Companion has been extracted; this repository is protocol only
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+**Context**
+`DEC-008` staged the Companion here as a self-contained `companion/` package and committed to
+extracting it before any infrastructure landed. That point arrived: the application needed
+durable persistence, a web server, and a configuration file naming the repositories it follows.
+
+**Decision**
+The application now lives in `50thycal/build-os-companion`, moved with its history via
+`git subtree split`. `companion/` is removed from this repository, and the Companion program's
+workstreams — WS-001 … WS-006 and their board — move with it, exactly as
+`docs/workstreams/ACTIVE.md` said they would.
+
+This repository keeps what makes it a protocol: `framework/`, `contracts/`, `templates/`,
+`plans/`, `DECISIONS.md`, and `VERSION.md`. It contains no code and no dependencies again.
+
+The Companion vendors protocol contracts under its own `contracts/` directory so it can parse
+offline and test deterministically. That copy is checked rather than trusted: an offline test
+pins each file to a recorded hash, and a networked check compares that hash against this
+repository. **This repository remains canonical.** A contract change is made here first and
+vendored down afterwards, never the reverse.
+
+**Rationale**
+`DEC-008` said the boundary mattered more than the timing, and that a self-contained package
+with its own manifest could be extracted in one commit. That held — the extraction was
+mechanical. Doing it before the first database migration is what kept it that way.
+
+Leaving the package here after the application acquired a server would have made "Build OS is a
+protocol" false in the same way `DEC-008` set out to prevent, only later and with more to unpick.
+
+**Alternatives considered**
+- **Copy rather than move.** Rejected outright: two independently evolving copies of an
+  application is the failure mode staging existed to avoid, and the second copy is always the
+  one somebody edits by accident.
+- **Move the contracts too, and have the Companion own them.** Rejected: the contracts describe
+  the protocol, and other projects adopt them without adopting the Companion. Vendoring with a
+  drift check gives the Companion offline determinism without moving canonical authority out of
+  the protocol repository.
+
+**Consequences**
+- This repository has no build, no tests, and no dependencies.
+- A protocol contract change must be vendored down to the Companion; its
+  `npm run contracts:check` is what notices.
+- The Companion program's history is split across two repositories at the extraction commit.
+  `git log --follow` does not cross that boundary; this entry is the pointer.
+
+---
+
+### DEC-012 — Owner input is captured before it is processed
 
 **Date:** 2026-08-24
 **Status:** Accepted
@@ -523,7 +574,7 @@ owner is feeding the same phase it was already in.
 
 ---
 
-### DEC-012 — Significant work merges only on an independent verdict naming the current head
+### DEC-013 — Significant work merges only on an independent verdict naming the current head
 
 **Date:** 2026-08-24
 **Status:** Accepted
@@ -581,7 +632,7 @@ adopting project, including those where nobody can configure the repository.
 
 ---
 
-### DEC-013 — Durable memory is finalized on the PR, before the merge
+### DEC-014 — Durable memory is finalized on the PR, before the merge
 
 **Date:** 2026-08-24
 **Status:** Accepted
@@ -625,3 +676,4 @@ The lightweight final-head verification is safe only because the permitted surfa
 - The reviewer is asked for one more small verification per PR.
 - `main` becomes readable as a true record of the board at any commit, which is what makes an
   arriving agent's first read trustworthy.
+

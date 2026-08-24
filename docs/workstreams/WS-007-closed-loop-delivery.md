@@ -80,10 +80,10 @@ What it establishes: an instruction to build what PR #7 published. What it does 
 
 Until that appears, D1–D5 below record **what was built and on whose recommendation**, and each is provisional in exactly that sense. The implementation stands as a proposal for the owner to accept or revise; nothing here should be read as the owner having ruled on each decision individually.
 
-- **D1. Explicit capture-only mode — built as recommended.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-011.
+- **D1. Explicit capture-only mode — built as recommended.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-012.
 - **D2. Standardized draft Design Handoff PR — built as recommended.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
-- **D3. Independent review as a hard merge gate for significant work — built as recommended.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-012.
-- **D4. Merge-finalization commit in the same PR — built as recommended.** Documentation-only, after approval, verified against the final head. Recorded as DEC-013.
+- **D3. Independent review as a hard merge gate for significant work — built as recommended.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-013.
+- **D4. Merge-finalization commit in the same PR — built as recommended.** Documentation-only, after approval, verified against the final head. Recorded as DEC-014.
 - **D5. Publish as Build OS v0.5 with explicit downstream migration — built as recommended.** Minor release; `VERSION.md` carries six exact adoption steps.
 
 ## Open Decisions
@@ -176,7 +176,7 @@ Capture → Consolidate → Approve card → Draft handoff PR → Build → Revi
 
 ## Implementation State
 
-Implemented on PR #7, the same branch the design handoff opened. The v0.5 protocol package is complete: `DESIGN_ROOM.md` (Capture Only, Design Handoff PR), `REVIEW_PROTOCOL.md` (merge gate, verdicts, staleness, transitions, recovery, finalization, proportionality), `WORKSTREAMS.md` (handoff PR, finalization checkpoint, phase boundaries), `CLAUDE_HANDOFF.md` (single-PR ownership, no self-approval), `FRAMEWORK_SYNC.md` (open-PR applicability), `BUILD_OS_PARSE_CONTRACT.md` (fields and integrity warnings), four templates, two examples, `VERSION.md` v0.5 with migration notes, `README.md`, and DEC-011/012/013.
+Implemented on PR #7, the same branch the design handoff opened. The v0.5 protocol package is complete: `DESIGN_ROOM.md` (Capture Only, Design Handoff PR), `REVIEW_PROTOCOL.md` (merge gate, verdicts, staleness, transitions, recovery, finalization, proportionality), `WORKSTREAMS.md` (handoff PR, finalization checkpoint, phase boundaries), `CLAUDE_HANDOFF.md` (single-PR ownership, no self-approval), `FRAMEWORK_SYNC.md` (open-PR applicability), `BUILD_OS_PARSE_CONTRACT.md` (fields and integrity warnings), four templates, two examples, `VERSION.md` v0.5 with migration notes, `README.md`, and DEC-012/013/014.
 
 Companion support for the new fields is in the same PR: per-PR review records, verdict and reviewed-head parsing in both field and table form, HTML-comment stripping, the PR head SHA and GitHub review commit ids threaded through observation and projection, and the cross-source integrity checks. Suite green at 200 tests.
 
@@ -201,7 +201,7 @@ Awaiting an independent verdict on the current head. This PR is subject to the g
 
 Existing foundations: DEC-002 (GitHub is the handoff), DEC-004 (workstreams are durable state), DEC-005 (persistence claims require write access), DEC-006 (version preflight), and DEC-007 (framework state in agent instructions).
 
-Added by this implementation: DEC-011 (owner input is captured before it is processed), DEC-012 (significant work merges only on an independent verdict naming the current head), DEC-013 (durable memory is finalized on the PR, before the merge). Capture Only received its own entry because its rules stand independently of the merge gate.
+Added by this implementation: DEC-012 (owner input is captured before it is processed), DEC-013 (significant work merges only on an independent verdict naming the current head), DEC-014 (durable memory is finalized on the PR, before the merge). DEC-011 is the Companion extraction, folded in from PR #8. Capture Only received its own entry because its rules stand independently of the merge gate.
 
 ## Related PRs
 

@@ -9,6 +9,7 @@
 
 **Verdict:** <Not started | In review | Changes required | Approved | Approved with follow-ups>
 **Reviewed head:** <full 40-character commit SHA, or —>
+**Reviewed PR:** #<n>
 **Head current at publication:** <yes | no — PR is now at abc1234...>
 
 <!--
@@ -18,8 +19,14 @@ never an abbreviation: a prefix cannot prove which commit was reviewed.
 An approval with no reviewed head does not open the merge gate — treat it as `In review`.
 
 If the PR has moved since, the approval is stale: say so above, and the new head needs
-reviewing. A change limited to the finalization surfaces may be verified against the final
-head instead of re-reviewed in full — record that final head here either way.
+reviewing.
+
+A change limited to the finalization surfaces may be verified against the final head instead of
+re-reviewed in full. Record that verification by approving on the PR itself, after the
+finalization commit exists — the review carries the commit id, and that is the only final-head
+record that is not self-referential. A summary written before that commit cannot name it.
+
+This verdict is about one PR. Name it above; it says nothing about the workstream's other PRs.
 
 A finding only the owner can settle is `Changes required`, with the question under
 *Decisions requiring owner attention* below.

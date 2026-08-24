@@ -1,7 +1,7 @@
 # Build OS Project Intelligence Feed + Podcast
 
-**Status:** implementation plan  
-**Target:** Build OS companion service  
+**Status:** implementation plan
+**Target:** Build OS companion service
 **Owner intent:** provide one place to understand what is happening across followed GitHub projects, active PRs, Build OS workstreams, and agent sessions — and generate an audio catch-up from the same canonical state.
 
 ---

@@ -56,8 +56,8 @@ state ──trigger──► state
 
 <!-- Things that must always be true. These tell a reader which parts are load-bearing. -->
 
-- 
-- 
+-
+-
 
 ## Important persistence / data structures
 
@@ -75,8 +75,8 @@ state ──trigger──► state
      obligations, deliberate limitations. Cite DEC-nnn where a constraint has a recorded
      reason. -->
 
-- 
-- 
+-
+-
 
 ---
 

@@ -179,7 +179,14 @@ export class HttpGitHubClient implements GitHubPort {
 
 function toObservation(
   pr: RawPull,
-  reviews: { id: number; user?: { login?: string }; state: string; submitted_at?: string; html_url: string }[],
+  reviews: {
+    id: number;
+    user?: { login?: string };
+    state: string;
+    submitted_at?: string;
+    html_url: string;
+    commit_id?: string;
+  }[],
   checkRuns: {
     id: number;
     name: string;
@@ -199,6 +206,7 @@ function toObservation(
       state: r.state.toUpperCase() as GitHubReviewObservation["state"],
       submittedAt: r.submitted_at!,
       htmlUrl: r.html_url,
+      commitId: r.commit_id,
     }));
 
   const mappedChecks: GitHubCheckObservation[] = checkRuns.map((c) => ({

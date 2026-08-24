@@ -66,6 +66,12 @@ export interface PullRequestState {
   ciState: CiState;
   /** Logins whose review is requested. Used to decide whether the *owner* is the blocker. */
   requestedReviewers: string[];
+  /**
+   * Full SHAs that an approving GitHub review named. GitHub stamps the commit id on the review
+   * when it is submitted, so this is the one final-head authority that cannot be
+   * self-referential — unlike a SHA written inside the commit it describes.
+   */
+  approvedHeadShas: string[];
   /** Many-to-many: a PR may serve several workstreams. Never collapse this to one field. */
   workstreamIds: string[];
   summary?: string;
@@ -107,6 +113,41 @@ export function isApprovingVerdict(verdict: ReviewVerdict | undefined): boolean 
   return verdict === "APPROVED" || verdict === "APPROVED_WITH_FOLLOW_UPS";
 }
 
+/**
+ * One verdict, about one pull request.
+ *
+ * A workstream may span several PRs, and each is reviewed on its own. A single
+ * workstream-level verdict compared against every linked PR reports an older merged PR as
+ * unapproved the moment a newer one is approved — so a record always belongs to a PR.
+ */
+export interface ReviewRecord {
+  /**
+   * The PR this verdict is about. Resolved at reconcile time: a record that names no PR binds
+   * to the workstream's most recent linked PR, which is the one under review in practice.
+   */
+  prNumber?: number;
+  verdict?: ReviewVerdict;
+  /**
+   * The full 40-character SHA of the last commit reviewed in full. It is never the
+   * finalization commit's own SHA — a commit cannot contain its own identity.
+   */
+  reviewedHead?: string;
+  /**
+   * The workstream declares the documentation-only merge-finalization commit pushed. The head
+   * is then expected to be ahead of `reviewedHead`, and the final head is verified on the PR
+   * itself rather than in this file.
+   */
+  finalized: boolean;
+}
+
+/** The record covering one PR, or undefined when the workstream makes no claim about it. */
+export function reviewRecordFor(
+  records: ReviewRecord[],
+  prNumber: number,
+): ReviewRecord | undefined {
+  return records.find((record) => record.prNumber === prNumber);
+}
+
 export interface OpenDecision {
   /** `D1`, `D2`… where the workstream file numbers them; otherwise a positional key. */
   key: string;
@@ -130,10 +171,12 @@ export interface WorkstreamState {
   buildCardReady: boolean;
   implementationState?: string;
   reviewState?: string;
-  /** From v0.5. Absent on a workstream written under an earlier version — not an error. */
-  reviewVerdict?: ReviewVerdict;
-  /** Full 40-character SHA the verdict was reached against. Abbreviations are rejected. */
-  reviewedHead?: string;
+  /**
+   * From v0.5, one per reviewed PR. Empty on a workstream written under an earlier version —
+   * absence is not an error, and a PR with no record here is a PR this workstream makes no
+   * claim about.
+   */
+  reviewRecords: ReviewRecord[];
   updatedAt?: string;
   sourcePath: string;
   source: SourceRef;
@@ -217,7 +260,8 @@ export type IntegrityCode =
   | "APPROVED_WITHOUT_REVIEWED_HEAD"
   | "REVIEW_STALE"
   | "MERGED_WITHOUT_APPROVAL"
-  | "WORKSTREAM_PR_STATE_MISMATCH";
+  | "WORKSTREAM_PR_STATE_MISMATCH"
+  | "FINAL_HEAD_UNVERIFIED";
 
 /**
  * A problem with the *project's* Build OS records, addressed to its owner. Not a parser error:

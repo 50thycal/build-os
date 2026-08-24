@@ -65,7 +65,9 @@ approved verdict + reviewed current head + green required validation + truthful 
 
 ## Decisions Made
 
-The owner approved the Build Card and D1–D5 as recommended on 2026-08-24, instructing that the build proceed on this PR.
+Owner approval, 2026-08-24, verbatim: *"I published the proposed solution as Build OS draft PR #7. It contains WS-007, a draft Build Card, and the complete proposed v0.5 specification. Please proceed with this build."*
+
+That instruction approved the Build Card as published — which carried D1–D5 with a recommendation of yes on each — and directed implementation to proceed on this PR. It is cited here rather than paraphrased, because a recommendation is not an approval and only the owner's own words distinguish the two. Each decision below records what was approved, not what was recommended; where the owner later revises one, the revision replaces it here and the implementation follows.
 
 - **D1. Explicit capture-only mode — yes.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-011.
 - **D2. Standardized draft Design Handoff PR — yes.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
@@ -165,14 +167,20 @@ Capture → Consolidate → Approve card → Draft handoff PR → Build → Revi
 
 Implemented on PR #7, the same branch the design handoff opened. The v0.5 protocol package is complete: `DESIGN_ROOM.md` (Capture Only, Design Handoff PR), `REVIEW_PROTOCOL.md` (merge gate, verdicts, staleness, transitions, recovery, finalization, proportionality), `WORKSTREAMS.md` (handoff PR, finalization checkpoint, phase boundaries), `CLAUDE_HANDOFF.md` (single-PR ownership, no self-approval), `FRAMEWORK_SYNC.md` (open-PR applicability), `BUILD_OS_PARSE_CONTRACT.md` (fields and integrity warnings), four templates, two examples, `VERSION.md` v0.5 with migration notes, `README.md`, and DEC-011/012/013.
 
-Companion support for the new fields is in the same PR: verdict and reviewed-head parsing, HTML-comment stripping, the PR head SHA threaded through observation and projection, and the three cross-source integrity checks. Suite green at 151 tests.
+Companion support for the new fields is in the same PR: per-PR review records, verdict and reviewed-head parsing in both field and table form, HTML-comment stripping, the PR head SHA and GitHub review commit ids threaded through observation and projection, and the four cross-source integrity checks. Suite green at 164 tests.
+
+Review round 1 (2026-08-24) returned Changes required; corrections are on this same PR — see Review State.
 
 ## Review State
 
 **Verdict:** In review
 **Reviewed head:** —
+**Reviewed PR:** #7
+**Finalization:** —
 
-Awaiting independent review. This PR is subject to the gate it introduces: it does not merge without an approved verdict naming its current head, and the implementing agent neither approves nor merges it.
+Independent review of `1607e800168eac17d7b81b1d6c13aa7a9d99ca50` returned **Changes required** on 2026-08-24, with five findings: the merge-finalization commit was specified to contain its own SHA (impossible, and it made the branch report as `REVIEW_STALE`); one workstream-level reviewed head was compared against every linked PR, so approving a current PR falsely reported an older merged PR as `MERGED_WITHOUT_APPROVAL`; both needed regression tests; `VERSION.md` claimed to contain no code; and `git diff --check` failed on trailing whitespace. The findings were reported outside GitHub, so no review record exists on the PR for that head.
+
+All five are corrected on this same PR, which returns to review with a new head awaiting an independent verdict. This PR remains subject to the gate it introduces: it does not merge without an approved verdict naming its current head, and the implementing agent neither approves nor merges it.
 
 ## Related Decisions
 

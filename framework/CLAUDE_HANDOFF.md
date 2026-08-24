@@ -215,8 +215,11 @@ else. **An implementation agent never writes an approval here.**
 
 Before merge, the last commit on this PR is the **merge-finalization** commit: documentation
 only, setting the workstream, `ACTIVE.md`, and `Review State` to what becomes true when the
-PR lands. Note here when it has been pushed, so the reviewer knows which diff to verify
-against the final head. See `framework/REVIEW_PROTOCOL.md`.
+PR lands. Note here when it has been pushed, so the reviewer knows which diff to verify.
+
+That commit does not — cannot — name its own SHA: `Reviewed head` keeps naming the last commit
+reviewed in full, and gains `Finalization: pushed`. The head it produces is recorded by the
+**reviewer, on the PR**, after it exists. See `framework/REVIEW_PROTOCOL.md`.
 
 ### Workstream
 

@@ -738,6 +738,7 @@ Then the last commit on PR #341, before the merge button, containing no code at 
 -**Reviewed head:** —
 +**Verdict:** Approved with follow-ups
 +**Reviewed head:** a09d4c1732b8e5460f92cc1de8b7a03f9145d6ee
++**Finalization:** pushed
 +
 +Reviewed 2026-02-09. One should-fix (CSV export status) corrected on this PR before merge.
 +One difference from approved behavior noted and accepted: the 7-day window resolves once
@@ -753,9 +754,20 @@ Then the last commit on PR #341, before the merge button, containing no code at 
 ```
 
 The same commit removed the WS-011 row from `ACTIVE.md` and carried the `PROJECT_MODEL.md`
-and `DECISIONS.md` updates from sections 8 and 9. The reviewer checked that the commit
-touched only those files, recorded the final head `f4b7c2e0…`, and the merge targeted that
-exact SHA.
+and `DECISIONS.md` updates from sections 8 and 9.
+
+Look at what `Reviewed head` says there: still `a09d4c17…`, the last commit reviewed in full —
+**not** the finalization commit. It could not be. Writing the finalization commit's own SHA
+into the finalization commit changes that commit, and the SHA is wrong before it is pushed. So
+the file names the head that already exists and adds `Finalization: pushed` to say the PR is
+legitimately ahead of it.
+
+The head that commit produced, `f4b7c2e0…`, was recorded where a record can be made after the
+fact: the reviewer read the diff since `a09d4c17…`, confirmed it touched only the workstream
+file, `ACTIVE.md`, `PROJECT_MODEL.md`, and `DECISIONS.md`, and approved on PR #341. GitHub
+stamped that review with `f4b7c2e0…`. Then the merge targeted that exact SHA.
+
+Two heads, two places, two parties — and neither is a commit vouching for itself.
 
 So `main` never contained a version of WS-011 claiming to be in review of a PR that had
 already merged. There was no cleanup PR, because there was nothing left to clean up.
@@ -781,4 +793,5 @@ That is the entire argument for item 8 of the review protocol.
 It also shows the v0.5 shape end to end: the owner's raw input captured before anything was
 done with it; one PR from spec to merge; a verdict tied to a specific commit, invalidated
 when that commit was superseded; and the durable record made true on the PR rather than
-promised for later.
+promised for later — with the final head recorded by the reviewer on the PR, because the
+commit that produces it cannot name it.

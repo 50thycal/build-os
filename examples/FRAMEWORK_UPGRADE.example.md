@@ -126,7 +126,7 @@ can pick them up. Neither is reconstructed from old chat transcripts.
 +- Last compatibility check: v0.2 on 2026-08-22
 +
  ## Development protocol
- 
+
 -This project follows **Build OS v0.1** — see 50thycal/build-os.
 -
 +- Project memory lives in `docs/`: `PROJECT_MODEL.md` (how the system works today),

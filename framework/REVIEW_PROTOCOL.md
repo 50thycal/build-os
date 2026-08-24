@@ -255,6 +255,22 @@ Every review summary and every workstream `Review State` records two fields:
 `—` when there is none. An abbreviation is not accepted: a seven-character prefix cannot
 prove which commit was reviewed, and proof is the entire purpose of the field.
 
+**A verdict belongs to one PR.** A workstream spanning several records one verdict per PR, as a
+table:
+
+```markdown
+## Review State
+
+| PR | Verdict | Reviewed head | Finalization |
+|---|---|---|---|
+| #84 | Approved | 0123456789abcdef0123456789abcdef01234567 | pushed |
+| #91 | In review | — | — |
+```
+
+A record says nothing about any PR but its own. Approving #91 does not un-approve #84, and a PR
+with no row is a PR this workstream makes no claim about — which is how work that merged before
+the project adopted v0.5 stays undisturbed.
+
 **An approval with no reviewed head does not clear the gate.** Treat it as `In review`. This
 is not pedantry — an approval that names no commit is a statement about a conversation, not
 about code.
@@ -328,9 +344,36 @@ Nothing else. Any executable, test, dependency, configuration, or behavior-docum
 change in that commit **reopens full review** — the lightweight final-head verification is
 available only because the surfaces are known to be inert.
 
-Then: the reviewer verifies the final head, records it, and **merge targets that exact
-SHA**. A merge that takes whatever is at the tip of the branch at click time is a merge of
-something nobody named.
+### Where the final head is recorded
+
+A finalization commit **cannot contain its own SHA**. Writing the SHA into the commit changes
+the commit, and the SHA is stale before it is pushed. Any protocol that asks for one is asking
+for a number that cannot exist.
+
+So the two heads are recorded in two different places, by two different parties:
+
+| | What it names | Who writes it | When |
+|---|---|---|---|
+| `Reviewed head` in the workstream file | The last head reviewed **in full** | The implementation agent, at finalization | Before the finalization commit — the head it names already exists |
+| The **final head** | The head produced by the finalization commit | The **reviewer**, on the PR | After that commit exists |
+
+The workstream file therefore keeps naming the last fully-reviewed commit, and adds
+`Finalization: pushed` to say the PR head is legitimately ahead of it. That is a true statement
+about a commit that exists, written by someone who can know it.
+
+The final head is verified by the reviewer **on the pull request**: they read the diff since the
+approved head, confirm it touches only the permitted surfaces, and submit their approval on the
+PR. GitHub stamps that review with the commit id it was submitted against — a record created
+after the commit exists, by someone other than the commit's author. That is the authority. A
+project without GitHub reviews uses any equivalent record made after the fact: a PR comment
+naming the final SHA, a signed tag, a reviewer's note in the merge.
+
+Then **merge targets that exact SHA**. A merge that takes whatever is at the tip of the branch at
+click time is a merge of something nobody named.
+
+A consumer reading these artifacts treats an approving review that names the current head as
+satisfying the gate, and flags a workstream that declares finalization with no such record. It
+never accepts a SHA a commit claims about itself.
 
 ### Is this honest?
 
@@ -362,7 +405,7 @@ What a verdict does to the workstream. Phases are the standard ones in
 | Reviewer records `Approved with follow-ups` | stays `REVIEW` | Follow-ups filed as named work — a new workstream, an open decision, or an issue — never as a sentence in a review nobody reads again |
 | Reviewer records `Changes required`, PR open | `REVIEW` → `BUILDING` | Findings persisted on the workstream; corrections stay **on the same PR** |
 | Corrections pushed, ready again | `BUILDING` → `REVIEW` | New head awaiting review; verdict back to `In review` |
-| Finalization commit pushed | stays `REVIEW` | Only permitted surfaces changed; reviewer verifies and records the final head |
+| Finalization commit pushed | stays `REVIEW` | Only permitted surfaces changed; `Finalization: pushed` on the record; reviewer verifies the head that commit produced and records it **on the PR** |
 | Exact reviewed head merged, workstream done | `REVIEW` → `COMPLETE` | Completion sequence already in the merged commit |
 | Exact reviewed head merged, workstream continues | `REVIEW` → whatever is next | Finalization named the real next phase, not `COMPLETE` |
 | Finding is the owner's to settle | `REVIEW` → `BLOCKED` | The question, verbatim, in Next Step; gate stays closed |

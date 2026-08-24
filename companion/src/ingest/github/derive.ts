@@ -29,6 +29,23 @@ export function deriveLifecycle(pr: GitHubPullRequestObservation): PullRequestLi
  *
  * `PENDING` reviews are drafts the reviewer has not submitted and are ignored entirely.
  */
+/**
+ * The commits that an approving GitHub review actually named.
+ *
+ * GitHub stamps a review with the commit id it was submitted against, which makes this the one
+ * approval record that cannot be self-referential: unlike a SHA written inside a commit, it is
+ * created after the commit it describes exists. It is therefore the authority for verifying a
+ * merge-finalization head.
+ */
+export function deriveApprovedHeadShas(pr: GitHubPullRequestObservation): string[] {
+  const shas = new Set<string>();
+  for (const review of pr.reviews) {
+    if (review.state !== "APPROVED") continue;
+    if (review.commitId) shas.add(review.commitId.toLowerCase());
+  }
+  return [...shas].sort();
+}
+
 export function deriveReviewState(pr: GitHubPullRequestObservation): ReviewState {
   const latestByReviewer = new Map<string, GitHubPullRequestObservation["reviews"][number]>();
 
@@ -112,6 +129,7 @@ export function derivePullRequestState(
     reviewState: deriveReviewState(pr),
     ciState: deriveCiState(pr),
     requestedReviewers: [...pr.requestedReviewers],
+    approvedHeadShas: deriveApprovedHeadShas(pr),
     // Populated by the Build OS layer, which is the only thing that knows about workstreams.
     workstreamIds: [],
     sourceUrl: pr.htmlUrl,

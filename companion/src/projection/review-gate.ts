@@ -5,12 +5,29 @@
  * reviewed, GitHub says what actually exists. Neither source can produce them alone, which is why
  * they live in the projection layer rather than in the Build OS reconciler.
  *
+ * Two rules shape everything below.
+ *
+ * **A verdict belongs to one PR.** A workstream may span several, and comparing one
+ * workstream-level head against all of them reports an older merged PR as unapproved the moment
+ * a newer one is approved. A PR with no record is a PR this workstream makes no claim about, and
+ * silence is the correct output for it.
+ *
+ * **A commit cannot name itself.** The merge-finalization commit changes the head by existing, so
+ * no SHA written inside it can be the head it produces. The workstream file therefore records the
+ * last head reviewed *in full*, and the final head is verified on the PR — through GitHub's own
+ * review record, which is stamped with a commit id after that commit exists.
+ *
  * Every check reports. None repairs. A contradiction between durable records is the owner's to
  * resolve — a consumer that quietly picks a winner destroys the evidence that something went wrong.
  */
 
-import { isApprovingVerdict } from "../domain/state.ts";
-import type { IntegrityWarning, PullRequestState, WorkstreamState } from "../domain/state.ts";
+import { isApprovingVerdict, reviewRecordFor } from "../domain/state.ts";
+import type {
+  IntegrityWarning,
+  PullRequestState,
+  ReviewRecord,
+  WorkstreamState,
+} from "../domain/state.ts";
 
 /** Lifecycles where the branch can still move under an approval. */
 const LIVE = new Set(["OPEN", "DRAFT"]);
@@ -19,13 +36,9 @@ function shortSha(sha: string): string {
   return sha.slice(0, 7);
 }
 
-/**
- * A workstream written before v0.5 has no review section at all. Its PRs are not retroactively
- * invalidated (plan §13), so the merge gate only applies once the workstream declares a verdict.
- * `Not started` counts as declared: a v0.5 workstream carries that value from its first commit.
- */
-function participatesInGate(ws: WorkstreamState): boolean {
-  return ws.reviewVerdict !== undefined;
+/** True when an approving GitHub review names this exact commit. */
+function approvedOnGitHub(pr: PullRequestState, sha: string): boolean {
+  return pr.approvedHeadShas.includes(sha);
 }
 
 export function checkReviewGate(
@@ -40,48 +53,77 @@ export function checkReviewGate(
       .map((n) => byNumber.get(n))
       .filter((pr): pr is PullRequestState => pr !== undefined);
 
-    if (participatesInGate(ws)) {
-      const approved = isApprovingVerdict(ws.reviewVerdict);
-
-      for (const pr of linked) {
-        if (approved && ws.reviewedHead && ws.reviewedHead !== pr.headSha) {
-          // Stale in both directions: a live PR moved past its approval, and a merged PR merged
-          // something nobody approved. The second is worse, so it is reported as the merge failure.
-          if (LIVE.has(pr.lifecycle)) {
-            warnings.push({
-              code: "REVIEW_STALE",
-              workstreamId: ws.workstreamId,
-              message:
-                `${ws.workstreamId} approved ${shortSha(ws.reviewedHead)} but PR #${pr.number} is now at ` +
-                `${shortSha(pr.headSha)}. The approval is against an older commit; re-review the current head.`,
-              sources: [ws.source, pr.source],
-            });
-          } else if (pr.lifecycle === "MERGED") {
-            warnings.push({
-              code: "MERGED_WITHOUT_APPROVAL",
-              workstreamId: ws.workstreamId,
-              message:
-                `PR #${pr.number} merged at ${shortSha(pr.headSha)}, but ${ws.workstreamId} only approved ` +
-                `${shortSha(ws.reviewedHead)}. The merged commit was never reviewed.`,
-              sources: [ws.source, pr.source],
-            });
-          }
-        }
-
-        if (!approved && pr.lifecycle === "MERGED") {
-          warnings.push({
-            code: "MERGED_WITHOUT_APPROVAL",
-            workstreamId: ws.workstreamId,
-            message:
-              `PR #${pr.number} is merged while ${ws.workstreamId} records verdict ` +
-              `${ws.reviewVerdict}. Merge requires an approved verdict naming the merged head.`,
-            sources: [ws.source, pr.source],
-          });
-        }
-      }
+    for (const pr of linked) {
+      const record = reviewRecordFor(ws.reviewRecords, pr.number);
+      // No record for this PR: the workstream claims nothing about it, so neither do we. This is
+      // what keeps a workstream's older merged PRs quiet, and what exempts pre-v0.5 files.
+      if (record) warnings.push(...checkRecord(ws, pr, record));
     }
 
     warnings.push(...checkStateAgreement(ws, linked));
+  }
+
+  return warnings;
+}
+
+function checkRecord(
+  ws: WorkstreamState,
+  pr: PullRequestState,
+  record: ReviewRecord,
+): IntegrityWarning[] {
+  const warnings: IntegrityWarning[] = [];
+  const sources = [ws.source, pr.source];
+  const approved = isApprovingVerdict(record.verdict);
+  const headMatches = record.reviewedHead === pr.headSha;
+
+  // GitHub's own approval on this exact commit satisfies the gate whatever the file says. It is
+  // the more recent and less forgeable of the two records.
+  if (approvedOnGitHub(pr, pr.headSha)) return warnings;
+
+  if (approved && record.reviewedHead && !headMatches) {
+    if (record.finalized) {
+      // Expected divergence: the finalization commit moved the head past the reviewed one, and
+      // by construction it could not name itself. What is missing is the verification of the
+      // head it produced — which only the PR can carry.
+      warnings.push({
+        code: "FINAL_HEAD_UNVERIFIED",
+        workstreamId: ws.workstreamId,
+        message:
+          `${ws.workstreamId} declares the finalization commit pushed on PR #${pr.number}, but no ` +
+          `approving review names its current head ${shortSha(pr.headSha)}. The full review covered ` +
+          `${shortSha(record.reviewedHead)}; the final head still needs verifying on the PR.`,
+        sources,
+      });
+    } else if (LIVE.has(pr.lifecycle)) {
+      warnings.push({
+        code: "REVIEW_STALE",
+        workstreamId: ws.workstreamId,
+        message:
+          `${ws.workstreamId} approved ${shortSha(record.reviewedHead)} but PR #${pr.number} is now at ` +
+          `${shortSha(pr.headSha)}. The approval is against an older commit; re-review the current head.`,
+        sources,
+      });
+    } else if (pr.lifecycle === "MERGED") {
+      warnings.push({
+        code: "MERGED_WITHOUT_APPROVAL",
+        workstreamId: ws.workstreamId,
+        message:
+          `PR #${pr.number} merged at ${shortSha(pr.headSha)}, but ${ws.workstreamId} only approved ` +
+          `${shortSha(record.reviewedHead)}. The merged commit was never reviewed.`,
+        sources,
+      });
+    }
+  }
+
+  if (!approved && pr.lifecycle === "MERGED") {
+    warnings.push({
+      code: "MERGED_WITHOUT_APPROVAL",
+      workstreamId: ws.workstreamId,
+      message:
+        `PR #${pr.number} is merged while ${ws.workstreamId} records verdict ` +
+        `${record.verdict ?? "none"}. Merge requires an approved verdict naming the merged head.`,
+      sources,
+    });
   }
 
   return warnings;

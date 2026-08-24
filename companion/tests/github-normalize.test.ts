@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { InMemoryEventLedger } from "../src/ledger/ledger.ts";
 import { normalizeGitHubObservation } from "../src/ingest/github/normalize.ts";
 import {
+  deriveApprovedHeadShas,
   deriveCiState,
   deriveMergeability,
   deriveReviewState,
@@ -173,5 +174,36 @@ describe("state derivation", () => {
     expect(deriveMergeability(pr({ mergeableState: "dirty" }))).toBe("CONFLICTED");
     expect(deriveMergeability(pr({ mergeableState: "behind" }))).toBe("BLOCKED");
     expect(deriveMergeability(pr({}))).toBe("UNKNOWN");
+  });
+});
+
+describe("approved head SHAs", () => {
+  const A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const B = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+  it("collects the commit each approving review named", () => {
+    // GitHub stamps the commit id on a review after that commit exists, which is why this is
+    // the one final-head authority a merge-finalization commit cannot be asked to contain.
+    const shas = deriveApprovedHeadShas(
+      pr({
+        reviews: [
+          { id: 1, author: "rae", state: "APPROVED", submittedAt: "2026-08-01T00:00:00Z", htmlUrl: "u", commitId: A },
+          { id: 2, author: "sam", state: "APPROVED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u", commitId: B.toUpperCase() },
+        ],
+      }),
+    );
+    expect(shas).toEqual([A, B]);
+  });
+
+  it("ignores non-approving reviews and reviews with no commit id", () => {
+    const shas = deriveApprovedHeadShas(
+      pr({
+        reviews: [
+          { id: 1, author: "rae", state: "CHANGES_REQUESTED", submittedAt: "2026-08-01T00:00:00Z", htmlUrl: "u", commitId: A },
+          { id: 2, author: "sam", state: "APPROVED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u" },
+        ],
+      }),
+    );
+    expect(shas).toEqual([]);
   });
 });

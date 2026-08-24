@@ -32,7 +32,7 @@ state changes, what happens on the unhappy path.>
 
 <Technical decisions made during implementation, with reasoning.>
 
-- 
+-
 
 ## Spec Deviations
 
@@ -55,13 +55,13 @@ None
 <Concrete. Unhandled edges, behavior under load, assumptions that could prove wrong,
 deploy risk.>
 
-- 
+-
 
 ## Recommended Review Focus
 
 <Where an independent reviewer should scrutinize. Name specific places.>
 
-- 
+-
 
 ## Framework
 
@@ -92,8 +92,12 @@ Before merge, push the **merge-finalization** commit to this same PR: documentat
 the workstream file, `ACTIVE.md`, `Review State`, and where the workstream completes,
 `PROJECT_MODEL.md` and `DECISIONS.md`. It sets them to what becomes true when this PR lands.
 Any executable, test, dependency, config, or behavior-documentation change in that commit
-reopens full review. Note here once it is pushed, so the reviewer knows what to verify
-against the final head, and merge the exact head the reviewer named.
+reopens full review.
+
+That commit cannot contain its own SHA, so it does not try to: `Reviewed head` keeps naming the
+last fully-reviewed commit and gains `Finalization: pushed`. Say here that it is pushed; the
+reviewer then verifies the head it produced and approves on the PR, and the merge targets that
+exact SHA.
 
 This agent does not approve this PR and does not merge it.
 -->
@@ -109,7 +113,7 @@ WS-### — <title>. <PHASE> → <PHASE>. <Completes / does not complete> the wor
 <Intentional deferrals, each with the reason. Not a parking lot for unfinished in-scope
 work.>
 
-- 
+-
 
 ## Owner Summary
 

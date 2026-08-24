@@ -133,8 +133,9 @@ End every review with an explicit verdict and the exact commit you reviewed:
 
 Allowed verdicts: `Not started`, `In review`, `Changes required`, `Approved`,
 `Approved with follow-ups`. An approval that doesn't name a commit proves nothing, so never
-write one without the head. If the PR has moved on since you reviewed, say so — the approval
-is stale and the new head needs reviewing.
+write one without the head. Name the PR too when the workstream has more than one — a verdict
+is about one PR and says nothing about the others. If the PR has moved on since you reviewed,
+say so — the approval is stale and the new head needs reviewing.
 
 A significant PR doesn't merge until an independent reviewer has approved its current head.
 The agent that wrote the code doesn't approve it or merge it.
@@ -150,7 +151,9 @@ findings, or completion/pause/block/abandonment. Not after every exchange.
 - **Just before a PR merges:** make one last documentation-only commit on that same PR
   setting the workstream, `ACTIVE.md`, and Review State to what becomes true when it lands —
   so `main` never contains a workstream describing a state that ended at merge. Documentation
-  only: any code change there invalidates the review.
+  only: any code change there invalidates the review. That commit can't contain its own SHA, so
+  leave `Reviewed head` naming the last fully-reviewed commit, add `Finalization: pushed`, and
+  let the reviewer record the final head on the PR.
 - **If you can read but not write:** produce a precise repository-update block — exact file,
   exact fields, exact replacement text — for an implementation agent to apply.
 - **If GitHub is unavailable:** keep designing, say clearly that repository state is not

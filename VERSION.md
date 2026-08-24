@@ -5,12 +5,20 @@
 | Field | Value |
 |---|---|
 | Version | 0.5 |
-| Status | Draft — protocol and templates only |
-| Scope | Documentation, protocol, reusable templates |
-| Contains code | No |
+| Status | Draft |
+| Scope | Documentation, protocol, reusable templates, contracts |
+| Contains code | Yes — `companion/` only. The protocol itself is documentation and templates. |
 
 This file is canonical. An adopted repository's framework compatibility check reads the
 version above and the migration notes below. See `framework/FRAMEWORK_SYNC.md`.
+
+**What "contains code" means here.** Adopting Build OS still requires no dependency, no build
+step, and no runtime: everything an adopting project uses is Markdown plus the JSON schemas in
+`contracts/`. The `companion/` directory is the Project Intelligence Companion — an application
+that *reads* Build OS artifacts, staged in this repository until it is extracted per `DEC-008`.
+It is not part of the framework an adopting project follows, and nothing in the protocol depends
+on it existing. It is named here because saying "contains code: no" while a TypeScript package
+sits in the tree is exactly the kind of stale durable record v0.5 exists to prevent.
 
 ---
 
@@ -66,8 +74,18 @@ Four demonstrated gaps between owner feedback and a merged change, closed as one
   carrying workstreams that describe a state that ended at merge, without a second
   bookkeeping PR.
 
-Supporting changes: structured `Verdict` and `Reviewed head` fields in
-`templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.template.md`; a
+Two rules keep the review fields honest, and both matter to anyone writing them by hand:
+
+- **A verdict belongs to one PR.** A workstream spanning several records one verdict per PR, in
+  a `| PR | Verdict | Reviewed head | Finalization |` table. A record says nothing about a PR it
+  does not name, so approving a new PR never re-opens the question of one that merged long ago.
+- **A finalization commit cannot contain its own SHA.** `Reviewed head` names the last commit
+  reviewed *in full*; `Finalization: pushed` says the PR head is legitimately ahead of it; and
+  the head that commit produced is recorded by the reviewer **on the PR**, after it exists —
+  a GitHub review carries the commit id it was submitted against. Merge targets that SHA.
+
+Supporting changes: structured `Verdict`, `Reviewed head`, `Reviewed PR`, and `Finalization`
+fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.template.md`; a
 `Review gate` section in `templates/PR_HANDOFF.template.md`; capture and review behavior in
 `templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md`; parsing rules and integrity warnings in
 `framework/BUILD_OS_PARSE_CONTRACT.md`; open-PR applicability in `framework/FRAMEWORK_SYNC.md`.
@@ -83,10 +101,11 @@ Supporting changes: structured `Verdict` and `Reviewed head` fields in
    replace a project's own instructions, and leave `Project-specific:` rules intact.
 3. **Refresh local copies of the Workstream, Review Summary, and PR Handoff templates**, where
    the project keeps copies rather than referencing the canonical ones.
-4. **Add `Verdict` and `Reviewed head` to active workstreams at their next review
-   checkpoint** — not in a bulk edit, and never to completed historical workstream files. A
-   file written before v0.5 parses correctly with the fields absent; adding them
-   retrospectively would record a review that never happened.
+4. **Add the review fields to active workstreams at their next review checkpoint** — not in a
+   bulk edit, and never to completed historical workstream files. A file written before v0.5
+   parses correctly with the fields absent; adding them retrospectively would record a review
+   that never happened. A workstream with more than one PR uses the per-PR table from the start,
+   so that a verdict on the current PR never makes a claim about an older merged one.
 5. **Apply the merge gate to significant PRs that are still open**, including ones opened
    under v0.4. Merged history is not reopened and nothing already landed is retroactively
    invalidated.

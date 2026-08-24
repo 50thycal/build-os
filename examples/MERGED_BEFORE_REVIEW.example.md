@@ -65,6 +65,7 @@ will look.
 
 **Verdict:** Changes required
 **Reviewed head:** 7d2e1a90c4b53f8801ea6b2d90c7431f5ae08b62 (merged head)
+**Reviewed PR:** #368
 **Head current at publication:** yes — this PR is merged
 
 This PR merged without an independent approved verdict. Recording that plainly: the merge
@@ -104,10 +105,12 @@ the whole story.
 
  ## Review State
 -Not started.
-+**Verdict:** Changes required
-+**Reviewed head:** 7d2e1a90c4b53f8801ea6b2d90c7431f5ae08b62
++| PR | Verdict | Reviewed head | Finalization |
++|---|---|---|---|
++| #368 | Changes required | 7d2e1a90c4b53f8801ea6b2d90c7431f5ae08b62 | — |
++| #371 | Not started | — | — |
 +
-+Retrospective review of the merged head, 2026-03-09. One blocking finding (day filter
++Retrospective review of #368's merged head, 2026-03-09. One blocking finding (day filter
 +applied at scheduling rather than send time), one should-fix (account offset instead of
 +timezone). Both corrected on #371.
 
@@ -123,6 +126,13 @@ the whole story.
 The row returns to `ACTIVE.md`. A workstream that was marked complete and is not complete is
 worse than one that was never marked at all, because the board is what an arriving agent
 trusts.
+
+Note the table. WS-014 now spans two PRs, and each carries its own verdict — because a verdict
+is about a commit on a specific PR and says nothing about any other. When #371 is approved, the
+row for #368 does not change: its own record already says what happened to it. A single
+workstream-level verdict compared against both PRs would report #368 as merged without
+approval the moment #371 was approved, which is a false accusation about work that is already
+on `main`.
 
 ### Step 4 — Re-review independently, under the full gate
 
@@ -160,6 +170,7 @@ out to be right. The recovery is shorter but not empty.
 ```markdown
 **Verdict:** Approved
 **Reviewed head:** 7d2e1a90c4b53f8801ea6b2d90c7431f5ae08b62 (merged head)
+**Reviewed PR:** #368
 
 Retrospective — this PR merged before independent review. Reviewed after the fact against
 the Build Card; no findings. Recording the process gap, not a defect.

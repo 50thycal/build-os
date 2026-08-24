@@ -295,8 +295,9 @@ Notes on the sections that are most often done badly:
   open decisions are not written down has lost the thing it was in the middle of.
 - **Assumptions** age badly and are worth re-reading at every checkpoint. An assumption that
   has since been falsified is usually the reason a design stopped making sense.
-- **Review State** leads with two machine-readable fields, `Verdict` and `Reviewed head`,
-  before any prose. The head is the full 40-character SHA the verdict was reached against —
+- **Review State** leads with machine-readable fields — `Verdict` and `Reviewed head`, plus
+  `Reviewed PR` and `Finalization` where they apply — before any prose. A workstream spanning
+  several PRs records one row per PR; a verdict never applies to a PR it does not name. The head is the full 40-character SHA the verdict was reached against —
   an abbreviation is not accepted, because it cannot prove which commit was reviewed. An
   approval that names no head does not open the merge gate. See `REVIEW_PROTOCOL.md`.
 - **Next Step** is one action, not a plan. If it takes three sentences, the workstream is
@@ -381,8 +382,13 @@ becomes true when the PR lands:
 - `PROJECT_MODEL.md` and `DECISIONS.md`, if the workstream completes (see *Completion*)
 
 Nothing else. Any executable, test, dependency, configuration, or behavior-documentation
-change in that commit invalidates the approval and returns the PR to full review. The
-reviewer verifies the final head, records it, and the merge targets that exact SHA.
+change in that commit invalidates the approval and returns the PR to full review.
+
+`Reviewed head` in that commit stays the last head reviewed **in full** — a commit cannot
+contain its own SHA, so it can never name the head it is about to produce. It adds
+`Finalization: pushed` instead. The reviewer then verifies the head that commit produced and
+records it **on the PR**, where a record can be made after the commit exists, and the merge
+targets that exact SHA. See `framework/REVIEW_PROTOCOL.md`.
 
 This is what stops `main` from filling with workstreams that say `REVIEW` about PRs that
 merged weeks ago, without a second bookkeeping PR nobody opens. The rules, and why writing

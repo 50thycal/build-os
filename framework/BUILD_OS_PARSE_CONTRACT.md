@@ -138,14 +138,58 @@ prose:
 |---|---|
 | Verdict | One of `Not started`, `In review`, `Changes required`, `Approved`, `Approved with follow-ups`. Case-insensitive. Unrecognized → absent, plus a `REVIEW_VERDICT_MALFORMED` warning. |
 | Reviewed head | A full 40-character hexadecimal commit SHA, or `—` for none. An abbreviated SHA is **not** accepted — a 7-character prefix cannot prove which commit was reviewed. Malformed → absent, plus `REVIEWED_HEAD_MALFORMED`. |
+| Reviewed PR | Optional. `#84`. Which PR this verdict is about. |
+| Finalization | Optional. `pushed` when the documentation-only merge-finalization commit is on the PR; `—`, `not pushed`, or absent otherwise. |
 
-Both fields are optional in the file format sense: a workstream written under v0.4 has neither,
-and that is **absent metadata, never an error**. Consumers report what is missing where it
+All four are optional in the file format sense: a workstream written under v0.4 has none of
+them, and that is **absent metadata, never an error**. Consumers report what is missing where it
 matters (see the integrity table) rather than refusing to parse.
 
-The same two fields appear in a review summary, and may appear in a PR review or top-level PR
-comment. Wherever they appear, they mean the same thing: *this verdict was reached against
-exactly this commit.*
+### A verdict belongs to one pull request
+
+A workstream may span several PRs, and each is reviewed on its own. **A review record applies
+only to its PR.** A consumer must not compare one workstream-level reviewed head against every
+linked PR — doing so reports an older merged PR as unapproved the moment a newer one is
+approved.
+
+A record that names no PR binds to the workstream's **most recent linked PR** — the highest
+number, which is the one under review in practice. A workstream with more than one live PR
+should name them explicitly, using the per-PR table:
+
+```markdown
+## Review State
+
+| PR | Verdict | Reviewed head | Finalization |
+|---|---|---|---|
+| #84 | Approved | 0123456789abcdef0123456789abcdef01234567 | pushed |
+| #91 | In review | — | — |
+
+<optional findings and follow-up prose>
+```
+
+Either form may be used; the table wins if both are present. **A linked PR with no record is a
+PR this workstream makes no claim about** — a consumer says nothing about it. That is what keeps
+a workstream's older, already-merged PRs quiet, and it is also why pre-v0.5 files raise nothing.
+
+### The final head is verified on the PR, not in the file
+
+A merge-finalization commit cannot contain its own SHA: adding the SHA changes the commit. So
+`Reviewed head` is **the last head reviewed in full** — always a commit that already exists when
+the field is written — and `Finalization: pushed` declares that the PR head is legitimately
+ahead of it.
+
+The head that finalization produced is verified through a record created *after* it exists:
+GitHub stamps an approving review with the commit id it was submitted against. A consumer
+treats an approving GitHub review naming the PR's **current head** as satisfying the gate,
+whatever the file says, and reports `FINAL_HEAD_UNVERIFIED` when a workstream declares
+finalization and no such review exists.
+
+A consumer must never infer the final head, and must never treat a self-referential SHA claim
+as verification.
+
+The verdict and head fields also appear in a review summary, and may appear in a PR review or
+top-level PR comment. Wherever they appear, they mean the same thing: *this verdict was reached
+against exactly this commit.*
 
 **Missing sections are normal.** A workstream in `IDEA` legitimately has almost nothing. Absence
 is not an error.
@@ -197,9 +241,10 @@ winner. Cases worth reporting:
 | Filename ID and heading ID differ | Report; address by filename. |
 | A workstream marked `COMPLETE` still on the active board | Report: completion is supposed to remove the row. |
 | Duplicate `WS-###` across files | Report; do not merge. |
-| `Verdict: Approved`* with no reviewed head | Report `APPROVED_WITHOUT_REVIEWED_HEAD`: an approval that names no commit proves nothing. Treat the workstream as unreviewed. |
-| Reviewed head differs from the PR's current head | Report `REVIEW_STALE`: the approval is against an older commit. |
-| A significant PR merged with no approved verdict | Report `MERGED_WITHOUT_APPROVAL`. Historical PRs predating v0.5 adoption are exempt. |
+| `Verdict: Approved`* with no reviewed head | Report `APPROVED_WITHOUT_REVIEWED_HEAD`: an approval that names no commit proves nothing. Treat the record as unreviewed. |
+| A record's reviewed head differs from **its own** PR's current head, finalization not declared | Report `REVIEW_STALE`: the approval is against an older commit. |
+| A record declares `Finalization: pushed` and no approving GitHub review names the PR's current head | Report `FINAL_HEAD_UNVERIFIED`: the divergence is expected, the verification is not there. |
+| A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. A PR with no record — including every PR predating v0.5 adoption — is exempt. |
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
 
@@ -208,6 +253,9 @@ winner. Cases worth reporting:
 These are warnings about the *project's* records, addressed to its owner. They are not parser
 errors, and they must not stop the rest of the parse. In particular, a consumer **never repairs**
 a review field it finds contradictory — an approval it cannot verify is reported, not upgraded.
+
+Equally, a consumer **never widens a record beyond its PR**. Silence about a PR nobody recorded
+is correct output, not a gap to fill by borrowing another PR's verdict.
 
 ---
 

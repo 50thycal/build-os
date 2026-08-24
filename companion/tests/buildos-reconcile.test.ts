@@ -163,26 +163,51 @@ ${reviewSection}
   it("carries verdict and reviewed head onto workstream state", () => {
     const head = "0123456789abcdef0123456789abcdef01234567";
     const ws = reconcileOne(`**Verdict:** Approved\n**Reviewed head:** ${head}`).workstreams[0]!;
-    expect(ws.reviewVerdict).toBe("APPROVED");
-    expect(ws.reviewedHead).toBe(head);
+    expect(ws.reviewRecords).toEqual([
+      { prNumber: 84, verdict: "APPROVED", reviewedHead: head, finalized: false },
+    ]);
+  });
+
+  it("binds a record that names no PR to the workstream's most recent linked PR", () => {
+    // #84 is the only linked PR here; with several, the record binds to the newest rather than
+    // to all of them, which is what stopped older merged PRs being reported as unapproved.
+    const ws = reconcileOne("**Verdict:** In review").workstreams[0]!;
+    expect(ws.reviewRecords[0]!.prNumber).toBe(84);
+  });
+
+  it("keeps a per-PR review table as one record per PR", () => {
+    const head = "0123456789abcdef0123456789abcdef01234567";
+    const other = "89abcdef0123456789abcdef0123456789abcdef";
+    const ws = reconcileOne(
+      [
+        "| PR | Verdict | Reviewed head | Finalization |",
+        "|---|---|---|---|",
+        `| #84 | Approved | ${head} | pushed |`,
+        `| #91 | Changes required | ${other} | — |`,
+      ].join("\n"),
+    ).workstreams[0]!;
+    expect(ws.reviewRecords).toEqual([
+      { prNumber: 84, verdict: "APPROVED", reviewedHead: head, finalized: true },
+      { prNumber: 91, verdict: "CHANGES_REQUIRED", reviewedHead: other, finalized: false },
+    ]);
   });
 
   it("warns when an approval names no commit, and does not treat it as approved evidence", () => {
     const result = reconcileOne("**Verdict:** Approved\n**Reviewed head:** —");
     expect(result.warnings.map((w) => w.code)).toContain("APPROVED_WITHOUT_REVIEWED_HEAD");
-    expect(result.workstreams[0]!.reviewedHead).toBeUndefined();
+    expect(result.workstreams[0]!.reviewRecords[0]!.reviewedHead).toBeUndefined();
   });
 
   it("warns on a verdict outside the allowed set and leaves the field absent", () => {
     const result = reconcileOne("**Verdict:** Looks good");
     expect(result.warnings.map((w) => w.code)).toContain("REVIEW_VERDICT_MALFORMED");
-    expect(result.workstreams[0]!.reviewVerdict).toBeUndefined();
+    expect(result.workstreams[0]!.reviewRecords[0]?.verdict).toBeUndefined();
   });
 
   it("warns on an abbreviated reviewed head", () => {
     const result = reconcileOne("**Verdict:** In review\n**Reviewed head:** 0123456");
     expect(result.warnings.map((w) => w.code)).toContain("REVIEWED_HEAD_MALFORMED");
-    expect(result.workstreams[0]!.reviewedHead).toBeUndefined();
+    expect(result.workstreams[0]!.reviewRecords[0]!.reviewedHead).toBeUndefined();
   });
 
   it("says nothing about a pre-v0.5 workstream with a prose review section", () => {
@@ -191,6 +216,6 @@ ${reviewSection}
       .map((w) => w.code)
       .filter((c) => c.startsWith("REVIEW") || c.startsWith("APPROVED"));
     expect(reviewCodes).toEqual([]);
-    expect(result.workstreams[0]!.reviewVerdict).toBeUndefined();
+    expect(result.workstreams[0]!.reviewRecords).toEqual([]);
   });
 });

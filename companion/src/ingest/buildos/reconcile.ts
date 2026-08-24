@@ -11,6 +11,7 @@
 
 import type {
   IntegrityWarning,
+  ReviewRecord,
   WorkstreamState,
 } from "../../domain/state.ts";
 import { isApprovingVerdict } from "../../domain/state.ts";
@@ -186,14 +187,30 @@ export function reconcileBuildOsState(
     }
 
     // An approval that names no commit proves nothing about the code.
-    if (isApprovingVerdict(parsed.review.verdict) && !parsed.review.reviewedHead) {
-      warnings.push({
-        code: "APPROVED_WITHOUT_REVIEWED_HEAD",
-        workstreamId,
-        message: `${workstreamId} records an approval with no reviewed head. Treat it as unreviewed until a reviewer names the commit.`,
-        sources: [fileSource],
-      });
+    for (const record of parsed.review.records) {
+      if (isApprovingVerdict(record.verdict) && !record.reviewedHead) {
+        const about = record.prNumber === undefined ? "" : ` for PR #${record.prNumber}`;
+        warnings.push({
+          code: "APPROVED_WITHOUT_REVIEWED_HEAD",
+          workstreamId,
+          message: `${workstreamId} records an approval${about} with no reviewed head. Treat it as unreviewed until a reviewer names the commit.`,
+          sources: [fileSource],
+        });
+      }
     }
+
+    const relatedPrNumbers = [
+      ...new Set([...(row?.relatedPrNumbers ?? []), ...parsed.relatedPrNumbers]),
+    ].sort((a, b) => a - b);
+
+    // A record that names no PR binds to the most recent linked PR — the one under review in
+    // practice. Binding it to all of them is what made an older merged PR look unapproved the
+    // moment a newer one was approved.
+    const mostRecentPr = relatedPrNumbers[relatedPrNumbers.length - 1];
+    const reviewRecords: ReviewRecord[] = parsed.review.records.map((record) => ({
+      ...record,
+      prNumber: record.prNumber ?? mostRecentPr,
+    }));
 
     const status = parsed.status ?? row?.status;
     const nextStep = parsed.nextStep ?? row?.nextStep;
@@ -214,15 +231,12 @@ export function reconcileBuildOsState(
       // Build OS records a blocker as BLOCKED plus the reason in Next Step.
       blocker,
       openDecisions: parsed.openDecisions,
-      relatedPrNumbers: [
-        ...new Set([...(row?.relatedPrNumbers ?? []), ...parsed.relatedPrNumbers]),
-      ].sort((a, b) => a - b),
+      relatedPrNumbers,
       relatedDecisionIds: parsed.relatedDecisionIds,
       buildCardReady: parsed.buildCardReady,
       implementationState: parsed.implementationState,
       reviewState: parsed.reviewState,
-      reviewVerdict: parsed.review.verdict,
-      reviewedHead: parsed.review.reviewedHead,
+      reviewRecords,
       updatedAt: parsed.updatedAt,
       sourcePath: file.path,
       source: fileSource,

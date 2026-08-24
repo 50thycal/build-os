@@ -219,6 +219,13 @@ The implementation agent should decide whether the first code lives:
 
 The critical requirement is not repository placement; it is preserving the protocol/application boundary.
 
+> **Resolved, 2026-08-24.** Option 1 first and option 2 immediately after, which is what `DEC-008`
+> staged and `DEC-011` completed. The domain landed here as a self-contained `companion/` package
+> so the design work could start at once, and moved to `50thycal/build-os-companion` before the
+> first database migration — the point at which the second condition above ("a full web service,
+> persistence") became true. Contracts stayed here and are vendored downstream with a drift check.
+> The text above is left as written; it is the reasoning that produced the decision.
+
 ---
 
 ## 7. Canonical data model

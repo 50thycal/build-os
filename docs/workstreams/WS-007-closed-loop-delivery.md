@@ -74,17 +74,21 @@ That is a session message, and by Build OS's own rule — chat is transport, not
 
 What it establishes: an instruction to build what PR #7 published. What it does not establish on its own: an itemized owner ruling on D1–D5, each of which the design agent had marked *recommended*, not *approved*. A recommendation is not an approval.
 
-**Owner confirmation outstanding.** Independent review has asked for this to be settled durably before merge. The confirming statement, if the owner agrees, is one line on PR #7:
+**Owner confirmation, 2026-08-24.** The owner (Calvin, `50thycal`) confirmed, verbatim:
 
 > I approve D1–D5 for WS-007 as recorded and authorize the Build OS v0.5 implementation.
 
-Until that appears, D1–D5 below record **what was built and on whose recommendation**, and each is provisional in exactly that sense. The implementation stands as a proposal for the owner to accept or revise; nothing here should be read as the owner having ruled on each decision individually.
+**Where that was said, precisely:** in the Claude Code implementation session, in reply to the request for it — not typed by the owner into this repository. It is written down here, and relayed onto PR #7 and PR #9, by the implementation agent. That is what makes it durable: a session statement transcribed into the project record, attributed to who said it and through whom.
 
-- **D1. Explicit capture-only mode — built as recommended.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-012.
-- **D2. Standardized draft Design Handoff PR — built as recommended.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
-- **D3. Independent review as a hard merge gate for significant work — built as recommended.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-013.
-- **D4. Merge-finalization commit in the same PR — built as recommended.** Documentation-only, after approval, verified against the final head. Recorded as DEC-014.
-- **D5. Publish as Build OS v0.5 with explicit downstream migration — built as recommended.** Minor release; `VERSION.md` carries six exact adoption steps.
+It is a weaker artifact than a comment posted by the owner's own hand, and this file says so rather than blurring the two. What it is sufficient for: D1–D5 are approved, and the approval is on the record with its provenance intact. What would strengthen it: the same sentence in a comment authored by the owner directly.
+
+With that, D1–D5 below are **approved**, not merely recommended. The distinction this file drew between the two — a recommendation is not an approval — is resolved in favour of approval on the owner's own words.
+
+- **D1. Explicit capture-only mode — approved.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-012.
+- **D2. Standardized draft Design Handoff PR — approved.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
+- **D3. Independent review as a hard merge gate for significant work — approved.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-013.
+- **D4. Merge-finalization commit in the same PR — approved.** Documentation-only, after approval, verified against the final head. Recorded as DEC-014.
+- **D5. Publish as Build OS v0.5 with explicit downstream migration — approved.** Minor release; `VERSION.md` carries six exact adoption steps.
 
 ## Open Decisions
 
@@ -111,7 +115,7 @@ None.
 # Build Card — Closed-loop feedback, review, and merge delivery
 
 **Workstream:** WS-007
-**Status:** Built as published; owner confirmation of D1–D5 outstanding — see Decisions Made
+**Status:** Approved 2026-08-24 — see Decisions Made for the confirmation and its provenance
 **Date:** 2026-08-24
 **Build Spec:** [`plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md`](../../plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md)
 
@@ -219,4 +223,6 @@ Added by this implementation: DEC-012 (owner input is captured before it is proc
 
 None. Build OS v0.5 is released on `main`; the Companion half is `50thycal/build-os-companion#2`.
 
-Two things remain open and are recorded here rather than kept alive as work: the owner has not confirmed D1–D5 durably (see Decisions Made), and `caca3e0` was merged without an approving verdict (see Review State). Neither is resolvable by this workstream.
+One thing remains on the record rather than open as work: `caca3e0` merged without an approving verdict naming it (see Review State). That is not resolvable by this workstream and is not being reversed.
+
+The owner's approval of D1–D5 landed on 2026-08-24 and is recorded in Decisions Made with its provenance.

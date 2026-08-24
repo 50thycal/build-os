@@ -3,15 +3,15 @@
 **Status:** Approved 2026-08-24; implemented on PR #7, pending independent review
 **Workstream:** WS-007 · **Build Card:** [`docs/workstreams/WS-007-closed-loop-delivery.md`](../docs/workstreams/WS-007-closed-loop-delivery.md#build-card) · **Written under Build OS v0.4**
 
-Canonical `VERSION.md` was v0.4 when this spec was written on 2026-08-24. Implementation proceeded on an owner instruction to build what PR #7 published, given in the implementation session and **not recorded in this repository** — quoted, with its limits, in [WS-007's Decisions Made](../docs/workstreams/WS-007-closed-loop-delivery.md#decisions-made). Durable owner confirmation of D1–D5 is outstanding. This spec is the v0.5 minor protocol release, implemented on the same branch and PR the design handoff opened.
+Canonical `VERSION.md` was v0.4 when this spec was written on 2026-08-24. Implementation proceeded on an owner instruction to build what PR #7 published, given in the implementation session and **not recorded in this repository** — quoted, with its limits, in [WS-007's Decisions Made](../docs/workstreams/WS-007-closed-loop-delivery.md#decisions-made). The owner confirmed D1–D5 on 2026-08-24; that confirmation and its provenance are recorded in the same place. This spec is the v0.5 minor protocol release, implemented on the same branch and PR the design handoff opened.
 
 ---
 
 ## The three-way split
 
-### Owner decisions — built 2026-08-24, owner confirmation outstanding
+### Owner decisions — approved 2026-08-24, binding
 
-Built on the owner's instruction to proceed with what PR #7 published. That instruction is a session message, not a project record, and it does not by itself constitute an itemized ruling on D1–D5 — a recommendation in this spec is not an approval. See WS-007's Decisions Made for the quote, its limits, and the one-line confirmation that would settle it.
+Built on the owner's instruction to proceed with what PR #7 published, and approved by the owner on 2026-08-24: *"I approve D1–D5 for WS-007 as recorded and authorize the Build OS v0.5 implementation."* Both statements were made in the implementation session and transcribed into the record by the implementation agent; WS-007's Decisions Made carries them with that provenance stated, because how an approval reached the record is part of what the record is for.
 
 - **OD-1.** Build OS adds a named **Capture Only** mode for live playtests, brainstorming dumps, and multi-message owner feedback. While active, the design agent records observations but does not analyze, recommend, decide, create/update repository artifacts, or trigger implementation unless the owner explicitly ends or overrides capture mode.
 - **OD-2.** Ending Capture Only requires a consolidation pass that separates `Observation`, `Interpretation`, `Proposed rule`, and `Approved decision`. Only approved decisions enter the Build Card's `Decisions made` or the Build Spec's owner decisions.

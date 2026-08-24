@@ -14,7 +14,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| WS-007 | Closed-loop feedback, review, and merge delivery | REVIEW | Active | Re-review #7 (round 3 findings corrected); owner to confirm D1–D5 | #7 |
+| — | — | — | — | — | — |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned
@@ -25,3 +25,4 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 | ID | Workstream | Completed | Outcome |
 |---|---|---|---|
 | WS-001 … WS-006 | Companion program | 2026-08-24 | Moved to `50thycal/build-os-companion` with the application (`DEC-011`) |
+| WS-007 | Closed-loop feedback, review, and merge delivery | 2026-08-24 | Build OS v0.5 released in #7 (`DEC-012`, `DEC-013`, `DEC-014`). Merged without an approved verdict on its final head — recorded in the workstream, not reversed. |

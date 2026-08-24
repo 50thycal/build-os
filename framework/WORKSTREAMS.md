@@ -295,6 +295,9 @@ Notes on the sections that are most often done badly:
   open decisions are not written down has lost the thing it was in the middle of.
 - **Assumptions** age badly and are worth re-reading at every checkpoint. An assumption that
   has since been falsified is usually the reason a design stopped making sense.
+- **Build OS** in the header names the protocol version this workstream runs under, defaulting
+  to the project's adopted version. From v0.5 it is what decides whether the merge gate applies —
+  deliberately, so that removing a review record cannot quietly remove the gate with it.
 - **Review State** leads with machine-readable fields — `Verdict` and `Reviewed head`, plus
   `Reviewed PR` and `Finalization` where they apply — before any prose. A workstream spanning
   several PRs records one row per PR; a verdict never applies to a PR it does not name. The head is the full 40-character SHA the verdict was reached against —

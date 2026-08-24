@@ -4,6 +4,7 @@
 **Status:** Active
 **Created:** 2026-08-24
 **Updated:** 2026-08-24
+**Build OS:** v0.5
 
 ## Goal
 
@@ -65,15 +66,25 @@ approved verdict + reviewed current head + green required validation + truthful 
 
 ## Decisions Made
 
-Owner approval, 2026-08-24, verbatim: *"I published the proposed solution as Build OS draft PR #7. It contains WS-007, a draft Build Card, and the complete proposed v0.5 specification. Please proceed with this build."*
+**Source of authority — read this before relying on the decisions below.**
 
-That instruction approved the Build Card as published — which carried D1–D5 with a recommendation of yes on each — and directed implementation to proceed on this PR. It is cited here rather than paraphrased, because a recommendation is not an approval and only the owner's own words distinguish the two. Each decision below records what was approved, not what was recommended; where the owner later revises one, the revision replaces it here and the implementation follows.
+Implementation proceeded on an owner instruction given **in the Claude Code implementation session on 2026-08-24**, not on any record in this repository: *"I published the proposed solution as Build OS draft PR #7. It contains WS-007, a draft Build Card, and the complete proposed v0.5 specification. Please proceed with this build."*
 
-- **D1. Explicit capture-only mode — yes.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-011.
-- **D2. Standardized draft Design Handoff PR — yes.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
-- **D3. Independent review as a hard merge gate for significant work — yes.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-012.
-- **D4. Merge-finalization commit in the same PR — yes.** Documentation-only, after approval, verified against the final head. Recorded as DEC-013.
-- **D5. Publish as Build OS v0.5 with explicit downstream migration — yes.** Minor release; `VERSION.md` carries six exact adoption steps.
+That is a session message, and by Build OS's own rule — chat is transport, not memory (DEC-002) — **it is not independently verifiable from the project record.** No comment, review, or commit on PR #7 carries it. It is quoted here so a reader can judge it, not so it can pass as a durable artifact.
+
+What it establishes: an instruction to build what PR #7 published. What it does not establish on its own: an itemized owner ruling on D1–D5, each of which the design agent had marked *recommended*, not *approved*. A recommendation is not an approval.
+
+**Owner confirmation outstanding.** Independent review has asked for this to be settled durably before merge. The confirming statement, if the owner agrees, is one line on PR #7:
+
+> I approve D1–D5 for WS-007 as recorded and authorize the Build OS v0.5 implementation.
+
+Until that appears, D1–D5 below record **what was built and on whose recommendation**, and each is provisional in exactly that sense. The implementation stands as a proposal for the owner to accept or revise; nothing here should be read as the owner having ruled on each decision individually.
+
+- **D1. Explicit capture-only mode — built as recommended.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-011.
+- **D2. Standardized draft Design Handoff PR — built as recommended.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
+- **D3. Independent review as a hard merge gate for significant work — built as recommended.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-012.
+- **D4. Merge-finalization commit in the same PR — built as recommended.** Documentation-only, after approval, verified against the final head. Recorded as DEC-013.
+- **D5. Publish as Build OS v0.5 with explicit downstream migration — built as recommended.** Minor release; `VERSION.md` carries six exact adoption steps.
 
 ## Open Decisions
 
@@ -100,7 +111,7 @@ None.
 # Build Card — Closed-loop feedback, review, and merge delivery
 
 **Workstream:** WS-007
-**Status:** Approved
+**Status:** Built as published; owner confirmation of D1–D5 outstanding — see Decisions Made
 **Date:** 2026-08-24
 **Build Spec:** [`plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md`](../../plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md)
 
@@ -178,9 +189,11 @@ Review round 1 (2026-08-24) returned Changes required; corrections are on this s
 **Reviewed PR:** #7
 **Finalization:** —
 
-Independent review of `1607e800168eac17d7b81b1d6c13aa7a9d99ca50` returned **Changes required** on 2026-08-24, with five findings: the merge-finalization commit was specified to contain its own SHA (impossible, and it made the branch report as `REVIEW_STALE`); one workstream-level reviewed head was compared against every linked PR, so approving a current PR falsely reported an older merged PR as `MERGED_WITHOUT_APPROVAL`; both needed regression tests; `VERSION.md` claimed to contain no code; and `git diff --check` failed on trailing whitespace. The findings were reported outside GitHub, so no review record exists on the PR for that head.
+Round 1 — `Changes required` against `1607e800168eac17d7b81b1d6c13aa7a9d99ca50`, reported outside GitHub. Five findings: the finalization commit was specified to contain its own SHA; one workstream-level reviewed head was compared against every linked PR; both needed regression tests; `VERSION.md` claimed the repository contained no code; `git diff --check` failed. All corrected on this PR.
 
-All five are corrected on this same PR, which returns to review with a new head awaiting an independent verdict. This PR remains subject to the gate it introduces: it does not merge without an approved verdict naming its current head, and the implementing agent neither approves nor merges it.
+Round 2 — `Changes required` against `c1b9316b6b6e13e2b6f0db104ba1400ea12306ea`, published on PR #7. Two gate bypasses: a historical GitHub approval could outlive the reviewer's own later changes request and clear the gate, and a current-head approval could override a workstream record saying `Changes required`; and omitting a review record silently removed a significant PR from the gate, because absence of a record was what marked a workstream legacy. Plus an approval-provenance correction and a test-count fix. All corrected on this PR; the workstream returned to `BUILDING` for the round and back to `REVIEW` with a new head.
+
+Awaiting an independent verdict on the current head. This PR is subject to the gate it introduces: it does not merge without an approved verdict naming that head, and the implementing agent neither approves nor merges it.
 
 ## Related Decisions
 

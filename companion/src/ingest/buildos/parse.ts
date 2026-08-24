@@ -117,6 +117,19 @@ export function parseActiveBoard(markdown: string): ActiveBoard {
   return { rows, skippedRows };
 }
 
+/**
+ * The Build OS version a workstream declares for itself, from `**Build OS:** v0.5`.
+ *
+ * Only the header block is read: a mention of a version in the body is prose about a release,
+ * not a declaration of the protocol this workstream runs under.
+ */
+function parseProtocolVersion(markdown: string): string | undefined {
+  const raw = headerField(markdown, "Build OS") ?? headerField(markdown, "Protocol");
+  if (!raw) return undefined;
+  const match = /v?(\d+\.\d+(?:\.\d+)?)/.exec(raw.replace(/[*`]/g, ""));
+  return match ? `v${match[1]}` : undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Review State fields (v0.5)
 // ---------------------------------------------------------------------------
@@ -298,6 +311,8 @@ export interface ParsedWorkstreamFile {
   status?: WorkstreamStatus;
   createdAt?: string;
   updatedAt?: string;
+  /** From a `**Build OS:** v0.5` header field. Absent means "inherit the project's pin". */
+  protocolVersion?: string;
   goal?: string;
   nextStep?: string;
   openDecisions: OpenDecision[];
@@ -350,6 +365,7 @@ export function parseWorkstreamFile(markdown: string): ParsedWorkstreamFile {
     phase: parsePhase(headerField(markdown, "Phase")),
     status: parseStatus(headerField(markdown, "Status")),
     createdAt: headerField(markdown, "Created"),
+    protocolVersion: parseProtocolVersion(markdown),
     updatedAt: headerField(markdown, "Updated"),
     goal: sectionText("Goal"),
     nextStep: sectionText("Next Step"),

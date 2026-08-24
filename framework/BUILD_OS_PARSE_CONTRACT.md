@@ -168,8 +168,28 @@ should name them explicitly, using the per-PR table:
 ```
 
 Either form may be used; the table wins if both are present. **A linked PR with no record is a
-PR this workstream makes no claim about** — a consumer says nothing about it. That is what keeps
-a workstream's older, already-merged PRs quiet, and it is also why pre-v0.5 files raise nothing.
+PR this workstream makes no claim about** — which is what keeps a workstream's older,
+already-merged PRs quiet. Whether that silence is legitimate depends on the next rule.
+
+### Participation is declared, never inferred
+
+A workstream is subject to the v0.5 merge gate when it says so, or when its project does:
+
+```markdown
+**Phase:** REVIEW · **Status:** Active · **Build OS:** v0.5
+```
+
+The workstream's own `Build OS:` header wins; absent it, the project's adopted version from its
+agent-instructions file applies (`framework/FRAMEWORK_SYNC.md`).
+
+**A missing review record must never be what makes a workstream look legacy.** If it were,
+deleting one table row would remove a significant PR from the gate — the gate would be opt-out by
+omission. So a consumer that finds a gated workstream linking a PR with no record reports it:
+`REVIEW_RECORD_MISSING` while the PR is open, `MERGED_WITHOUT_APPROVAL` once it has merged.
+
+Two limits keep that from becoming noise: it applies only to workstreams that have reached an
+approved Build Card — Build OS's own threshold for significant work — and only to versions from
+v0.5 onward. A v0.4 workstream, or one still in `EXPLORE`, raises nothing.
 
 ### The final head is verified on the PR, not in the file
 
@@ -179,10 +199,20 @@ the field is written — and `Finalization: pushed` declares that the PR head is
 ahead of it.
 
 The head that finalization produced is verified through a record created *after* it exists:
-GitHub stamps an approving review with the commit id it was submitted against. A consumer
-treats an approving GitHub review naming the PR's **current head** as satisfying the gate,
-whatever the file says, and reports `FINAL_HEAD_UNVERIFIED` when a workstream declares
-finalization and no such review exists.
+GitHub stamps an approving review with the commit id it was submitted against.
+
+**That evidence closes the gate readily and opens it narrowly.** A consumer may treat a GitHub
+approval as verifying a finalization head only when all of these hold:
+
+- the approval is the reviewer's **current position** — the latest non-dismissed review by that
+  reviewer, not any approval they have ever left;
+- **no reviewer** has an outstanding `Changes required`; one reviewer's approval never cancels
+  another's objection;
+- the workstream's own record **for that PR** is itself approving and declares finalization.
+
+Outside that case, GitHub evidence never overrides the file. An approving GitHub review on a
+workstream that records `Changes required` or `In review` is a contradiction to report, not a
+shortcut through the gate — the same rule as everywhere else here.
 
 A consumer must never infer the final head, and must never treat a self-referential SHA claim
 as verification.
@@ -244,7 +274,10 @@ winner. Cases worth reporting:
 | `Verdict: Approved`* with no reviewed head | Report `APPROVED_WITHOUT_REVIEWED_HEAD`: an approval that names no commit proves nothing. Treat the record as unreviewed. |
 | A record's reviewed head differs from **its own** PR's current head, finalization not declared | Report `REVIEW_STALE`: the approval is against an older commit. |
 | A record declares `Finalization: pushed` and no approving GitHub review names the PR's current head | Report `FINAL_HEAD_UNVERIFIED`: the divergence is expected, the verification is not there. |
-| A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. A PR with no record — including every PR predating v0.5 adoption — is exempt. |
+| A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. |
+| A **gated** workstream links a PR with no review record | Report `REVIEW_RECORD_MISSING` while open, `MERGED_WITHOUT_APPROVAL` once merged. A workstream that declares no v0.5-or-later version, or has not reached a Build Card, is exempt. |
+| A record declares finalization while its verdict is not approving | Report `WORKSTREAM_PR_STATE_MISMATCH`: finalization comes after approval, not before. |
+| A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
 

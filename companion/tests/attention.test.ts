@@ -46,6 +46,7 @@ function pullRequest(overrides: Partial<PullRequestState> = {}): PullRequestStat
     ciState: "PASSED",
     requestedReviewers: [],
     approvedHeadShas: [],
+    changesRequestedBy: [],
     workstreamIds: [],
     sourceUrl: SOURCE.sourceUrl!,
     source: SOURCE,

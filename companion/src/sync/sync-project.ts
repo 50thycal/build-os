@@ -90,6 +90,7 @@ async function loadBuildOsState(
     activeBoardHtmlUrl: board.htmlUrl,
     workstreamFiles: files,
     observedAt: now.toISOString(),
+    buildOsVersion: project.buildOsVersion,
   });
 
   const decisionsFile = await github.readFile(project.repositoryFullName, project.paths.decisions);

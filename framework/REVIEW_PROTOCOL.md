@@ -268,8 +268,17 @@ table:
 ```
 
 A record says nothing about any PR but its own. Approving #91 does not un-approve #84, and a PR
-with no row is a PR this workstream makes no claim about — which is how work that merged before
-the project adopted v0.5 stays undisturbed.
+with no row is a PR this workstream makes no claim about.
+
+**But silence is not a way out of the gate.** A workstream declares which protocol it runs
+under — its own `Build OS:` header, or its project's adopted version — and a workstream running
+v0.5 that has reached an approved Build Card owes a record for every PR it links. Missing one is
+reported, not excused: an open PR raises a missing-record warning, a merged one raises
+`MERGED_WITHOUT_APPROVAL`. Deleting a row is not how a significant PR leaves the gate.
+
+What stays undisturbed is work that genuinely predates adoption: a workstream on v0.4, or one
+that never reached a Build Card, raises nothing. The distinction is the declared version, never
+the presence or absence of the review fields themselves.
 
 **An approval with no reviewed head does not clear the gate.** Treat it as `In review`. This
 is not pedantry — an approval that names no commit is a statement about a conversation, not
@@ -367,6 +376,18 @@ PR. GitHub stamps that review with the commit id it was submitted against — a 
 after the commit exists, by someone other than the commit's author. That is the authority. A
 project without GitHub reviews uses any equivalent record made after the fact: a PR comment
 naming the final SHA, a signed tag, a reviewer's note in the merge.
+
+**A verdict is a current position, not a history.** An approval a reviewer has since replaced with
+`Changes required` is not evidence of anything, and while *any* reviewer has an outstanding
+changes request the gate is closed — one reviewer's approval never cancels another's objection.
+This matters because a PR accumulates reviews: what counts is each reviewer's latest word, not
+the union of everything they have ever said.
+
+And this verification opens exactly one thing: the head the finalization commit produced, on a PR
+whose workstream record is already approving. It is not a general override. An approval on the PR
+against a workstream that records `Changes required` or `In review` is a contradiction between two
+durable records — report it and leave the gate shut. The rule everywhere in Build OS holds here
+too: **surface the disagreement, never repair it**.
 
 Then **merge targets that exact SHA**. A merge that takes whatever is at the tip of the branch at
 click time is a merge of something nobody named.

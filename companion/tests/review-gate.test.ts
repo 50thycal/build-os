@@ -75,6 +75,7 @@ function pullRequest(overrides: Partial<PullRequestState> = {}): PullRequestStat
     ciState: "PASSED",
     requestedReviewers: [],
     approvedHeadShas: [],
+    changesRequestedBy: [],
     workstreamIds: ["WS-011"],
     sourceUrl: "https://github.com/50thycal/cargo-ship/pull/84",
     source: PR_SOURCE,
@@ -110,9 +111,11 @@ describe("REVIEW_STALE", () => {
     expect(checkReviewGate([ws], [pullRequest({ headSha: CURRENT_HEAD })])).toEqual([]);
   });
 
-  it("is satisfied by a GitHub review naming the current head, whatever the file says", () => {
+  it("still reports the file's stale record even when GitHub approved the current head", () => {
+    // GitHub evidence does not repair a durable record that is behind. It clears exactly one
+    // thing — the finalization head the file could not name — and nothing else.
     const pr = pullRequest({ headSha: CURRENT_HEAD, approvedHeadShas: [CURRENT_HEAD] });
-    expect(checkReviewGate([workstream()], [pr])).toEqual([]);
+    expect(codes(checkReviewGate([workstream()], [pr]))).toEqual(["REVIEW_STALE"]);
   });
 });
 
@@ -133,9 +136,28 @@ describe("merge finalization — the head a commit cannot name", () => {
     expect(warnings[0]!.message).toContain("1111111");
   });
 
-  it("goes quiet once a GitHub review names the final head", () => {
+  it("goes quiet once a current approving review names the final head", () => {
     const pr = pullRequest({ headSha: FINAL_HEAD, approvedHeadShas: [APPROVED_HEAD, FINAL_HEAD] });
     expect(checkReviewGate([finalized()], [pr])).toEqual([]);
+  });
+
+  it("does not clear on a final-head approval while a changes request is outstanding", () => {
+    const pr = pullRequest({
+      headSha: FINAL_HEAD,
+      approvedHeadShas: [FINAL_HEAD],
+      changesRequestedBy: ["sam"],
+    });
+    expect(codes(checkReviewGate([finalized()], [pr]))).toContain("FINAL_HEAD_UNVERIFIED");
+  });
+
+  it("does not clear on a workstream record that is not itself approving", () => {
+    // Finalization is only reachable from an approved record. A file saying `In review` with a
+    // GitHub approval on the head is a contradiction, not a shortcut through the gate.
+    const ws = workstream({
+      reviewRecords: [record({ verdict: "IN_REVIEW", finalized: true })],
+    });
+    const pr = pullRequest({ headSha: FINAL_HEAD, approvedHeadShas: [FINAL_HEAD] });
+    expect(checkReviewGate([ws], [pr])).not.toEqual([]);
   });
 
   it("still reports a merge at a head nobody verified", () => {
@@ -267,5 +289,112 @@ describe("WORKSTREAM_PR_STATE_MISMATCH", () => {
       "BUILD_OS_ARTIFACT",
       "GITHUB_STATE",
     ]);
+  });
+});
+
+describe("GitHub review currency", () => {
+  // A gate that reads the historical union of approvals can be opened by a verdict its own
+  // reviewer has already withdrawn.
+  const finalized = (overrides: Partial<ReviewRecord> = {}) =>
+    workstream({ reviewRecords: [record({ finalized: true, ...overrides })] });
+
+  it("does not treat an approval the same reviewer later retracted as evidence", () => {
+    // rae approved FINAL_HEAD, then requested changes on it. deriveApprovedHeadShas no longer
+    // reports the superseded approval, and changesRequestedBy keeps the gate closed either way.
+    const pr = pullRequest({
+      headSha: FINAL_HEAD,
+      approvedHeadShas: [],
+      changesRequestedBy: ["rae"],
+    });
+    const warnings = codes(checkReviewGate([finalized()], [pr]));
+    expect(warnings).toContain("FINAL_HEAD_UNVERIFIED");
+    // And the retraction itself is surfaced, rather than the gate simply going quiet.
+    expect(warnings).toContain("WORKSTREAM_PR_STATE_MISMATCH");
+  });
+
+  it("does not let one reviewer's approval erase another's outstanding objection", () => {
+    const pr = pullRequest({
+      headSha: FINAL_HEAD,
+      approvedHeadShas: [FINAL_HEAD],
+      changesRequestedBy: ["sam"],
+    });
+    expect(codes(checkReviewGate([finalized()], [pr]))).toContain("FINAL_HEAD_UNVERIFIED");
+  });
+
+  it("reports the contradiction when GitHub objects to work the workstream calls approved", () => {
+    const pr = pullRequest({ changesRequestedBy: ["sam"] });
+    const warnings = checkReviewGate([workstream()], [pr]);
+    expect(codes(warnings)).toContain("WORKSTREAM_PR_STATE_MISMATCH");
+    expect(warnings[0]!.message).toContain("sam");
+  });
+
+  it("does not let a current-head GitHub approval override a workstream Changes required", () => {
+    const ws = workstream({
+      phase: "BUILDING",
+      reviewRecords: [record({ verdict: "CHANGES_REQUIRED", reviewedHead: undefined })],
+    });
+    const pr = pullRequest({ lifecycle: "MERGED", approvedHeadShas: [APPROVED_HEAD] });
+    expect(codes(checkReviewGate([ws], [pr]))).toContain("MERGED_WITHOUT_APPROVAL");
+  });
+
+  it("clears final-head verification once the current position is approving and unopposed", () => {
+    const pr = pullRequest({
+      headSha: FINAL_HEAD,
+      approvedHeadShas: [FINAL_HEAD],
+      changesRequestedBy: [],
+    });
+    expect(checkReviewGate([finalized()], [pr])).toEqual([]);
+  });
+});
+
+describe("v0.5 participation is declared, not inferred", () => {
+  // Absence of a review record must not be what makes a workstream look legacy — otherwise the
+  // gate is opt-out by deleting one table row.
+  const v05 = (overrides: Partial<WorkstreamState> = {}) =>
+    workstream({ protocolVersion: "v0.5", reviewRecords: [], ...overrides });
+
+  it("stays silent on a genuine pre-v0.5 workstream with no record", () => {
+    const ws = workstream({ reviewRecords: [], phase: "COMPLETE", status: "COMPLETE" });
+    expect(ws.protocolVersion).toBeUndefined();
+    expect(checkReviewGate([ws], [pullRequest({ lifecycle: "MERGED" })])).toEqual([]);
+  });
+
+  it("stays silent on a v0.4 workstream, whatever its phase", () => {
+    const ws = v05({ protocolVersion: "v0.4", phase: "COMPLETE", status: "COMPLETE" });
+    expect(checkReviewGate([ws], [pullRequest({ lifecycle: "MERGED" })])).toEqual([]);
+  });
+
+  it("reports a v0.5 significant workstream with no record while the PR is open", () => {
+    const warnings = checkReviewGate([v05()], [pullRequest()]);
+    expect(codes(warnings)).toContain("REVIEW_RECORD_MISSING");
+    expect(warnings[0]!.message).toContain("#84");
+  });
+
+  it("reports a v0.5 significant workstream whose PR merged with no record", () => {
+    const ws = v05({ phase: "COMPLETE", status: "COMPLETE" });
+    expect(codes(checkReviewGate([ws], [pullRequest({ lifecycle: "MERGED" })]))).toEqual([
+      "MERGED_WITHOUT_APPROVAL",
+    ]);
+  });
+
+  it("cannot be silenced by deleting the review record", () => {
+    const withRecord = workstream({ protocolVersion: "v0.5" });
+    const stale = pullRequest({ headSha: CURRENT_HEAD });
+    expect(codes(checkReviewGate([withRecord], [stale]))).toEqual(["REVIEW_STALE"]);
+
+    // Same workstream, record removed. The warning changes; it does not disappear.
+    const deleted = { ...withRecord, reviewRecords: [] };
+    expect(codes(checkReviewGate([deleted], [stale]))).toEqual(["REVIEW_RECORD_MISSING"]);
+  });
+
+  it("inherits the project's adopted version when the file declares none", () => {
+    // reconcile() sets protocolVersion from the project pin; here that is what is under test.
+    const ws = v05({ protocolVersion: "v0.6" });
+    expect(codes(checkReviewGate([ws], [pullRequest()]))).toContain("REVIEW_RECORD_MISSING");
+  });
+
+  it("says nothing about a v0.5 workstream that has not reached a Build Card", () => {
+    const ws = v05({ phase: "EXPLORE", buildCardReady: false });
+    expect(checkReviewGate([ws], [pullRequest()])).toEqual([]);
   });
 });

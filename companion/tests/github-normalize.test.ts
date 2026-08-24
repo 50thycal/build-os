@@ -4,6 +4,7 @@ import { InMemoryEventLedger } from "../src/ledger/ledger.ts";
 import { normalizeGitHubObservation } from "../src/ingest/github/normalize.ts";
 import {
   deriveApprovedHeadShas,
+  deriveChangesRequestedBy,
   deriveCiState,
   deriveMergeability,
   deriveReviewState,
@@ -205,5 +206,54 @@ describe("approved head SHAs", () => {
       }),
     );
     expect(shas).toEqual([]);
+  });
+});
+
+describe("review currency", () => {
+  const A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+  it("drops an approval the same reviewer later replaced with a changes request", () => {
+    const observation = pr({
+      reviews: [
+        { id: 1, author: "rae", state: "APPROVED", submittedAt: "2026-08-01T00:00:00Z", htmlUrl: "u", commitId: A },
+        { id: 2, author: "rae", state: "CHANGES_REQUESTED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u", commitId: A },
+      ],
+    });
+    expect(deriveApprovedHeadShas(observation)).toEqual([]);
+    expect(deriveChangesRequestedBy(observation)).toEqual(["rae"]);
+  });
+
+  it("keeps an approval a reviewer reinstated after requesting changes", () => {
+    const observation = pr({
+      reviews: [
+        { id: 1, author: "rae", state: "CHANGES_REQUESTED", submittedAt: "2026-08-01T00:00:00Z", htmlUrl: "u", commitId: A },
+        { id: 2, author: "rae", state: "APPROVED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u", commitId: A },
+      ],
+    });
+    expect(deriveApprovedHeadShas(observation)).toEqual([A]);
+    expect(deriveChangesRequestedBy(observation)).toEqual([]);
+  });
+
+  it("reports each reviewer's own current position", () => {
+    const observation = pr({
+      reviews: [
+        { id: 1, author: "rae", state: "APPROVED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u", commitId: A },
+        { id: 2, author: "sam", state: "CHANGES_REQUESTED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u", commitId: A },
+      ],
+    });
+    expect(deriveApprovedHeadShas(observation)).toEqual([A]);
+    expect(deriveChangesRequestedBy(observation)).toEqual(["sam"]);
+  });
+
+  it("ignores a dismissed changes request and a comment that followed an approval", () => {
+    const observation = pr({
+      reviews: [
+        { id: 1, author: "rae", state: "APPROVED", submittedAt: "2026-08-01T00:00:00Z", htmlUrl: "u", commitId: A },
+        { id: 2, author: "rae", state: "COMMENTED", submittedAt: "2026-08-03T00:00:00Z", htmlUrl: "u", commitId: A },
+        { id: 3, author: "sam", state: "DISMISSED", submittedAt: "2026-08-02T00:00:00Z", htmlUrl: "u", commitId: A },
+      ],
+    });
+    expect(deriveApprovedHeadShas(observation)).toEqual([A]);
+    expect(deriveChangesRequestedBy(observation)).toEqual([]);
   });
 });

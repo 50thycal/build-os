@@ -72,6 +72,11 @@ export interface PullRequestState {
    * self-referential — unlike a SHA written inside the commit it describes.
    */
   approvedHeadShas: string[];
+  /**
+   * Reviewers whose current position is `Changes required`. While this is non-empty the gate is
+   * closed — one reviewer's approval never cancels another's outstanding objection.
+   */
+  changesRequestedBy: string[];
   /** Many-to-many: a PR may serve several workstreams. Never collapse this to one field. */
   workstreamIds: string[];
   summary?: string;
@@ -140,6 +145,22 @@ export interface ReviewRecord {
   finalized: boolean;
 }
 
+/**
+ * Does the v0.5 merge gate apply to this workstream?
+ *
+ * Read from declared protocol metadata, never inferred from the presence of review fields: a
+ * workstream that participates in v0.5 and then has its review record deleted must still be
+ * covered, or the gate is opt-out by omission.
+ */
+export function participatesInReviewGate(version: string | undefined): boolean {
+  if (!version) return false;
+  const match = /^v?(\d+)\.(\d+)/.exec(version.trim());
+  if (!match) return false;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return major > 0 || minor >= 5;
+}
+
 /** The record covering one PR, or undefined when the workstream makes no claim about it. */
 export function reviewRecordFor(
   records: ReviewRecord[],
@@ -177,6 +198,13 @@ export interface WorkstreamState {
    * claim about.
    */
   reviewRecords: ReviewRecord[];
+  /**
+   * The Build OS version this workstream is run under, from its own `Build OS:` header or the
+   * project's adopted version. It decides whether the v0.5 merge gate applies — **absence of a
+   * review record must never be what makes a workstream look legacy**, or deleting the record
+   * would delete the gate.
+   */
+  protocolVersion?: string;
   updatedAt?: string;
   sourcePath: string;
   source: SourceRef;
@@ -261,7 +289,8 @@ export type IntegrityCode =
   | "REVIEW_STALE"
   | "MERGED_WITHOUT_APPROVAL"
   | "WORKSTREAM_PR_STATE_MISMATCH"
-  | "FINAL_HEAD_UNVERIFIED";
+  | "FINAL_HEAD_UNVERIFIED"
+  | "REVIEW_RECORD_MISSING";
 
 /**
  * A problem with the *project's* Build OS records, addressed to its owner. Not a parser error:

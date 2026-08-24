@@ -79,6 +79,13 @@ Two rules keep the review fields honest, and both matter to anyone writing them 
 - **A verdict belongs to one PR.** A workstream spanning several records one verdict per PR, in
   a `| PR | Verdict | Reviewed head | Finalization |` table. A record says nothing about a PR it
   does not name, so approving a new PR never re-opens the question of one that merged long ago.
+- **A workstream declares which protocol it runs under.** A `**Build OS:** v0.5` header, or the
+  project's adopted version, is what puts a workstream under the merge gate. Never the presence
+  of the review fields — otherwise deleting a row would remove a significant PR from the gate.
+- **A GitHub approval closes the gate readily and opens it narrowly.** Only a reviewer's current
+  position counts, any outstanding `Changes required` keeps the gate shut, and a current-head
+  approval verifies the finalization head only when the workstream's own record already approves.
+  It never overrides a record that says `Changes required` — that is a contradiction to report.
 - **A finalization commit cannot contain its own SHA.** `Reviewed head` names the last commit
   reviewed *in full*; `Finalization: pushed` says the PR head is legitimately ahead of it; and
   the head that commit produced is recorded by the reviewer **on the PR**, after it exists —
@@ -101,8 +108,9 @@ fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.templ
    replace a project's own instructions, and leave `Project-specific:` rules intact.
 3. **Refresh local copies of the Workstream, Review Summary, and PR Handoff templates**, where
    the project keeps copies rather than referencing the canonical ones.
-4. **Add the review fields to active workstreams at their next review checkpoint** — not in a
-   bulk edit, and never to completed historical workstream files. A file written before v0.5
+4. **Add the review fields to active workstreams at their next review checkpoint** — with a
+   `**Build OS:** v0.5` header on each one, or the project's adopted version covering them all —
+   not in a bulk edit, and never to completed historical workstream files. A file written before v0.5
    parses correctly with the fields absent; adding them retrospectively would record a review
    that never happened. A workstream with more than one PR uses the per-PR table from the start,
    so that a verdict on the current PR never makes a claim about an older merged one.

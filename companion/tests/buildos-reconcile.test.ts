@@ -219,3 +219,47 @@ ${reviewSection}
     expect(result.workstreams[0]!.reviewRecords).toEqual([]);
   });
 });
+
+describe("v0.5 participation metadata", () => {
+  function reconcileWith(header: string, buildOsVersion?: string) {
+    const base = buildOsSnapshotInput();
+    return reconcileBuildOsState(PROJECT, {
+      ...base,
+      buildOsVersion,
+      activeBoardMarkdown: [
+        "# Active Work",
+        "",
+        "| ID | Title | Phase | Status | Next Step | PRs |",
+        "|---|---|---|---|---|---|",
+        "| WS-012 | Gate metadata | REVIEW | Active | Await review | #84 |",
+      ].join("\n"),
+      workstreamFiles: [
+        {
+          path: "docs/workstreams/WS-012-gate-metadata.md",
+          markdown: `# WS-012 — Gate metadata\n\n${header}\n\n## Related PRs\n\n#84\n`,
+          commitSha: "abc123",
+          htmlUrl: "https://github.com/50thycal/cargo-ship/blob/main/docs/workstreams/WS-012.md",
+        },
+      ],
+    }).workstreams[0]!;
+  }
+
+  it("reads a version the workstream declares for itself", () => {
+    const ws = reconcileWith("**Phase:** REVIEW · **Status:** Active · **Build OS:** v0.5");
+    expect(ws.protocolVersion).toBe("v0.5");
+  });
+
+  it("falls back to the project's adopted version", () => {
+    const ws = reconcileWith("**Phase:** REVIEW · **Status:** Active", "v0.5");
+    expect(ws.protocolVersion).toBe("v0.5");
+  });
+
+  it("prefers the workstream's own declaration over the project pin", () => {
+    const ws = reconcileWith("**Phase:** REVIEW · **Status:** Active · **Build OS:** v0.4", "v0.5");
+    expect(ws.protocolVersion).toBe("v0.4");
+  });
+
+  it("leaves it absent when neither declares one", () => {
+    expect(reconcileWith("**Phase:** REVIEW · **Status:** Active").protocolVersion).toBeUndefined();
+  });
+});

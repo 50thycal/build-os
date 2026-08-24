@@ -34,6 +34,11 @@ export interface BuildOsSnapshot {
   activeBoardHtmlUrl?: string;
   workstreamFiles: WorkstreamFileInput[];
   observedAt: string;
+  /**
+   * The project's adopted Build OS version, from detection. It is what makes a workstream
+   * subject to the v0.5 merge gate when the file does not declare its own version.
+   */
+  buildOsVersion?: string;
 }
 
 export interface ReconciledWorkstreams {
@@ -237,6 +242,9 @@ export function reconcileBuildOsState(
       implementationState: parsed.implementationState,
       reviewState: parsed.reviewState,
       reviewRecords,
+      // The project's pin applies unless the workstream declares its own. Never inferred from
+      // whether review fields happen to be present.
+      protocolVersion: parsed.protocolVersion ?? snapshot.buildOsVersion,
       updatedAt: parsed.updatedAt,
       sourcePath: file.path,
       source: fileSource,

@@ -12,6 +12,17 @@
  * a newer one is approved. A PR with no record is a PR this workstream makes no claim about, and
  * silence is the correct output for it.
  *
+ * **GitHub evidence closes the gate, and only narrowly opens it.** An approval that is no longer a
+ * reviewer's current position is not evidence, and while any reviewer has an outstanding
+ * `Changes required` the gate is shut regardless of who else approved. A current-head approval
+ * clears exactly one thing — the head a finalization commit could not name — and only when the
+ * workstream's own record for that PR is approving and declares finalization. It never overrides
+ * a workstream that says `Changes required` or `In review`: that is a contradiction to report.
+ *
+ * **Participation is declared, not inferred.** Whether the gate applies comes from the Build OS
+ * version the workstream or its project declares. If absence of a review record were what made a
+ * workstream look legacy, deleting the record would delete the gate.
+ *
  * **A commit cannot name itself.** The merge-finalization commit changes the head by existing, so
  * no SHA written inside it can be the head it produces. The workstream file therefore records the
  * last head reviewed *in full*, and the final head is verified on the PR — through GitHub's own
@@ -21,7 +32,11 @@
  * resolve — a consumer that quietly picks a winner destroys the evidence that something went wrong.
  */
 
-import { isApprovingVerdict, reviewRecordFor } from "../domain/state.ts";
+import {
+  isApprovingVerdict,
+  participatesInReviewGate,
+  reviewRecordFor,
+} from "../domain/state.ts";
 import type {
   IntegrityWarning,
   PullRequestState,
@@ -36,9 +51,29 @@ function shortSha(sha: string): string {
   return sha.slice(0, 7);
 }
 
-/** True when an approving GitHub review names this exact commit. */
-function approvedOnGitHub(pr: PullRequestState, sha: string): boolean {
-  return pr.approvedHeadShas.includes(sha);
+/**
+ * True when an approval that is still a reviewer's current position names this exact commit, and
+ * no reviewer has an outstanding changes request. Both halves matter: a withdrawn approval is not
+ * evidence, and someone else's objection outranks anyone's approval.
+ */
+function currentlyApprovedOnGitHub(pr: PullRequestState, sha: string): boolean {
+  return pr.changesRequestedBy.length === 0 && pr.approvedHeadShas.includes(sha);
+}
+
+/**
+ * Is this workstream far enough along that a PR of its own needs a review record?
+ *
+ * An approved Build Card is Build OS's own definition of significant work, and a workstream that
+ * has reached implementation has one whether or not the section still says so.
+ */
+function isSignificant(ws: WorkstreamState): boolean {
+  return (
+    ws.buildCardReady ||
+    ws.phase === "READY_TO_BUILD" ||
+    ws.phase === "BUILDING" ||
+    ws.phase === "REVIEW" ||
+    ws.phase === "COMPLETE"
+  );
 }
 
 export function checkReviewGate(
@@ -52,18 +87,57 @@ export function checkReviewGate(
     const linked = ws.relatedPrNumbers
       .map((n) => byNumber.get(n))
       .filter((pr): pr is PullRequestState => pr !== undefined);
+    const gated = participatesInReviewGate(ws.protocolVersion) && isSignificant(ws);
 
     for (const pr of linked) {
       const record = reviewRecordFor(ws.reviewRecords, pr.number);
-      // No record for this PR: the workstream claims nothing about it, so neither do we. This is
-      // what keeps a workstream's older merged PRs quiet, and what exempts pre-v0.5 files.
-      if (record) warnings.push(...checkRecord(ws, pr, record));
+      if (record) {
+        warnings.push(...checkRecord(ws, pr, record));
+      } else if (gated) {
+        // A workstream running v0.5 owes a record for every PR it claims. Silence here would let
+        // a significant PR out from under the gate by deleting one table row.
+        warnings.push(...checkMissingRecord(ws, pr));
+      }
+      // Otherwise the workstream predates v0.5 or is not significant work: it makes no claim
+      // about this PR and neither do we.
     }
 
     warnings.push(...checkStateAgreement(ws, linked));
   }
 
   return warnings;
+}
+
+function checkMissingRecord(ws: WorkstreamState, pr: PullRequestState): IntegrityWarning[] {
+  const sources = [ws.source, pr.source];
+
+  if (pr.lifecycle === "MERGED") {
+    return [
+      {
+        code: "MERGED_WITHOUT_APPROVAL",
+        workstreamId: ws.workstreamId,
+        message:
+          `PR #${pr.number} is merged and ${ws.workstreamId} records no verdict for it. Under ` +
+          `Build OS ${ws.protocolVersion ?? "v0.5"} a significant PR merges only on an approved ` +
+          `verdict naming its merged head.`,
+        sources,
+      },
+    ];
+  }
+
+  if (pr.lifecycle === "CLOSED") return [];
+
+  return [
+    {
+      code: "REVIEW_RECORD_MISSING",
+      workstreamId: ws.workstreamId,
+      message:
+        `${ws.workstreamId} runs under Build OS ${ws.protocolVersion ?? "v0.5"} and links PR ` +
+        `#${pr.number}, but records no verdict for it. The merge gate needs one before that PR ` +
+        `can merge.`,
+      sources,
+    },
+  ];
 }
 
 function checkRecord(
@@ -76,15 +150,41 @@ function checkRecord(
   const approved = isApprovingVerdict(record.verdict);
   const headMatches = record.reviewedHead === pr.headSha;
 
-  // GitHub's own approval on this exact commit satisfies the gate whatever the file says. It is
-  // the more recent and less forgeable of the two records.
-  if (approvedOnGitHub(pr, pr.headSha)) return warnings;
+  // A reviewer's outstanding objection on GitHub, against a workstream that says the work is
+  // approved, is exactly the kind of contradiction this layer exists to surface.
+  if (approved && pr.changesRequestedBy.length > 0) {
+    warnings.push({
+      code: "WORKSTREAM_PR_STATE_MISMATCH",
+      workstreamId: ws.workstreamId,
+      message:
+        `${ws.workstreamId} records ${record.verdict} for PR #${pr.number}, but ` +
+        `${pr.changesRequestedBy.join(", ")} ${pr.changesRequestedBy.length === 1 ? "has" : "have"} ` +
+        `an outstanding changes request on GitHub. The gate stays closed until that is resolved.`,
+      sources,
+    });
+  }
+
+  // Finalization is only reachable from an approved record: it is the commit pushed *after*
+  // approval and before merge. Declared without one, it is a step taken out of order — and it
+  // must not be a way to reach the GitHub-evidence path that clears the final-head check.
+  if (record.finalized && !approved) {
+    warnings.push({
+      code: "WORKSTREAM_PR_STATE_MISMATCH",
+      workstreamId: ws.workstreamId,
+      message:
+        `${ws.workstreamId} declares finalization pushed on PR #${pr.number} while its verdict is ` +
+        `${record.verdict ?? "absent"}. The finalization commit comes after approval, not before it.`,
+      sources,
+    });
+  }
 
   if (approved && record.reviewedHead && !headMatches) {
     if (record.finalized) {
       // Expected divergence: the finalization commit moved the head past the reviewed one, and
-      // by construction it could not name itself. What is missing is the verification of the
-      // head it produced — which only the PR can carry.
+      // by construction it could not name itself. The one thing GitHub evidence may clear: an
+      // approval that is a reviewer's current position, naming the head that commit produced.
+      if (currentlyApprovedOnGitHub(pr, pr.headSha)) return warnings;
+
       warnings.push({
         code: "FINAL_HEAD_UNVERIFIED",
         workstreamId: ws.workstreamId,

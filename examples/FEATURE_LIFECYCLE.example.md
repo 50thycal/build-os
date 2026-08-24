@@ -8,7 +8,9 @@ with automatic reminder emails.
 
 Nothing here is real. It exists to show the shape of each artifact and how one feeds the
 next. The example is deliberately imperfect in one place — the review finds a real defect
-and an undisclosed deviation, because that is what review is for.
+and an undisclosed deviation, because that is what review is for. It also shows the ordinary
+`REVIEW → BUILDING → REVIEW` loop that follows, and the merge-finalization commit that makes
+`main` true before the PR lands.
 
 In workstream terms this is **WS-011 — Client payment claims**, taken from `IDEA` to
 `COMPLETE` in a single pass. For several workstreams running in parallel at different
@@ -25,7 +27,7 @@ Contents:
 7. [PR Handoff](#7-pr-handoff)
 8. [PROJECT_MODEL update](#8-project_model-update)
 9. [DECISIONS entry](#9-decisions-entry)
-10. [Review](#10-review)
+10. [Review, and the road to merge](#10-review)
 
 ---
 
@@ -40,6 +42,58 @@ What the owner actually said, in chat, on a Tuesday:
 
 Incomplete, contains a real tension ("let them tell us" vs. "don't let them stall"), and
 proposes a mechanism ("something in the email") without stating the outcome.
+
+### The owner was not finished talking
+
+The next message was:
+
+> Hold on, let me get through the whole list first, don't start solving yet.
+
+That is Capture Only. The design agent replied `Noted — capturing.` and recorded the rest as
+it arrived, without analysis:
+
+> Two clients said the reminder tone is aggressive.
+> One asked why we don't just read their bank feed.
+> Actually scratch the tone one, that was the old copy, we fixed it.
+> And someone paid twice last month because of this.
+
+When the owner said "ok, that's everything", the agent consolidated:
+
+```markdown
+## Capture consolidation — invoice reminders, 2026-02-01
+
+### Observations
+1. Clients receive reminders for invoices they have already paid; bank transfers take days
+   to appear.
+2. A client asked why the system does not read their bank feed directly.
+3. A client paid twice last month, apparently because of continued reminders.
+4. ~~Two clients found the reminder tone aggressive~~ — withdrawn by the owner: that was the
+   old copy, since fixed.
+
+### Interpretations
+- (1) and (3) look like the same failure: the system has no way to know a payment is in
+  flight, so it keeps chasing, and a client eventually pays again to make it stop.
+
+### Proposed rules
+- P1. Let the client say "I've paid this" from the reminder email, suppressing reminders
+  for a bounded period.
+- P2. Bank feed integration.
+
+### Approved decisions
+- None.
+
+### Still open
+- How long should suppression last, and what happens when it expires?
+- Is a double payment a real risk or a one-off?
+```
+
+Note what the consolidation does and does not do. The withdrawn observation is kept, struck
+through, rather than deleted — the owner corrected it, and the correction is information.
+P2 is recorded as a proposal and goes no further; nobody approved a bank integration. And
+`Approved decisions: none` is the honest state after a capture session, which is the usual
+state.
+
+The room then opens at `EXPLORE` on the problem the observations describe.
 
 ---
 
@@ -434,6 +488,9 @@ Framework:
 - Canonical checked: v0.3
 - Compatibility: current
 
+## Review Gate
+Review gate: Pending independent review
+
 ## Workstream
 WS-011 — Client payment claims. BUILDING → REVIEW. Completes the workstream if review passes.
 
@@ -575,7 +632,11 @@ Two findings came out of the code that the handoff did not contain.
 **Reviewer:** R. Okonjo · **Date:** 2026-02-09
 
 ## Verdict
-Approved with follow-ups — one item to fix before merge.
+**Verdict:** Changes required
+**Reviewed head:** 5c1f0be9a4d7233810cbb6e2f0a91d4477e35b0c
+**Head current at publication:** yes
+
+One item to fix before this can be approved; everything else matches.
 
 ## What actually changed
 Clients can now say "I've already paid this" from a reminder email. That stops reminders
@@ -622,12 +683,45 @@ None. The 7–8 day window is worth knowing about but I don't recommend changing
 above.
 
 ## Recommended next action
-Fix the CSV export, then merge. File the database index as a follow-up.
+Fix the CSV export on this PR and send it back for re-review. File the database index as a
+follow-up. Nothing here needs your decision.
 ```
 
-### Workstream closure
+### The review loop
 
-The export fix landed, the PR merged, and WS-011 closed:
+`Changes required` returned WS-011 from `REVIEW` to `BUILDING`. The correction stayed on the
+same PR — no second PR, no new branch:
+
+```diff
+-**Phase:** REVIEW · **Status:** Active
++**Phase:** BUILDING · **Status:** Active
+
+ ## Review State
+-**Verdict:** In review
+-**Reviewed head:** —
++**Verdict:** Changes required
++**Reviewed head:** 5c1f0be9a4d7233810cbb6e2f0a91d4477e35b0c
++
++CSV export renders claimed invoices with an empty status (should fix). Fixing on this PR.
+```
+
+The export fix pushed a new head, `a09d4c17…`, and the workstream went back to `REVIEW` with
+verdict `In review`. The reviewer read the new commit — not the whole PR again, but not
+nothing either: the fix, and whether it broke anything around it — and approved:
+
+```markdown
+**Verdict:** Approved with follow-ups
+**Reviewed head:** a09d4c1732b8e5460f92cc1de8b7a03f9145d6ee
+**Head current at publication:** yes
+```
+
+Note that the approval names `a09d4c17…`, not `5c1f0be9…`. The earlier verdict was against a
+commit that no longer existed at the tip; it did not carry forward, and nothing about the
+second review was ceremonial.
+
+### Merge finalization
+
+Then the last commit on PR #341, before the merge button, containing no code at all:
 
 ```diff
 -**Phase:** REVIEW · **Status:** Active
@@ -635,16 +729,36 @@ The export fix landed, the PR merged, and WS-011 closed:
 +**Phase:** COMPLETE · **Status:** Complete
 +**Updated:** 2026-02-10
 
+ ## Implementation State
+-PR #341 open, awaiting review.
++Merged in #341.
+
  ## Review State
--Not started.
-+Reviewed 2026-02-09. One should-fix (CSV export status) corrected in #341 before merge.
+-**Verdict:** In review
+-**Reviewed head:** —
++**Verdict:** Approved with follow-ups
++**Reviewed head:** a09d4c1732b8e5460f92cc1de8b7a03f9145d6ee
++
++Reviewed 2026-02-09. One should-fix (CSV export status) corrected on this PR before merge.
 +One difference from approved behavior noted and accepted: the 7-day window resolves once
-+daily, giving an effective 7–8 days.
++daily, giving an effective 7–8 days. Follow-up: index on `(state, claimed_at)`.
 
  ## Related Decisions
 -None yet.
 +DEC-007
+
+ ## Next Step
+-Await review.
++None.
 ```
+
+The same commit removed the WS-011 row from `ACTIVE.md` and carried the `PROJECT_MODEL.md`
+and `DECISIONS.md` updates from sections 8 and 9. The reviewer checked that the commit
+touched only those files, recorded the final head `f4b7c2e0…`, and the merge targeted that
+exact SHA.
+
+So `main` never contained a version of WS-011 claiming to be in review of a PR that had
+already merged. There was no cleanup PR, because there was nothing left to clean up.
 
 `ACTIVE.md` lost its WS-011 row. `PROJECT_MODEL.md` and `DECISIONS.md` were updated in the
 same PR — sections 8 and 9 above. The workstream file stayed where it was, as the record of
@@ -663,3 +777,8 @@ Neither was dishonest; both are exactly what an implementation agent misses abou
 work, and both were found by reading code and tests rather than the handoff.
 
 That is the entire argument for item 8 of the review protocol.
+
+It also shows the v0.5 shape end to end: the owner's raw input captured before anything was
+done with it; one PR from spec to merge; a verdict tied to a specific commit, invalidated
+when that commit was superseded; and the durable record made true on the PR rather than
+promised for later.

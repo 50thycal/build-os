@@ -15,7 +15,7 @@ this board move with it; protocol contracts stay in this repository.
 | WS-004 | Agent session checkpoint protocol | READY_TO_BUILD | Active | Implement the checkpoint intake API against the v1 contract | #5 |
 | WS-005 | Attention engine + catch-up briefing | BUILDING | Active | Extend deterministic rules into `Needs Me` and `Since I last checked` | #6 |
 | WS-006 | Podcast renderer | IDEA | Blocked | Blocked until WS-005 produces a validated fact pack + written briefing | — |
-| WS-007 | Closed-loop feedback, review, and merge delivery | BUILD_CARD | Active | Owner approves or revises D1–D5 and the v0.5 Build Card | — |
+| WS-007 | Closed-loop feedback, review, and merge delivery | BUILD_CARD | Active | Owner approves or revises D1–D5 and the v0.5 Build Card | #7 |
 
 ## Recently completed
 

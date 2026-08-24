@@ -175,7 +175,7 @@ Expected from implementation after approval: one consequential decision covering
 
 ## Related PRs
 
-The design/spec PR will be linked after it is opened.
+- [#7 — WS-007: propose Build OS v0.5 closed-loop delivery](https://github.com/50thycal/build-os/pull/7) — draft design/spec PR; becomes the implementation handoff surface only after owner approval.
 
 ## Next Step
 

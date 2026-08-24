@@ -1,6 +1,6 @@
 # Design Room
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 The Design Room is where an abstract idea becomes something buildable. It is run by the
 design agent with the owner. It ends with two artifacts: a **Build Card** the owner
@@ -28,6 +28,10 @@ Before beginning or resuming substantial work in this room, run the **framework
 compatibility check** — is the project's adopted Build OS version still current? See
 `framework/FRAMEWORK_SYNC.md`. Once per session, before the first substantial piece of work;
 not before every message.
+
+Two modes cut across the five stages: **Capture Only**, when the owner is feeding the room
+raw material and does not want it processed yet, and the **Design Handoff PR**, when an
+approved card and issued spec are published to GitHub. Both are described after stage E.
 
 The single rule that governs the whole room: **do not write an implementation
 specification before the design is understood.** A specification produced too early
@@ -251,6 +255,164 @@ Structure, contents, and the owner-decision / discretion / escalation split:
 
 ---
 
+## Capture Only
+
+Some owner input is not a question. A playtest running in another window, a walk-and-talk
+list of grievances, a stream of half-formed ideas — the owner is producing raw material and
+wants it kept, not processed. An agent that answers each item as it arrives destroys the
+run: the owner stops reporting in order to argue, and the observations that were coming next
+never arrive.
+
+**Capture Only** is a named session mode for exactly that. It is a mode of the conversation,
+not a lifecycle phase. The workstream's phase and status do not change while it is active.
+
+### Entering
+
+The owner enters Capture Only by saying so, or by making the intent clear:
+
+> "Just capture this for now."
+> "Don't act on this yet."
+> "Keep track of these."
+> "Playtest notes, I'll be dumping a while."
+> "Let me get through this list first."
+
+Enter on the first such signal. Acknowledge once, in one line, and start capturing. Do not
+ask the owner to confirm, and do not ask again on the next message — a second confirmation
+request is itself an interruption of the thing they asked you not to interrupt.
+
+If the intent is genuinely unreadable, ask once, briefly, and default to capturing while you
+wait.
+
+### While active
+
+Record each observation as the owner states it. Then stop.
+
+Prohibited while Capture Only is active:
+
+| Prohibited | Why |
+|---|---|
+| Analysis, diagnosis, root-causing | It redirects the owner's attention to your theory instead of their next observation |
+| Recommendations or proposed fixes | The observation set is incomplete; a fix proposed at item 3 anchors items 4–20 |
+| Decisions, or treating an offhand remark as one | The owner is describing, not deciding |
+| Creating or updating repository artifacts | Nothing here has been consolidated yet; durable memory is for conclusions |
+| Triggering implementation, specs, or Build Cards | There is no approved card behind this |
+| Asking clarifying questions that are not blocking | Each question costs the owner the item they were about to report |
+
+Permitted: a short acknowledgement, a numbered log of what you have captured so far, and a
+direct answer to a question the owner clearly asks you (see overrides).
+
+Acknowledgement is lightweight. `Noted (7).` is a good acknowledgement. A paragraph
+restating what the owner just said is not.
+
+**Observations accumulate across messages.** The capture set is everything since the mode
+began, not the current message. If the owner corrects an earlier observation, the latest
+statement wins and the correction is preserved explicitly — keep both, marked, rather than
+overwriting the first.
+
+**Nothing is stored verbatim beyond what the owner wrote.** Capture Only never records a
+transcript, an audio capture, or a video of a playtest. It holds the owner's observations,
+in the owner's words, for the length of the session.
+
+### Overrides
+
+A direct owner instruction always wins. If the owner asks a question inside Capture Only —
+"wait, does the scoring rule already handle that?" — answer it, then return to capturing.
+Answering one question does not end the mode. Only the owner ends it.
+
+### Ending
+
+Capture Only ends when the owner ends it. Silence never ends it, and neither does the end of
+a message. If a session ends while capture is still active, durable state is unchanged and
+the observations were never consolidated: say so plainly rather than writing a partial
+consolidation nobody approved.
+
+Ending requires a **consolidation pass**, and the consolidation separates four things that
+are routinely and expensively confused:
+
+```markdown
+## Capture consolidation — <workstream or topic>, <date>
+
+### Observations
+What the owner reported. Their words, deduplicated, not interpreted.
+
+1. Round 4 stalled for about ten minutes with nobody able to move.
+2. Two players said the trade prompt was confusing.
+
+### Interpretations
+What I think is happening. Mine, not theirs, and labelled as such.
+
+- (1) looks like a deadlock when every player is holding for the same resource.
+
+### Proposed rules
+Candidate changes. None of these is decided.
+
+- P1. Force a discard at the end of any round where no trade completed.
+
+### Approved decisions
+Only what the owner explicitly approved during this session. Usually empty.
+
+- None.
+
+### Still open
+Questions the capture raised and did not answer.
+
+- Does the deadlock also occur at three players?
+```
+
+Rules for the consolidation:
+
+- **Only approved decisions travel.** A `Decisions made` line in a Build Card, or an owner
+  decision in a Build Spec, may come only from the fourth section. An interpretation or a
+  proposed rule that reaches a Build Card without owner approval is the failure this mode
+  exists to prevent.
+- **Observations stay separate from fixes.** A consolidation that merges them cannot be
+  audited later, when the fix turns out to be wrong and the observation is still true.
+- **Empty sections stay.** "Approved decisions: none" is information. A missing section
+  reads as an oversight.
+- **The consolidation is what gets persisted**, if anything does — into the workstream's
+  design notes or open decisions, per the checkpoint policy. Never the raw exchange.
+
+After consolidating, the room resumes at whichever stage the material serves: usually
+`EXPLORE` for a fresh problem or `DECIDE` for a set of proposed rules awaiting an owner call.
+
+---
+
+## The Design Handoff PR
+
+Historically the design agent finished by producing a **repository update block** — precise
+file contents for the owner to commit. That path remains fully supported and is the
+authoritative fallback.
+
+When the design agent *does* have GitHub write access, there is a better ending: open the
+implementation PR itself, as a draft.
+
+**A Design Handoff PR is created only after the Build Card is approved and the Build Spec is
+issued.** Not before. A draft PR opened during stage B is a design in progress wearing the
+costume of an implementation.
+
+What it is:
+
+- **Draft**, always, at creation.
+- Named as the future implementation PR — the title describes the change to be built, not
+  the design activity.
+- Allowed to contain nothing but the workstream checkpoint and the spec at first. An empty
+  diff of production code is expected.
+- **The single PR for this implementation.** The implementation agent continues this branch
+  and this PR. It does not open its own.
+
+Opening it does not move the workstream to `BUILDING`. A spec issued and a draft PR parked
+awaiting an implementation agent is still `READY_TO_BUILD`, with Implementation State
+`spec issued; draft handoff open`. `BUILDING` begins when implementation begins.
+
+Do not open a second PR for the same implementation. The exceptions are narrow: the first PR
+was merged or closed, or an escalation genuinely requires a separate change. Both are worth
+stating in the handoff.
+
+Without write access, say so and produce the repository update block. **Never describe a
+Design Handoff PR that does not exist.**
+
+---
+
 ## Running the Design Room from a ChatGPT Project
 
 The Design Room is usually a ChatGPT Project. The recommended operating model:
@@ -342,3 +504,6 @@ most easily broken: **never claim that state has been written to GitHub when it 
 | Ceremonial orientation | Re-summarizing goal, model, and settled decisions every session | The owner stops reading the orientation that matters |
 | Phantom persistence | "I've updated the workstream" without write access | Destroys the guarantee the memory layer exists to provide |
 | Framework drift | Designing under a pinned version months behind canonical | The session runs a process that no longer exists |
+| Helpful interruption | Diagnosing observation 3 while the owner is still on their list | The owner stops reporting; the remaining observations are lost |
+| Consolidation creep | A proposed rule appearing in `Decisions made` because it sounded agreed | The owner is bound by a decision they never made |
+| Costume PR | A draft PR opened mid-design so work "looks started" | The implementation PR's history begins before the design existed |

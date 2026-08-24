@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -46,6 +46,14 @@ To the designated branch. Never to a different branch without explicit permissio
 Ready for review, not a draft. If an open PR already exists for the branch, update it —
 a merged or closed PR does not count and must not be reused.
 
+**If a Design Handoff PR already exists for this work, that is the PR.** A design agent with
+GitHub write access publishes the approved card and issued spec as a draft PR on the branch
+implementation is meant to continue. Continue that branch and that PR; mark it ready for
+review when the implementation is ready. Do not open a second PR for the same implementation
+unless the first was merged or closed, or an escalation genuinely requires a separate change
+— and say so in the handoff when it does. One implementation, one PR, one history a reviewer
+can read start to finish.
+
 **5. Write an Implementation Handoff into the PR.**
 The full handoff, in the PR body, in the structure below. Not a link to it. Not a summary
 of it. If the PR body is updated across multiple rounds of work, keep it current — the PR
@@ -59,7 +67,23 @@ file and `ACTIVE.md` when the change belongs to a workstream — at minimum its 
 commits in the same PR, not a follow-up task. See `framework/PROJECT_MEMORY.md` and
 `framework/WORKSTREAMS.md`.
 
-**7. Apply any repository-update block supplied with the spec.**
+**7. Request independent review — and do not approve or merge your own work.**
+An implementation agent prepares the PR and responds to findings. An independent reviewer —
+a human, or an agent session with no memory of writing this code — records the verdict. The
+owner, or a merger they authorize, merges.
+
+For a significant PR that means: **you may not approve it, and you may not merge it.** The
+single exception is explicit owner direction to merge *and* an existing independent approved
+verdict naming the current head. Owner direction replaces the merger, never the reviewer.
+
+Report the state of the gate honestly in the handoff — `Review gate: Pending independent
+review` until a reviewer says otherwise. An implementation agent never writes its own
+approval into the workstream's `Review State`.
+
+The full gate, the verdict values, the staleness rules, and the merge-finalization commit
+are in `framework/REVIEW_PROTOCOL.md`.
+
+**8. Apply any repository-update block supplied with the spec.**
 A design agent that can read but not write to GitHub hands over its checkpoint as a precise
 update block — exact file, exact fields, exact replacement text. Applying it is part of the
 implementation, not optional cleanup: until it lands, the design work it records exists only
@@ -168,6 +192,32 @@ Framework:
 If the check could not be performed — no access to canonical `VERSION.md` — say so here.
 Never record a check that did not happen.
 
+### Review Gate
+
+The state of the merge gate, written by the implementation agent and never claiming more
+than it can:
+
+```markdown
+Review gate: Pending independent review
+```
+
+Once a reviewer has recorded a verdict, this field repeats it, with the full 40-character
+head it was reached against:
+
+```markdown
+Review gate: Approved · reviewed head 0123456789abcdef0123456789abcdef01234567
+Head at time of writing: 0123456789abcdef0123456789abcdef01234567 (current)
+```
+
+If the PR has moved since the verdict, say so — the approval is stale and the new head needs
+reviewing. If review has not happened, the value is `Pending independent review` and nothing
+else. **An implementation agent never writes an approval here.**
+
+Before merge, the last commit on this PR is the **merge-finalization** commit: documentation
+only, setting the workstream, `ACTIVE.md`, and `Review State` to what becomes true when the
+PR lands. Note here when it has been pushed, so the reviewer knows which diff to verify
+against the final head. See `framework/REVIEW_PROTOCOL.md`.
+
 ### Workstream
 
 The workstream ID, its phase before and after this PR, and whether the PR completes it.
@@ -250,6 +300,9 @@ Before considering the work complete:
 - [ ] `PROJECT_MODEL.md` updated if architecture, flows, invariants, or responsibilities changed
 - [ ] `DECISIONS.md` entry added for any consequential decision
 - [ ] Workstream file and `ACTIVE.md` updated: phase, status, implementation state, PR, next step
+- [ ] This is the same PR the design handoff opened, or the handoff says why it is not
+- [ ] `Review gate:` states the real state, and claims no approval this agent did not receive
+- [ ] Neither approval nor merge was performed by the agent that wrote the code
 - [ ] Any repository-update block supplied by the design agent has been applied
 - [ ] Framework compatibility checked for significant work, and the `Framework:` field reflects what actually happened
 - [ ] Owner Summary is under ~100 words and free of jargon

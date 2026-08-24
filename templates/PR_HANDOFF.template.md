@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.4**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.5**
 
 ## Goal
 
@@ -72,6 +72,31 @@ Framework:
 - Canonical checked: v0.x
 - Compatibility: current
 <!-- or: upgrade required / Migration performed: <what> -->
+
+## Review Gate
+
+Review gate: Pending independent review
+
+<!--
+Written by the implementation agent, which never claims an approval it did not receive.
+Until a reviewer records a verdict, this line reads exactly `Pending independent review`.
+
+Once reviewed, repeat the verdict and the full 40-character head it was reached against:
+
+    Review gate: Approved · reviewed head <40-char SHA>
+    Head at time of writing: <40-char SHA> (current)
+
+If the PR has moved since the verdict, say so — the approval is stale.
+
+Before merge, push the **merge-finalization** commit to this same PR: documentation only —
+the workstream file, `ACTIVE.md`, `Review State`, and where the workstream completes,
+`PROJECT_MODEL.md` and `DECISIONS.md`. It sets them to what becomes true when this PR lands.
+Any executable, test, dependency, config, or behavior-documentation change in that commit
+reopens full review. Note here once it is pushed, so the reviewer knows what to verify
+against the final head, and merge the exact head the reviewer named.
+
+This agent does not approve this PR and does not merge it.
+-->
 
 ## Workstream
 

@@ -1,6 +1,6 @@
 # Workstreams
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 A **workstream** is one meaningful design/build thread — procurement redesign, an
 authentication rewrite, a scoring rebalance, a new simulation system. Several may proceed
@@ -118,12 +118,23 @@ issued. The design is done; the spec may not be written yet. This phase exists b
 approval and implementation are frequently separated by days, and a workstream parked here
 is in a genuinely different state from one still being designed.
 
+A **Design Handoff PR** may already be open here. A draft PR carrying the spec and the
+workstream checkpoint, waiting for an implementation agent, is still `READY_TO_BUILD` —
+Implementation State `spec issued; draft handoff open`. Opening a PR is not starting work.
+
 **`BUILDING`** — Implementation agent is actively implementing the approved design. A Build
 Spec has been issued. There may or may not be a PR yet.
 
+The move from `READY_TO_BUILD` happens when implementation actually begins, not when the
+spec is issued and not when the PR appears.
+
 **`REVIEW`** — Implementation exists and is undergoing independent review against design
 intent, per `REVIEW_PROTOCOL.md`. A PR exists. Findings may return the workstream to
-`BUILDING`.
+`BUILDING`, and frequently do — `REVIEW → BUILDING → REVIEW` is the ordinary shape of a
+reviewed change, not a failure.
+
+A workstream stays in `REVIEW` through approval and through the merge-finalization commit.
+It leaves when the reviewed head merges.
 
 **`COMPLETE`** — Work is merged/accepted and durable architecture and decision
 documentation reflects the result. `COMPLETE` is not "the PR merged" — it is "the PR merged
@@ -260,7 +271,10 @@ The current owner-facing Build Card. Use `Not ready` before this phase.
 None / spec ready / building / PR reference / merged.
 
 ## Review State
-Review status and important findings.
+**Verdict:** <Not started | In review | Changes required | Approved | Approved with follow-ups>
+**Reviewed head:** <full 40-character SHA, or —>
+
+Findings and follow-ups, in prose.
 
 ## Related Decisions
 Links/IDs from DECISIONS.md.
@@ -281,6 +295,10 @@ Notes on the sections that are most often done badly:
   open decisions are not written down has lost the thing it was in the middle of.
 - **Assumptions** age badly and are worth re-reading at every checkpoint. An assumption that
   has since been falsified is usually the reason a design stopped making sense.
+- **Review State** leads with two machine-readable fields, `Verdict` and `Reviewed head`,
+  before any prose. The head is the full 40-character SHA the verdict was reached against —
+  an abbreviation is not accepted, because it cannot prove which commit was reviewed. An
+  approval that names no head does not open the merge gate. See `REVIEW_PROTOCOL.md`.
 - **Next Step** is one action, not a plan. If it takes three sentences, the workstream is
   blocked on something that has not been named.
 
@@ -304,7 +322,8 @@ At minimum, checkpoint when:
 5. a Build Spec is issued,
 6. implementation begins or a PR is created,
 7. review identifies a material issue or approves the work,
-8. the workstream is completed, paused, blocked, or abandoned.
+8. a PR is about to merge — the **merge-finalization** checkpoint, below,
+9. the workstream is completed, paused, blocked, or abandoned.
 
 The goal is **durable continuity without excessive administrative overhead**. The test for
 whether a checkpoint is due: *if this conversation ended right now, would the repository
@@ -316,6 +335,62 @@ and it does not append a transcript.
 
 Also worth checkpointing, though not required: the end of any substantial working session,
 even mid-phase. Sessions rarely end where you expect them to.
+
+---
+
+## The Design Handoff PR
+
+Design ends by publishing an approved Build Card and an issued Build Spec. Where the design
+agent has GitHub write access, it publishes them as a **draft PR** — the same PR the
+implementation will be built on.
+
+- Created **only after** the Build Card is approved and the spec is issued.
+- **Draft**, and titled as the change to be built.
+- May contain nothing but the workstream checkpoint and the spec.
+- Named in the workstream's `Related PRs` and `Implementation State` from the moment it
+  exists.
+
+**It is the single PR for that implementation.** The implementation agent continues this
+branch and this PR rather than opening its own, so one PR carries the change from spec to
+merge and the review reads one history. Do not open a second PR for the same implementation
+unless the first merged or closed, or an escalation genuinely requires a separate change —
+and say so in the handoff when it happens.
+
+The workstream stays `READY_TO_BUILD` while the PR is parked. See the phase definitions
+above, and `framework/DESIGN_ROOM.md` for the design-side rules.
+
+Without write access, the repository-update block below remains the authoritative path.
+**Never describe a Design Handoff PR that does not exist.**
+
+---
+
+## Merge finalization
+
+The last checkpoint on a PR happens *before* the merge, not after it.
+
+After the reviewer approves and before the merge button, the implementation agent pushes one
+documentation-only commit to the same PR, setting the workstream and the board to what
+becomes true when the PR lands:
+
+- `Phase` and `Status`
+- `Implementation State` — `merged in #<n>`, or whatever actually comes next
+- `Review State` — verdict and the final head
+- `Related PRs`
+- `Next Step`
+- the row in `ACTIVE.md` — updated, or removed if the workstream completes
+- `PROJECT_MODEL.md` and `DECISIONS.md`, if the workstream completes (see *Completion*)
+
+Nothing else. Any executable, test, dependency, configuration, or behavior-documentation
+change in that commit invalidates the approval and returns the PR to full review. The
+reviewer verifies the final head, records it, and the merge targets that exact SHA.
+
+This is what stops `main` from filling with workstreams that say `REVIEW` about PRs that
+merged weeks ago, without a second bookkeeping PR nobody opens. The rules, and why writing
+"merged" just before merging is honest rather than a fiction, are in
+`framework/REVIEW_PROTOCOL.md`.
+
+If the merge is abandoned after finalization, undo it: a finalized workstream on a PR that
+will not merge is a false record waiting to be believed.
 
 ---
 
@@ -414,6 +489,11 @@ When a workstream reaches `COMPLETE`:
 6. **Preserve the workstream file** as historical development context, unless project
    retention rules say otherwise.
 
+In the normal v0.5 flow, steps 2–5 happen in the **merge-finalization commit on the PR
+itself**, so `main` is true the moment the PR lands. Completion after the fact — a separate
+commit to `main` — remains valid; it is simply the slower path, and the one that gets
+forgotten.
+
 This establishes two flows:
 
 ```text
@@ -468,3 +548,6 @@ voices, at which point nobody knows which one is true.
 | Phantom persistence | "I've updated the workstream" with no write access | Destroys the guarantee the whole layer exists to provide |
 | Workstream sprawl | One per idea anyone mentions | The board stops distinguishing real work from noise |
 | Unchecked framework | Resuming a workstream without confirming the adopted Build OS version | The effort continues under a protocol that has since changed |
+| Second PR for one build | The implementation agent opens its own PR beside the design handoff | The change's history splits; review reads half of it |
+| Post-merge bookkeeping | Leaving the workstream at `REVIEW` and planning a cleanup PR | `main` describes a state that ended at merge; the cleanup PR never comes |
+| Approval without a commit | `Review State: Approved`, no reviewed head | Proves nothing, and the gate it opens was never really closed |

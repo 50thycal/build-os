@@ -1,15 +1,15 @@
-# Proposed Build Spec — Build OS v0.5 Closed-loop Delivery
+# Build Spec — Build OS v0.5 Closed-loop Delivery
 
-**Status:** Proposed; implementation blocked on owner approval of WS-007's Build Card  
+**Status:** Approved 2026-08-24; implemented on PR #7, pending independent review  
 **Workstream:** WS-007 · **Build Card:** [`docs/workstreams/WS-007-closed-loop-delivery.md`](../docs/workstreams/WS-007-closed-loop-delivery.md#build-card) · **Written under Build OS v0.4**
 
-Canonical `VERSION.md` was checked on 2026-08-24 and remains v0.4. This spec proposes the v0.5 minor protocol release.
+Canonical `VERSION.md` was v0.4 when this spec was written on 2026-08-24. The owner approved the Build Card and D1–D5 as recommended the same day; this spec is the v0.5 minor protocol release, implemented on the same branch and PR the design handoff opened.
 
 ---
 
 ## The three-way split
 
-### Proposed owner decisions — become binding only after Build Card approval
+### Owner decisions — approved 2026-08-24, binding
 
 - **OD-1.** Build OS adds a named **Capture Only** mode for live playtests, brainstorming dumps, and multi-message owner feedback. While active, the design agent records observations but does not analyze, recommend, decide, create/update repository artifacts, or trigger implementation unless the owner explicitly ends or overrides capture mode.
 - **OD-2.** Ending Capture Only requires a consolidation pass that separates `Observation`, `Interpretation`, `Proposed rule`, and `Approved decision`. Only approved decisions enter the Build Card's `Decisions made` or the Build Spec's owner decisions.
@@ -47,7 +47,7 @@ Ship Build OS v0.5 as a coherent feedback-to-merge closure protocol derived from
 
 > After this change, the system should preserve owner feedback faithfully, route implementation through one durable PR, and prevent significant work from merging until independent review and project memory agree on the current code.
 
-Upon approval, OD-1 through OD-8 are the complete owner-visible protocol contract. No automation is required to satisfy them; tooling support is detection and visibility, not the source of authority.
+OD-1 through OD-8 are the complete owner-visible protocol contract. No automation is required to satisfy them; tooling support is detection and visibility, not the source of authority.
 
 ## 3. Repository context
 
@@ -104,7 +104,7 @@ Upon approval, OD-1 through OD-8 are the complete owner-visible protocol contrac
   6. record an explicit deferral decision if an in-flight project cannot adopt immediately.
 - **R-21 (OD-8).** Update `FRAMEWORK_SYNC.md` to call out that a minor upgrade may impose a gate on still-open PRs and that adopted repositories never rewrite product architecture/decisions during migration.
 - **R-22.** Add a worked normal-path example from capture through same-PR merge and a recovery example modeled on “implementation merged before review; correction PR follows.” Use generic names, not Subway-specific code.
-- **R-23.** Add one or two Build OS decision entries after owner approval: reviewed-head merge closure and truthful same-PR finalization are consequential; Capture Only receives a separate entry if it remains independently meaningful.
+- **R-23.** Add one or two Build OS decision entries: reviewed-head merge closure and truthful same-PR finalization are consequential; Capture Only receives a separate entry if it remains independently meaningful.
 - **R-24.** Update README lifecycle/roles/documents/adoption sections so the public overview agrees with the detailed protocol.
 - **R-25.** Preserve existing small-fix proportionality: a trivial documentation or bug fix outside a significant workstream does not require a ceremonial Build Card or full review artifact, but any PR claiming to complete a significant workstream does.
 
@@ -247,27 +247,27 @@ No telemetry service is required.
 
 ## 19. Required documentation updates
 
-- [ ] `VERSION.md` — v0.5 identifier and v0.4→v0.5 migration notes.
-- [ ] `README.md` — lifecycle, roles, documents, adoption, and evolution wording.
-- [ ] `framework/DESIGN_ROOM.md` — Capture Only and Design Handoff PR.
-- [ ] `framework/WORKSTREAMS.md` — handoff, review loop, finalization, completion.
-- [ ] `framework/CLAUDE_HANDOFF.md` — single PR ownership and no self-merge before independent approval.
-- [ ] `framework/REVIEW_PROTOCOL.md` — verdict/head gate, staleness, correction/recovery, finalization.
-- [ ] `framework/FRAMEWORK_SYNC.md` — v0.5 adoption and open-PR applicability.
-- [ ] `framework/BUILD_OS_PARSE_CONTRACT.md` — stable fields and integrity warnings.
-- [ ] `templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md` — capture and review/merge behavior.
-- [ ] `templates/WORKSTREAM.template.md` — structured Review State.
-- [ ] `templates/REVIEW_SUMMARY.template.md` — verdict/head/currentness.
-- [ ] `templates/PR_HANDOFF.template.md` — pending review gate/finalization guidance.
-- [ ] `examples/FEATURE_LIFECYCLE.example.md` — normal same-PR flow.
-- [ ] New or extended example — merged-before-review recovery.
-- [ ] `DECISIONS.md` — consequential accepted protocol choices after approval.
-- [ ] WS-007 and `ACTIVE.md` — true phase, implementation, review, PR, and next step.
+- [x] `VERSION.md` — v0.5 identifier and v0.4→v0.5 migration notes.
+- [x] `README.md` — lifecycle, roles, documents, adoption, and evolution wording.
+- [x] `framework/DESIGN_ROOM.md` — Capture Only and Design Handoff PR.
+- [x] `framework/WORKSTREAMS.md` — handoff, review loop, finalization, completion.
+- [x] `framework/CLAUDE_HANDOFF.md` — single PR ownership and no self-merge before independent approval.
+- [x] `framework/REVIEW_PROTOCOL.md` — verdict/head gate, staleness, correction/recovery, finalization.
+- [x] `framework/FRAMEWORK_SYNC.md` — v0.5 adoption and open-PR applicability.
+- [x] `framework/BUILD_OS_PARSE_CONTRACT.md` — stable fields and integrity warnings.
+- [x] `templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md` — capture and review/merge behavior.
+- [x] `templates/WORKSTREAM.template.md` — structured Review State.
+- [x] `templates/REVIEW_SUMMARY.template.md` — verdict/head/currentness.
+- [x] `templates/PR_HANDOFF.template.md` — pending review gate/finalization guidance.
+- [x] `examples/FEATURE_LIFECYCLE.example.md` — normal same-PR flow.
+- [x] New or extended example — merged-before-review recovery.
+- [x] `DECISIONS.md` — consequential accepted protocol choices after approval.
+- [x] WS-007 and `ACTIVE.md` — true phase, implementation, review, PR, and next step.
 
 ## 20. Handoff requirements
 
-- Continue implementation on the same WS-007 design PR and branch after owner approval; do not open a second implementation PR.
-- Before implementation, replace every `[PENDING OWNER APPROVAL]`/proposed marker with the approved truth or record the owner's changes.
+- Continue implementation on the same WS-007 design PR and branch; do not open a second implementation PR.
+- Replace every `[PENDING OWNER APPROVAL]`/proposed marker with the approved truth or record the owner's changes.
 - Run the Companion test suite and any repository validation named in README/package metadata.
 - The implementation handoff must map OD-1…OD-8 and AC-1…AC-12 to the actual protocol/templates/tests.
 - Recommended review focus must include: truthfulness of same-PR finalization, reviewed-head invalidation rules, v0.5 migration completeness, legacy parser compatibility, and the boundary between protocol and automation.

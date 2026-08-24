@@ -1,6 +1,6 @@
 # WS-007 — Closed-loop feedback, review, and merge delivery
 
-**Phase:** BUILD_CARD
+**Phase:** REVIEW
 **Status:** Active
 **Created:** 2026-08-24
 **Updated:** 2026-08-24
@@ -65,15 +65,17 @@ approved verdict + reviewed current head + green required validation + truthful 
 
 ## Decisions Made
 
-None yet. The Build Card below contains the recommended protocol decisions and awaits owner approval.
+The owner approved the Build Card and D1–D5 as recommended on 2026-08-24, instructing that the build proceed on this PR.
+
+- **D1. Explicit capture-only mode — yes.** Named `Capture Only`; a session mode, not a lifecycle phase. Recorded as DEC-011.
+- **D2. Standardized draft Design Handoff PR — yes.** A design agent with write access opens the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
+- **D3. Independent review as a hard merge gate for significant work — yes.** The approved verdict must name the PR's current head as a full 40-character SHA, and the implementation agent neither approves nor merges its own significant PR. Recorded as DEC-012.
+- **D4. Merge-finalization commit in the same PR — yes.** Documentation-only, after approval, verified against the final head. Recorded as DEC-013.
+- **D5. Publish as Build OS v0.5 with explicit downstream migration — yes.** Minor release; `VERSION.md` carries six exact adoption steps.
 
 ## Open Decisions
 
-- **D1. Add an explicit capture-only mode?** Recommendation: yes. It protects live playtest note-taking from premature synthesis or repository writes and requires a consolidation pass before any observation becomes a rule.
-- **D2. Standardize the draft Design Handoff PR?** Recommendation: yes. A design agent with write access may open the future implementation PR at `READY_TO_BUILD`; the implementation agent continues that exact branch and PR.
-- **D3. Make independent review a hard merge gate for significant work?** Recommendation: yes. The implementation agent does not merge its own significant PR; an approved verdict must name the reviewed head SHA.
-- **D4. Use a merge-finalization commit in the same PR?** Recommendation: yes. After approval, a documentation-only finalization commit records the state that becomes true when that PR merges; the reviewer confirms the current head before merge.
-- **D5. Publish this as Build OS v0.5 with explicit downstream migration?** Recommendation: yes. This is a minor protocol change affecting artifacts and agent behavior, so every adopting project must encounter it through `VERSION.md` compatibility preflight.
+None.
 
 ## Assumptions
 
@@ -96,7 +98,7 @@ None yet. The Build Card below contains the recommended protocol decisions and a
 # Build Card — Closed-loop feedback, review, and merge delivery
 
 **Workstream:** WS-007
-**Status:** Draft
+**Status:** Approved
 **Date:** 2026-08-24
 **Build Spec:** [`plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md`](../../plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md)
 
@@ -136,7 +138,7 @@ Capture → Consolidate → Approve card → Draft handoff PR → Build → Revi
 - Main-branch workstream state must describe what is true after the merge, not a prior step.
 - Downstream uptake occurs through a version bump and complete migration notes, never silent tracking of `main`.
 
-### Decisions proposed
+### Decisions made
 
 - Add Capture Only, the draft Design Handoff PR, the independent reviewed-head gate, the correction loop, and merge finalization as one v0.5 protocol package.
 - Keep enforcement protocol-first; expose structured fields so Companion or future CI may detect violations without making automation mandatory.
@@ -149,11 +151,11 @@ Capture → Consolidate → Approve card → Draft handoff PR → Build → Revi
 
 ### Definition of done
 
-- [ ] Protocol and templates describe capture, design handoff, review/fix loop, reviewed-head approval, finalization, and merge responsibility consistently.
-- [ ] Review verdict and reviewed head are stable parseable fields with integrity warnings for stale or missing gates.
-- [ ] v0.5 migration notes tell every adopting project exactly what to update and how to handle open PRs.
-- [ ] A worked scenario proves the normal path and the already-merged recovery path.
-- [ ] Party Games can adopt v0.5 at its next substantial session without rewriting game architecture or historical decisions.
+- [x] Protocol and templates describe capture, design handoff, review/fix loop, reviewed-head approval, finalization, and merge responsibility consistently.
+- [x] Review verdict and reviewed head are stable parseable fields with integrity warnings for stale or missing gates.
+- [x] v0.5 migration notes tell every adopting project exactly what to update and how to handle open PRs.
+- [x] A worked scenario proves the normal path and the already-merged recovery path.
+- [x] Party Games can adopt v0.5 at its next substantial session without rewriting game architecture or historical decisions.
 
 ---
 
@@ -161,22 +163,27 @@ Capture → Consolidate → Approve card → Draft handoff PR → Build → Revi
 
 ## Implementation State
 
-Proposed Build Spec drafted in [`plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md`](../../plans/BUILD_OS_V0_5_CLOSED_LOOP_DELIVERY.md). Implementation must not begin until the owner approves or revises the Build Card decisions.
+Implemented on PR #7, the same branch the design handoff opened. The v0.5 protocol package is complete: `DESIGN_ROOM.md` (Capture Only, Design Handoff PR), `REVIEW_PROTOCOL.md` (merge gate, verdicts, staleness, transitions, recovery, finalization, proportionality), `WORKSTREAMS.md` (handoff PR, finalization checkpoint, phase boundaries), `CLAUDE_HANDOFF.md` (single-PR ownership, no self-approval), `FRAMEWORK_SYNC.md` (open-PR applicability), `BUILD_OS_PARSE_CONTRACT.md` (fields and integrity warnings), four templates, two examples, `VERSION.md` v0.5 with migration notes, `README.md`, and DEC-011/012/013.
+
+Companion support for the new fields is in the same PR: verdict and reviewed-head parsing, HTML-comment stripping, the PR head SHA threaded through observation and projection, and the three cross-source integrity checks. Suite green at 151 tests.
 
 ## Review State
 
-Not started.
+**Verdict:** In review
+**Reviewed head:** —
+
+Awaiting independent review. This PR is subject to the gate it introduces: it does not merge without an approved verdict naming its current head, and the implementing agent neither approves nor merges it.
 
 ## Related Decisions
 
 Existing foundations: DEC-002 (GitHub is the handoff), DEC-004 (workstreams are durable state), DEC-005 (persistence claims require write access), DEC-006 (version preflight), and DEC-007 (framework state in agent instructions).
 
-Expected from implementation after approval: one consequential decision covering the reviewed-head merge gate and truthful finalization transaction; capture-only behavior may share that entry or receive a second entry if implementation shows it is independently durable.
+Added by this implementation: DEC-011 (owner input is captured before it is processed), DEC-012 (significant work merges only on an independent verdict naming the current head), DEC-013 (durable memory is finalized on the PR, before the merge). Capture Only received its own entry because its rules stand independently of the merge gate.
 
 ## Related PRs
 
-- [#7 — WS-007: propose Build OS v0.5 closed-loop delivery](https://github.com/50thycal/build-os/pull/7) — draft design/spec PR; becomes the implementation handoff surface only after owner approval.
+- [#7 — WS-007: Build OS v0.5 closed-loop delivery](https://github.com/50thycal/build-os/pull/7) — the design handoff PR, continued as the implementation PR. One workstream, one PR.
 
 ## Next Step
 
-Owner approves or revises D1–D5 and the Build Card; Claude then implements the v0.5 protocol package on the same branch and PR.
+Independent review of PR #7 against this Build Card. On approval, the merge-finalization commit sets this workstream to COMPLETE and removes its row from `ACTIVE.md`.

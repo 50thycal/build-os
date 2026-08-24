@@ -35,6 +35,7 @@ function pullRequest(overrides: Partial<PullRequestState> = {}): PullRequestStat
     title: "Region-aware simulation",
     lifecycle: "OPEN",
     draft: false,
+    headSha: "1f4b0c9a7d2e6538ab41cc90de77315268b0aa42",
     headBranch: "claude/regions",
     baseBranch: "main",
     author: OWNER,

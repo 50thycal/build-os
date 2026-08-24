@@ -103,6 +103,7 @@ export function derivePullRequestState(
     lifecycle: deriveLifecycle(pr),
     draft: pr.draft,
     headBranch: pr.headRef,
+    headSha: pr.headSha,
     baseBranch: pr.baseRef,
     author: pr.author,
     createdAt: pr.createdAt,

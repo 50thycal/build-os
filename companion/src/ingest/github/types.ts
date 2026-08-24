@@ -44,6 +44,8 @@ export interface GitHubPullRequestObservation {
   mergedAt?: string;
   closedAt?: string;
   headRef: string;
+  /** Full head commit SHA. The v0.5 review gate compares it against the reviewed head. */
+  headSha: string;
   baseRef: string;
   author: string;
   authorIsBot: boolean;

@@ -8,11 +8,13 @@
  */
 
 import {
+  REVIEW_VERDICTS,
   WORKSTREAM_PHASES,
   WORKSTREAM_STATUSES,
   type DecisionRecord,
   type DecisionStatus,
   type OpenDecision,
+  type ReviewVerdict,
   type WorkstreamPhase,
   type WorkstreamStatus,
 } from "../../domain/state.ts";
@@ -28,6 +30,7 @@ import {
   parseSections,
   parseTables,
   stripCodeFences,
+  stripHtmlComments,
 } from "./markdown.ts";
 
 export const WORKSTREAM_ID_PATTERN = /\bWS-(\d{3,})\b/;
@@ -115,6 +118,68 @@ export function parseActiveBoard(markdown: string): ActiveBoard {
 }
 
 // ---------------------------------------------------------------------------
+// Review State fields (v0.5)
+// ---------------------------------------------------------------------------
+
+const FULL_SHA = /^[0-9a-f]{40}$/i;
+
+export interface ParsedReviewState {
+  verdict?: ReviewVerdict;
+  reviewedHead?: string;
+  /** Set when a field was present but unreadable. The field itself stays absent. */
+  verdictMalformed: boolean;
+  reviewedHeadMalformed: boolean;
+}
+
+function normalizeVerdict(text: string): ReviewVerdict | undefined {
+  const normalized = text
+    .trim()
+    .toUpperCase()
+    .replace(/\.$/, "")
+    .replace(/[\s-]+/g, "_")
+    .replace(/_WITH_FOLLOWUPS?$/, "_WITH_FOLLOW_UPS");
+  return (REVIEW_VERDICTS as readonly string[]).includes(normalized)
+    ? (normalized as ReviewVerdict)
+    : undefined;
+}
+
+/**
+ * Read the v0.5 `Verdict` and `Reviewed head` fields from a Review State body.
+ *
+ * An abbreviated SHA is rejected rather than accepted: a 7-character prefix cannot prove which
+ * commit was reviewed, and proof is the entire point of the field.
+ *
+ * A body with neither field is a workstream written before v0.5 — absent metadata, not an error.
+ */
+export function parseReviewState(body: string | undefined): ParsedReviewState {
+  const result: ParsedReviewState = { verdictMalformed: false, reviewedHeadMalformed: false };
+  if (body === undefined) return result;
+
+  const stripped = stripHtmlComments(stripCodeFences(body));
+
+  const verdictRaw = /\*{0,2}Verdict\*{0,2}\s*:\s*\*{0,2}\s*([^\n|]+)/i.exec(stripped)?.[1];
+  if (verdictRaw !== undefined) {
+    const verdict = normalizeVerdict(verdictRaw.replace(/\*+/g, ""));
+    if (verdict) result.verdict = verdict;
+    else result.verdictMalformed = true;
+  }
+
+  const headRaw = /\*{0,2}Reviewed\s+head\*{0,2}\s*:\s*\*{0,2}\s*([^\n|]+)/i.exec(stripped)?.[1];
+  if (headRaw !== undefined) {
+    const head = headRaw.replace(/[*`]/g, "").trim();
+    if (isNothing(head)) {
+      // An explicit "no head yet" marker. Absent, but not malformed.
+    } else if (FULL_SHA.test(head)) {
+      result.reviewedHead = head.toLowerCase();
+    } else {
+      result.reviewedHeadMalformed = true;
+    }
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Workstream file
 // ---------------------------------------------------------------------------
 
@@ -135,6 +200,7 @@ export interface ParsedWorkstreamFile {
   buildCardReady: boolean;
   implementationState?: string;
   reviewState?: string;
+  review: ParsedReviewState;
 }
 
 /** `**D1.** Question?` or `- D3 — question`. Falls back to a positional key. */
@@ -193,6 +259,7 @@ export function parseWorkstreamFile(markdown: string): ParsedWorkstreamFile {
     buildCardReady: !isNothing(buildCard),
     implementationState,
     reviewState: sectionText("Review State"),
+    review: parseReviewState(findSection(sections, "Review State")?.body),
   };
 }
 

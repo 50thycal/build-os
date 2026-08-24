@@ -13,6 +13,7 @@ import type {
   IntegrityWarning,
   WorkstreamState,
 } from "../../domain/state.ts";
+import { isApprovingVerdict } from "../../domain/state.ts";
 import type { SourceConflict, SourceRef } from "../../domain/provenance.ts";
 import { parseActiveBoard, parseWorkstreamFile, parseWorkstreamId } from "./parse.ts";
 import type { ActiveBoardRow } from "./parse.ts";
@@ -166,6 +167,34 @@ export function reconcileBuildOsState(
       });
     }
 
+    if (parsed.review.verdictMalformed) {
+      warnings.push({
+        code: "REVIEW_VERDICT_MALFORMED",
+        workstreamId,
+        message: `${workstreamId} has a Review State verdict that is not one of the allowed values. Treating it as absent.`,
+        sources: [fileSource],
+      });
+    }
+
+    if (parsed.review.reviewedHeadMalformed) {
+      warnings.push({
+        code: "REVIEWED_HEAD_MALFORMED",
+        workstreamId,
+        message: `${workstreamId} has a Reviewed head that is not a full 40-character SHA. An abbreviation cannot prove which commit was reviewed, so it is treated as absent.`,
+        sources: [fileSource],
+      });
+    }
+
+    // An approval that names no commit proves nothing about the code.
+    if (isApprovingVerdict(parsed.review.verdict) && !parsed.review.reviewedHead) {
+      warnings.push({
+        code: "APPROVED_WITHOUT_REVIEWED_HEAD",
+        workstreamId,
+        message: `${workstreamId} records an approval with no reviewed head. Treat it as unreviewed until a reviewer names the commit.`,
+        sources: [fileSource],
+      });
+    }
+
     const status = parsed.status ?? row?.status;
     const nextStep = parsed.nextStep ?? row?.nextStep;
     // Next Step is often written as "Blocked: <reason>"; keep the reason, drop the restatement.
@@ -192,6 +221,8 @@ export function reconcileBuildOsState(
       buildCardReady: parsed.buildCardReady,
       implementationState: parsed.implementationState,
       reviewState: parsed.reviewState,
+      reviewVerdict: parsed.review.verdict,
+      reviewedHead: parsed.review.reviewedHead,
       updatedAt: parsed.updatedAt,
       sourcePath: file.path,
       source: fileSource,

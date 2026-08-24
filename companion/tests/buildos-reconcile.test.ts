@@ -125,3 +125,72 @@ describe("workstream event normalization", () => {
     expect(blocked?.summaryShort).toContain("prize-payout rules");
   });
 });
+
+describe("v0.5 review-field warnings", () => {
+  function reconcileOne(reviewSection: string) {
+    const base = buildOsSnapshotInput();
+    const input = {
+      ...base,
+      activeBoardMarkdown: `# Active Work
+
+| ID | Title | Phase | Status | Next Step | PRs |
+|---|---|---|---|---|---|
+| WS-011 | Review gate | REVIEW | Active | Await review | #84 |
+`,
+      workstreamFiles: [
+        {
+          path: "docs/workstreams/WS-011-review-gate.md",
+          markdown: `# WS-011 — Review gate
+
+**Phase:** REVIEW · **Status:** Active
+
+## Review State
+
+${reviewSection}
+
+## Related PRs
+
+#84
+`,
+          commitSha: "abc123",
+          htmlUrl: "https://github.com/50thycal/cargo-ship/blob/main/docs/workstreams/WS-011-review-gate.md",
+        },
+      ],
+    };
+    return reconcileBuildOsState(PROJECT, input);
+  }
+
+  it("carries verdict and reviewed head onto workstream state", () => {
+    const head = "0123456789abcdef0123456789abcdef01234567";
+    const ws = reconcileOne(`**Verdict:** Approved\n**Reviewed head:** ${head}`).workstreams[0]!;
+    expect(ws.reviewVerdict).toBe("APPROVED");
+    expect(ws.reviewedHead).toBe(head);
+  });
+
+  it("warns when an approval names no commit, and does not treat it as approved evidence", () => {
+    const result = reconcileOne("**Verdict:** Approved\n**Reviewed head:** —");
+    expect(result.warnings.map((w) => w.code)).toContain("APPROVED_WITHOUT_REVIEWED_HEAD");
+    expect(result.workstreams[0]!.reviewedHead).toBeUndefined();
+  });
+
+  it("warns on a verdict outside the allowed set and leaves the field absent", () => {
+    const result = reconcileOne("**Verdict:** Looks good");
+    expect(result.warnings.map((w) => w.code)).toContain("REVIEW_VERDICT_MALFORMED");
+    expect(result.workstreams[0]!.reviewVerdict).toBeUndefined();
+  });
+
+  it("warns on an abbreviated reviewed head", () => {
+    const result = reconcileOne("**Verdict:** In review\n**Reviewed head:** 0123456");
+    expect(result.warnings.map((w) => w.code)).toContain("REVIEWED_HEAD_MALFORMED");
+    expect(result.workstreams[0]!.reviewedHead).toBeUndefined();
+  });
+
+  it("says nothing about a pre-v0.5 workstream with a prose review section", () => {
+    const result = reconcileOne("Not started.");
+    const reviewCodes = result.warnings
+      .map((w) => w.code)
+      .filter((c) => c.startsWith("REVIEW") || c.startsWith("APPROVED"));
+    expect(reviewCodes).toEqual([]);
+    expect(result.workstreams[0]!.reviewVerdict).toBeUndefined();
+  });
+});

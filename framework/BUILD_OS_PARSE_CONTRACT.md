@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.4 — protocol contract**
+**Build OS v0.5 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -113,12 +113,39 @@ Rules consumers may rely on:
 | Decisions Made | List items; may be empty. |
 | Build Card | The literal `Not ready` means not ready. Anything else is a link or inline card. |
 | Implementation State | Free text; `None` means none. PR references extracted as `#\d+`. |
-| Review State | Free text; `Not started` means not started. |
+| Review State | Structured fields below, then free prose. `Not started` means not started. |
 | Related PRs | Zero or more `#\d+`; `None yet` / `—` means none. |
 | Related Decisions | Zero or more `DEC-\d{3,}`. |
 
 **Blocker.** Build OS records a blocker as `Status: Blocked` plus the reason in `Next Step`.
 Consumers should read it from there rather than expecting a dedicated section.
+
+### `Review State` — the review gate
+
+From v0.5, `## Review State` opens with two stable fields, each on its own line, before any
+prose:
+
+```markdown
+## Review State
+
+**Verdict:** Approved
+**Reviewed head:** 0123456789abcdef0123456789abcdef01234567
+
+<optional findings and follow-up prose>
+```
+
+| Field | Rule |
+|---|---|
+| Verdict | One of `Not started`, `In review`, `Changes required`, `Approved`, `Approved with follow-ups`. Case-insensitive. Unrecognized → absent, plus a `REVIEW_VERDICT_MALFORMED` warning. |
+| Reviewed head | A full 40-character hexadecimal commit SHA, or `—` for none. An abbreviated SHA is **not** accepted — a 7-character prefix cannot prove which commit was reviewed. Malformed → absent, plus `REVIEWED_HEAD_MALFORMED`. |
+
+Both fields are optional in the file format sense: a workstream written under v0.4 has neither,
+and that is **absent metadata, never an error**. Consumers report what is missing where it
+matters (see the integrity table) rather than refusing to parse.
+
+The same two fields appear in a review summary, and may appear in a PR review or top-level PR
+comment. Wherever they appear, they mean the same thing: *this verdict was reached against
+exactly this commit.*
 
 **Missing sections are normal.** A workstream in `IDEA` legitimately has almost nothing. Absence
 is not an error.
@@ -170,9 +197,17 @@ winner. Cases worth reporting:
 | Filename ID and heading ID differ | Report; address by filename. |
 | A workstream marked `COMPLETE` still on the active board | Report: completion is supposed to remove the row. |
 | Duplicate `WS-###` across files | Report; do not merge. |
+| `Verdict: Approved`* with no reviewed head | Report `APPROVED_WITHOUT_REVIEWED_HEAD`: an approval that names no commit proves nothing. Treat the workstream as unreviewed. |
+| Reviewed head differs from the PR's current head | Report `REVIEW_STALE`: the approval is against an older commit. |
+| A significant PR merged with no approved verdict | Report `MERGED_WITHOUT_APPROVAL`. Historical PRs predating v0.5 adoption are exempt. |
+| Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
+| Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
+
+\* `Approved with follow-ups` is treated identically to `Approved` by every rule here.
 
 These are warnings about the *project's* records, addressed to its owner. They are not parser
-errors, and they must not stop the rest of the parse.
+errors, and they must not stop the rest of the parse. In particular, a consumer **never repairs**
+a review field it finds contradictory — an approval it cannot verify is reported, not upgraded.
 
 ---
 

@@ -22,6 +22,7 @@ function pr(overrides: Partial<GitHubPullRequestObservation> = {}): GitHubPullRe
     merged: false,
     createdAt: "2026-08-01T00:00:00Z",
     updatedAt: "2026-08-01T00:00:00Z",
+    headSha: "9c3ad51e70bb4f2e8d16a0c5f3e29b7418dd6a05",
     headRef: "feature",
     baseRef: "main",
     author: "someone",

@@ -56,6 +56,7 @@ export interface PullRequestState {
   lifecycle: PullRequestLifecycle;
   draft: boolean;
   headBranch: string;
+  headSha: string;
   baseBranch: string;
   author: string;
   createdAt: string;
@@ -92,6 +93,20 @@ export type WorkstreamPhase = (typeof WORKSTREAM_PHASES)[number];
 export const WORKSTREAM_STATUSES = ["ACTIVE", "PAUSED", "BLOCKED", "ABANDONED", "COMPLETE"] as const;
 export type WorkstreamStatus = (typeof WORKSTREAM_STATUSES)[number];
 
+export const REVIEW_VERDICTS = [
+  "NOT_STARTED",
+  "IN_REVIEW",
+  "CHANGES_REQUIRED",
+  "APPROVED",
+  "APPROVED_WITH_FOLLOW_UPS",
+] as const;
+export type ReviewVerdict = (typeof REVIEW_VERDICTS)[number];
+
+/** `Approved with follow-ups` clears the merge gate exactly as `Approved` does. */
+export function isApprovingVerdict(verdict: ReviewVerdict | undefined): boolean {
+  return verdict === "APPROVED" || verdict === "APPROVED_WITH_FOLLOW_UPS";
+}
+
 export interface OpenDecision {
   /** `D1`, `D2`… where the workstream file numbers them; otherwise a positional key. */
   key: string;
@@ -115,6 +130,10 @@ export interface WorkstreamState {
   buildCardReady: boolean;
   implementationState?: string;
   reviewState?: string;
+  /** From v0.5. Absent on a workstream written under an earlier version — not an error. */
+  reviewVerdict?: ReviewVerdict;
+  /** Full 40-character SHA the verdict was reached against. Abbreviations are rejected. */
+  reviewedHead?: string;
   updatedAt?: string;
   sourcePath: string;
   source: SourceRef;
@@ -191,7 +210,14 @@ export type IntegrityCode =
   | "BOARD_ROW_WITHOUT_FILE"
   | "WORKSTREAM_ID_FILENAME_MISMATCH"
   | "COMPLETED_WORKSTREAM_STILL_ACTIVE"
-  | "DUPLICATE_WORKSTREAM_ID";
+  | "DUPLICATE_WORKSTREAM_ID"
+  // v0.5 review gate
+  | "REVIEW_VERDICT_MALFORMED"
+  | "REVIEWED_HEAD_MALFORMED"
+  | "APPROVED_WITHOUT_REVIEWED_HEAD"
+  | "REVIEW_STALE"
+  | "MERGED_WITHOUT_APPROVAL"
+  | "WORKSTREAM_PR_STATE_MISMATCH";
 
 /**
  * A problem with the *project's* Build OS records, addressed to its owner. Not a parser error:

@@ -16,6 +16,7 @@ import type {
   WorkstreamState,
 } from "../domain/state.ts";
 import type { SourceConflict } from "../domain/provenance.ts";
+import { checkReviewGate } from "./review-gate.ts";
 
 interface SnapshotCarrier {
   observedAt?: unknown;
@@ -103,13 +104,21 @@ export function buildProjectState(input: ProjectStateInput): ProjectState {
   const workstreams = input.workstreams ?? [];
   const pullRequests = linkWorkstreamsToPullRequests(workstreams, projectPullRequests(events));
 
+  // Warnings arriving from the Build OS reconciler describe one source; these describe the two
+  // sources disagreeing. Both belong on the same list, because the owner does not care which
+  // layer noticed.
+  const integrityWarnings = [
+    ...(input.integrityWarnings ?? []),
+    ...checkReviewGate(workstreams, pullRequests),
+  ];
+
   return {
     projectId: input.projectId,
     pullRequests,
     workstreams,
     sessions: input.sessions ?? [],
     decisions: input.decisions ?? [],
-    integrityWarnings: input.integrityWarnings ?? [],
+    integrityWarnings,
     conflicts: input.conflicts ?? [],
   };
 }

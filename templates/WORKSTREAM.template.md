@@ -69,9 +69,19 @@ None.
 
 ## Review State
 
-Not started.
+**Verdict:** Not started
+**Reviewed head:** —
 
-<!-- Review status and important findings. -->
+<!--
+Verdict: Not started | In review | Changes required | Approved | Approved with follow-ups
+Reviewed head: the full 40-character commit SHA the verdict was reached against, or — if none.
+An abbreviation is not accepted: it cannot prove which commit was reviewed.
+Approved without a reviewed head does not clear the merge gate.
+If the PR head moves after approval, the approval is stale — re-review the new head.
+Findings and follow-ups go below, in prose.
+-->
+
+Not started.
 
 ## Related Decisions
 

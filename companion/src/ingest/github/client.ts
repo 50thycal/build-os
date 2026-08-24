@@ -222,6 +222,7 @@ function toObservation(
     mergedAt: pr.merged_at ?? undefined,
     closedAt: pr.closed_at ?? undefined,
     headRef: pr.head.ref,
+    headSha: pr.head.sha,
     baseRef: pr.base.ref,
     author: pr.user?.login ?? "unknown",
     authorIsBot: pr.user?.type === "Bot",

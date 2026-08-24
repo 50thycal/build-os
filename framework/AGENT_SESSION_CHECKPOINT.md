@@ -1,6 +1,6 @@
 # Agent Session Checkpoint
 
-**Build OS v0.4 — protocol contract**
+**Build OS v0.5 — protocol contract**
 
 A **session** is one agent working context: a Claude implementation run, a ChatGPT design
 conversation, a review pass, an investigation. A **session checkpoint** is a small, structured

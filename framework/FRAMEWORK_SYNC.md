@@ -1,6 +1,6 @@
 # Framework Sync
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 Adopted repositories **pin** a Build OS version. Pinning keeps work reproducible and stops a
 framework change from silently redefining an effort that is already in flight.
@@ -100,8 +100,8 @@ An adopted repository records its framework state in its existing agent-instruct
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.4
-- Last compatibility check: v0.4 on 2026-08-23
+- Adopted version: v0.5
+- Last compatibility check: v0.5 on 2026-08-24
 ```
 
 Three fields, and each earns its place:
@@ -150,6 +150,31 @@ When an agent discovers that canonical Build OS is newer than the adopted versio
 If no migration is required, still update and record the check. "Checked, nothing needed" is
 a valuable record — it is what stops the next session from re-deriving the same conclusion.
 
+### A minor upgrade can change what is required of work already in flight
+
+Most minor upgrades add artifacts or clarify process, and in-flight work continues under
+them without friction. Some impose a *rule* — and a rule applies to the open PRs the project
+already has.
+
+v0.5's merge gate is the first of these. On adoption:
+
+- **Still-open significant PRs come under the gate.** They need an independent verdict naming
+  their current head before they merge, even though they were opened under v0.4. That is the
+  point of adopting the version, and it is cheaper than discovering afterwards which PRs
+  slipped through.
+- **Merged history is not reopened.** Nothing retroactively invalidates a PR that landed
+  before adoption, and no completed workstream is rewritten to add fields it never had.
+- **Active workstreams gain the new fields at their next review checkpoint**, not in a
+  bulk edit of every file in the directory.
+
+State the effect on open PRs when announcing the upgrade — an owner who learns at merge time
+that a new gate applies will reasonably read it as the framework getting in the way.
+
+If a project genuinely cannot absorb the change mid-flight, defer it explicitly: keep the
+adopted version, update last-checked, and record a decision naming the reason and what would
+trigger a revisit. A deferral on the record is a legitimate outcome. Silent non-adoption is
+not.
+
 ### What migration does not touch
 
 **Do not automatically rewrite project-specific architecture or decisions merely because
@@ -161,6 +186,10 @@ decided. `PROJECT_MODEL.md` content, `DECISIONS.md` entries, and in-flight desig
 untouched unless a migration note explicitly says otherwise.
 
 A migration that ends up rewriting a project's decision log has gone wrong.
+
+This holds for completed workstreams too. A finished `WS-###` file records what was true when
+the work happened; adding v0.5 review fields to it retroactively would fabricate a review
+that never occurred.
 
 ### When GitHub is unreachable
 
@@ -184,8 +213,8 @@ OS itself:
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.4
-- Last compatibility check: v0.4 on 2026-08-23
+- Adopted version: v0.5
+- Last compatibility check: v0.5 on 2026-08-24
 
 ### Project-specific: additions to Build OS
 

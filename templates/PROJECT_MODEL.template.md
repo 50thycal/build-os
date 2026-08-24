@@ -3,7 +3,7 @@
 <!-- How does this system work TODAY? Present tense. Not a roadmap, not a history.
      A mental model, not generated API documentation. -->
 
-**Last updated:** YYYY-MM-DD · **Build OS v0.4**
+**Last updated:** YYYY-MM-DD · **Build OS v0.5**
 
 ---
 
@@ -56,8 +56,8 @@ state ──trigger──► state
 
 <!-- Things that must always be true. These tell a reader which parts are load-bearing. -->
 
-- 
-- 
+-
+-
 
 ## Important persistence / data structures
 
@@ -75,8 +75,8 @@ state ──trigger──► state
      obligations, deliberate limitations. Cite DEC-nnn where a constraint has a recorded
      reason. -->
 
-- 
-- 
+-
+-
 
 ---
 

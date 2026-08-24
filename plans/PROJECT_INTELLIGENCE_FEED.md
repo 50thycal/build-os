@@ -1,7 +1,7 @@
 # Build OS Project Intelligence Feed + Podcast
 
-**Status:** implementation plan  
-**Target:** Build OS companion service  
+**Status:** implementation plan
+**Target:** Build OS companion service
 **Owner intent:** provide one place to understand what is happening across followed GitHub projects, active PRs, Build OS workstreams, and agent sessions — and generate an audio catch-up from the same canonical state.
 
 ---
@@ -218,6 +218,13 @@ The implementation agent should decide whether the first code lives:
 **Recommendation:** begin in this repository only if the application will remain small enough that protocol and product code can coexist cleanly. If a full web service, background workers, persistence, and audio pipelines are required, split the Companion into its own repository early and keep the contracts in `build-os`.
 
 The critical requirement is not repository placement; it is preserving the protocol/application boundary.
+
+> **Resolved, 2026-08-24.** Option 1 first and option 2 immediately after, which is what `DEC-008`
+> staged and `DEC-011` completed. The domain landed here as a self-contained `companion/` package
+> so the design work could start at once, and moved to `50thycal/build-os-companion` before the
+> first database migration — the point at which the second condition above ("a full web service,
+> persistence") became true. Contracts stayed here and are vendored downstream with a drift check.
+> The text above is left as written; it is the reasoning that produced the decision.
 
 ---
 

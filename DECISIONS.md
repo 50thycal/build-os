@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 ---
 
@@ -468,4 +468,212 @@ quiet.
   contradiction rather than resolving it.
 - The visibility gap narrows but does not close: a session that never checkpoints is invisible,
   which is the correct outcome — invisible is honest, inferred is not.
+
+---
+
+### DEC-011 — The Companion has been extracted; this repository is protocol only
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+**Context**
+`DEC-008` staged the Companion here as a self-contained `companion/` package and committed to
+extracting it before any infrastructure landed. That point arrived: the application needed
+durable persistence, a web server, and a configuration file naming the repositories it follows.
+
+**Decision**
+The application now lives in `50thycal/build-os-companion`, moved with its history via
+`git subtree split`. `companion/` is removed from this repository, and the Companion program's
+workstreams — WS-001 … WS-006 and their board — move with it, exactly as
+`docs/workstreams/ACTIVE.md` said they would.
+
+This repository keeps what makes it a protocol: `framework/`, `contracts/`, `templates/`,
+`plans/`, `DECISIONS.md`, and `VERSION.md`. It contains no code and no dependencies again.
+
+The Companion vendors protocol contracts under its own `contracts/` directory so it can parse
+offline and test deterministically. That copy is checked rather than trusted: an offline test
+pins each file to a recorded hash, and a networked check compares that hash against this
+repository. **This repository remains canonical.** A contract change is made here first and
+vendored down afterwards, never the reverse.
+
+**Rationale**
+`DEC-008` said the boundary mattered more than the timing, and that a self-contained package
+with its own manifest could be extracted in one commit. That held — the extraction was
+mechanical. Doing it before the first database migration is what kept it that way.
+
+Leaving the package here after the application acquired a server would have made "Build OS is a
+protocol" false in the same way `DEC-008` set out to prevent, only later and with more to unpick.
+
+**Alternatives considered**
+- **Copy rather than move.** Rejected outright: two independently evolving copies of an
+  application is the failure mode staging existed to avoid, and the second copy is always the
+  one somebody edits by accident.
+- **Move the contracts too, and have the Companion own them.** Rejected: the contracts describe
+  the protocol, and other projects adopt them without adopting the Companion. Vendoring with a
+  drift check gives the Companion offline determinism without moving canonical authority out of
+  the protocol repository.
+
+**Consequences**
+- This repository has no build, no tests, and no dependencies.
+- A protocol contract change must be vendored down to the Companion; its
+  `npm run contracts:check` is what notices.
+- The Companion program's history is split across two repositories at the extraction commit.
+  `git log --follow` does not cross that boundary; this entry is the pointer.
+
+---
+
+### DEC-012 — Owner input is captured before it is processed
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+**Context**
+A recurring failure in real sessions: the owner is producing raw material — playtest notes, a
+list of complaints, a stream of ideas — and the agent responds to each item as it arrives.
+The owner then has to argue with the analysis instead of reporting the next observation, and
+the rest of the run never gets recorded. Worse, an offhand remark treated as a decision
+reaches a Build Card as something the owner "agreed."
+
+**Decision**
+Build OS adds **Capture Only**, a named session mode. On the first clear signal — "just
+capture this", "don't act yet", "playtest notes" — the design agent acknowledges once and
+records. While active it does not analyze, recommend, decide, write to the repository, or
+start implementation, and does not ask again for confirmation. Observations accumulate across
+messages. A direct owner question is answered and the mode continues; only the owner ends it.
+
+Ending requires a consolidation separating four things: **Observations** in the owner's
+words, **Interpretations** labelled as the agent's, **Proposed rules** that are not decided,
+and **Approved decisions** — only what the owner explicitly approved, usually empty. Only the
+fourth may reach a Build Card.
+
+Capture Only stores no transcripts and no recordings.
+
+**Rationale**
+The confusion this prevents is not between good and bad ideas; it is between *who said what*.
+Once an interpretation is written in the same voice as an observation, no later reader can
+separate them, and the fix that turns out to be wrong takes the true observation down with
+it.
+
+It is a session mode rather than a lifecycle phase because the workstream has not moved: the
+owner is feeding the same phase it was already in.
+
+**Alternatives considered**
+- **Ask the owner to confirm capture mode each time.** Rejected: the confirmation is itself
+  the interruption the mode exists to prevent.
+- **Let the agent decide when input is "raw enough" to hold.** Rejected: the agent's judgment
+  about when to start analyzing is exactly what is failing.
+- **Record the session and consolidate from the recording.** Rejected outright — it
+  reinstates transcripts as project memory, against DEC-002 and DEC-004.
+
+**Consequences**
+- The design agent must hold an unbounded observation set for the length of a session, and
+  say plainly if a session ends before consolidation rather than writing a partial one.
+- Consolidations will often end with "Approved decisions: none." That is the mode working.
+- Instructions templates carry the entry phrases, because a mode nobody knows how to enter
+  does not exist.
+
+---
+
+### DEC-013 — Significant work merges only on an independent verdict naming the current head
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+**Context**
+Build OS has required independent review since v0.1, but review had no closing condition. A
+PR could be approved in conversation, or approved and then pushed to five more times, or
+merged by the agent that wrote it, and nothing in the protocol distinguished any of those
+from a reviewed change. In practice work merged before review and was only examined
+afterwards.
+
+**Decision**
+A significant PR does not merge until an independent reviewer records `Approved` or
+`Approved with follow-ups` against the PR's **current head**, written as a full
+40-character SHA, with no unresolved Blocking or Should fix finding and the project's own
+validation green.
+
+An approval that names no head does not count; it is treated as `In review`. An abbreviated
+SHA is not accepted. Any executable, test, dependency, migration, configuration, or
+behavior-documentation change after the reviewed head invalidates the approval — tests
+included, because they are the evidence the review rested on. The implementation agent may
+not approve or merge its own significant PR; owner direction can replace the merger, never
+the reviewer.
+
+Work merged before review is recovered explicitly — finding published on the merged PR,
+focused corrective PR, workstream back to `BUILDING`, independent re-review — and merged
+history is never rewritten.
+
+**Rationale**
+A verdict belongs to a commit, not to a pull request. Without a named head, "approved" is a
+statement about a conversation, and the thing that eventually merges may share nothing with
+what was read. The full SHA is the cheapest possible proof and the only one that survives a
+force-push.
+
+Requiring it as protocol rather than as branch protection keeps the rule available to every
+adopting project, including those where nobody can configure the repository.
+
+**Alternatives considered**
+- **Require branch protection and a CI gate.** Stronger, and unavailable to most projects
+  Build OS targets. Rejected as a *requirement*; projects remain free to add it.
+- **Approve the PR rather than a commit.** Rejected: it is the current behavior, and it is
+  what allowed a review of one diff to authorize the merge of another.
+- **Allow abbreviated SHAs for readability.** Rejected: a seven-character prefix cannot prove
+  which commit was reviewed, and proof is the entire purpose of the field.
+- **Let the implementation agent merge when tests are green.** Rejected: green tests prove
+  the tests pass, not that the built thing is what the owner approved.
+
+**Consequences**
+- Reviews become slightly more expensive: a PR that keeps moving needs re-verification.
+  That cost is the mechanism, not a side effect.
+- Adopting projects bring still-open significant PRs under the gate, which will occasionally
+  be discovered at merge time. The migration notes say so explicitly.
+- `Verdict` and `Reviewed head` become machine-readable fields, so a consumer can surface a
+  stale or missing approval without any project running tooling.
+
+---
+
+### DEC-014 — Durable memory is finalized on the PR, before the merge
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+**Context**
+Workstream files on `main` were routinely false the moment a PR merged: phase `REVIEW`,
+Implementation State "PR open", next step "await review" — describing a state that ended at
+merge. The remedy available under v0.4 was a second PR whose only content was bookkeeping,
+and that PR was rarely opened.
+
+**Decision**
+After approval and before merge, the implementation agent pushes one **documentation-only**
+commit to the same PR, setting the workstream, `ACTIVE.md`, `Review State`, Implementation
+State, Related PRs, and Next Step — plus `PROJECT_MODEL.md` and `DECISIONS.md` where the
+workstream completes — to what becomes true when the PR lands.
+
+That commit may touch only those surfaces. Any executable, test, dependency, configuration,
+or behavior-documentation change in it reopens full review. The reviewer verifies the final
+head and records it; the merge targets that exact SHA.
+
+**Rationale**
+It looks like a violation of the rule that durable memory describes current reality, and it
+is worth stating why it is not: the commit is only ever true on `main`. On the branch it is a
+proposal like every other commit in an open PR, and if the PR is closed the claim never
+becomes a claim about the project.
+
+The lightweight final-head verification is safe only because the permitted surfaces are inert
+— which is why the list is closed rather than "documentation, broadly."
+
+**Alternatives considered**
+- **A routine follow-up PR.** Rejected: doubles the review surface for zero information, and
+  empirically does not get opened.
+- **Update `main` directly after merging.** Rejected: an unreviewed direct commit to `main`,
+  and it leaves a window where the record is false.
+- **Accept stale workstreams and rely on tooling to flag them.** Rejected: it makes the
+  durable layer unreliable and offloads the consequence onto projects running a Companion,
+  which most do not.
+
+**Consequences**
+- A PR abandoned after finalization must be un-finalized, and the protocol says so.
+- The reviewer is asked for one more small verification per PR.
+- `main` becomes readable as a true record of the board at any commit, which is what makes an
+  arriving agent's first read trustworthy.
 

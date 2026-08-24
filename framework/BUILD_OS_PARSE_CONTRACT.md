@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.4 — protocol contract**
+**Build OS v0.5 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -113,12 +113,139 @@ Rules consumers may rely on:
 | Decisions Made | List items; may be empty. |
 | Build Card | The literal `Not ready` means not ready. Anything else is a link or inline card. |
 | Implementation State | Free text; `None` means none. PR references extracted as `#\d+`. |
-| Review State | Free text; `Not started` means not started. |
+| Review State | Structured fields below, then free prose. `Not started` means not started. |
 | Related PRs | Zero or more `#\d+`; `None yet` / `—` means none. |
 | Related Decisions | Zero or more `DEC-\d{3,}`. |
 
 **Blocker.** Build OS records a blocker as `Status: Blocked` plus the reason in `Next Step`.
 Consumers should read it from there rather than expecting a dedicated section.
+
+### `Review State` — the review gate
+
+From v0.5, `## Review State` opens with two stable fields, each on its own line, before any
+prose:
+
+```markdown
+## Review State
+
+**Verdict:** Approved
+**Reviewed head:** 0123456789abcdef0123456789abcdef01234567
+
+<optional findings and follow-up prose>
+```
+
+| Field | Rule |
+|---|---|
+| Verdict | One of `Not started`, `In review`, `Changes required`, `Approved`, `Approved with follow-ups`. Case-insensitive. Unrecognized → absent, plus a `REVIEW_VERDICT_MALFORMED` warning. |
+| Reviewed head | A full 40-character hexadecimal commit SHA, or `—` for none. An abbreviated SHA is **not** accepted — a 7-character prefix cannot prove which commit was reviewed. Malformed → absent, plus `REVIEWED_HEAD_MALFORMED`. |
+| Reviewed PR | Optional. `#84`. Which PR this verdict is about. |
+| Finalization | Optional. `pushed` when the documentation-only merge-finalization commit is on the PR; `—`, `not pushed`, or absent otherwise. |
+
+All four are optional in the file format sense: a workstream written under v0.4 has none of
+them, and that is **absent metadata, never an error**. Consumers report what is missing where it
+matters (see the integrity table) rather than refusing to parse.
+
+### A verdict belongs to one pull request
+
+A workstream may span several PRs, and each is reviewed on its own. **A review record applies
+only to its PR.** A consumer must not compare one workstream-level reviewed head against every
+linked PR — doing so reports an older merged PR as unapproved the moment a newer one is
+approved.
+
+A record that names no PR binds to the workstream's **most recent linked PR** — the highest
+number, which is the one under review in practice. A workstream with more than one live PR
+should name them explicitly, using the per-PR table:
+
+```markdown
+## Review State
+
+| PR | Verdict | Reviewed head | Finalization |
+|---|---|---|---|
+| #84 | Approved | 0123456789abcdef0123456789abcdef01234567 | pushed |
+| #91 | In review | — | — |
+
+<optional findings and follow-up prose>
+```
+
+Either form may be used; the table wins if both are present. **A linked PR with no record is a
+PR this workstream makes no claim about** — which is what keeps a workstream's older,
+already-merged PRs quiet. Whether that silence is legitimate depends on the next rule.
+
+### Participation is declared, never inferred
+
+Two rules have to hold at once, and they pull in opposite directions:
+
+- **Current significant work cannot leave the gate by deleting its evidence.** If a missing review
+  record were what made a workstream look legacy, the gate would be opt-out by omission.
+- **Adoption never reaches backwards.** A project that upgrades to v0.5 has not thereby claimed
+  that its finished v0.4 work was done under v0.5. Completed workstreams are not rewritten and
+  merged PRs are not retroactively invalidated — the migration rules say so plainly.
+
+They are reconciled by distinguishing a **declaration** from an **inherited pin**, and by
+honouring the project's **adoption boundary**.
+
+A workstream may declare its own version in its header:
+
+```markdown
+**Phase:** REVIEW · **Status:** Active · **Build OS:** v0.5
+```
+
+That is a statement about *this workstream*, and it is honoured in both directions: `v0.5` brings
+it under the gate even once complete, `v0.4` keeps it out even under a v0.5 project.
+
+Absent a header, the project's adopted version applies — but as the weaker evidence it is. An
+**inherited** pin covers current work only. It does not cover:
+
+- a workstream that is `COMPLETE` or `ABANDONED`;
+- a workstream last `Updated` before the project's adoption date;
+- a PR that was opened before that date and has already merged or closed.
+
+The adoption date comes from the line `framework/FRAMEWORK_SYNC.md` already requires:
+
+```markdown
+- Adopted version: v0.5
+- Last compatibility check: v0.5 on 2026-08-24
+```
+
+A check line naming some other version is ignored — it says nothing about when the current one
+arrived. **Where a project records no adoption date, a consumer stays silent about anything
+already settled**, because it has no way to tell a pre-adoption merge from a post-adoption one and
+a false accusation about merged work is the worse error.
+
+Within the gate, a linked PR with no record is reported: `REVIEW_RECORD_MISSING` while it is open,
+`MERGED_WITHOUT_APPROVAL` once it has merged. One further limit keeps that from becoming noise —
+it applies only to workstreams that have reached an approved Build Card, Build OS's own threshold
+for significant work. A workstream still in `EXPLORE` raises nothing.
+
+### The final head is verified on the PR, not in the file
+
+A merge-finalization commit cannot contain its own SHA: adding the SHA changes the commit. So
+`Reviewed head` is **the last head reviewed in full** — always a commit that already exists when
+the field is written — and `Finalization: pushed` declares that the PR head is legitimately
+ahead of it.
+
+The head that finalization produced is verified through a record created *after* it exists:
+GitHub stamps an approving review with the commit id it was submitted against.
+
+**That evidence closes the gate readily and opens it narrowly.** A consumer may treat a GitHub
+approval as verifying a finalization head only when all of these hold:
+
+- the approval is the reviewer's **current position** — the latest non-dismissed review by that
+  reviewer, not any approval they have ever left;
+- **no reviewer** has an outstanding `Changes required`; one reviewer's approval never cancels
+  another's objection;
+- the workstream's own record **for that PR** is itself approving and declares finalization.
+
+Outside that case, GitHub evidence never overrides the file. An approving GitHub review on a
+workstream that records `Changes required` or `In review` is a contradiction to report, not a
+shortcut through the gate — the same rule as everywhere else here.
+
+A consumer must never infer the final head, and must never treat a self-referential SHA claim
+as verification.
+
+The verdict and head fields also appear in a review summary, and may appear in a PR review or
+top-level PR comment. Wherever they appear, they mean the same thing: *this verdict was reached
+against exactly this commit.*
 
 **Missing sections are normal.** A workstream in `IDEA` legitimately has almost nothing. Absence
 is not an error.
@@ -170,9 +297,24 @@ winner. Cases worth reporting:
 | Filename ID and heading ID differ | Report; address by filename. |
 | A workstream marked `COMPLETE` still on the active board | Report: completion is supposed to remove the row. |
 | Duplicate `WS-###` across files | Report; do not merge. |
+| `Verdict: Approved`* with no reviewed head | Report `APPROVED_WITHOUT_REVIEWED_HEAD`: an approval that names no commit proves nothing. Treat the record as unreviewed. |
+| A record's reviewed head differs from **its own** PR's current head, finalization not declared | Report `REVIEW_STALE`: the approval is against an older commit. |
+| A record declares `Finalization: pushed` and no approving GitHub review names the PR's current head | Report `FINAL_HEAD_UNVERIFIED`: the divergence is expected, the verification is not there. |
+| A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. |
+| A **gated** workstream links a PR with no review record | Report `REVIEW_RECORD_MISSING` while open, `MERGED_WITHOUT_APPROVAL` once merged. Exempt: no v0.5-or-later version, no Build Card yet, or pre-adoption work under an inherited pin (above). |
+| A record declares finalization while its verdict is not approving | Report `WORKSTREAM_PR_STATE_MISMATCH`: finalization comes after approval, not before. |
+| A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |
+| Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
+| Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
+
+\* `Approved with follow-ups` is treated identically to `Approved` by every rule here.
 
 These are warnings about the *project's* records, addressed to its owner. They are not parser
-errors, and they must not stop the rest of the parse.
+errors, and they must not stop the rest of the parse. In particular, a consumer **never repairs**
+a review field it finds contradictory — an approval it cannot verify is reported, not upgraded.
+
+Equally, a consumer **never widens a record beyond its PR**. Silence about a PR nobody recorded
+is correct output, not a gap to fill by borrowing another PR's verdict.
 
 ---
 

@@ -1,16 +1,24 @@
 # Build OS Version
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 | Field | Value |
 |---|---|
-| Version | 0.4 |
-| Status | Draft — protocol and templates only |
-| Scope | Documentation, protocol, reusable templates |
+| Version | 0.5 |
+| Status | Draft |
+| Scope | Documentation, protocol, reusable templates, contracts |
 | Contains code | No |
 
 This file is canonical. An adopted repository's framework compatibility check reads the
 version above and the migration notes below. See `framework/FRAMEWORK_SYNC.md`.
+
+**"Contains code: No" is true again as of 2026-08-24.** It briefly was not: the Project
+Intelligence Companion was staged here as a self-contained `companion/` package under `DEC-008`,
+and while it sat in the tree this line was stale — exactly the kind of durable record v0.5 exists
+to catch. The application has since moved to `50thycal/build-os-companion` (`DEC-011`), and what
+remains is Markdown plus the JSON schemas in `contracts/`. Adopting Build OS requires no
+dependency, no build step, and no runtime, and nothing in the protocol depends on the Companion
+existing.
 
 ---
 
@@ -34,6 +42,98 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.4 → v0.5 — Closed-loop delivery
+
+**Type:** Minor. **Date:** 2026-08-24.
+
+**What changed**
+
+Four demonstrated gaps between owner feedback and a merged change, closed as one protocol:
+
+- **Capture Only** (`framework/DESIGN_ROOM.md`) — a named session mode for playtest notes,
+  feedback dumps, and multi-message input. While active, the design agent records and does
+  nothing else: no analysis, no recommendations, no decisions, no repository writes. Ending
+  it requires a consolidation that keeps observations, interpretations, proposed rules, and
+  approved decisions separate. Only approved decisions travel onward. It stores no
+  transcripts and no recordings.
+- **The Design Handoff PR** (`DESIGN_ROOM.md`, `WORKSTREAMS.md`, `CLAUDE_HANDOFF.md`) — a
+  design agent with GitHub write access may open the implementation PR itself, as a draft,
+  once the Build Card is approved and the spec issued. It is the single PR for that
+  implementation; the implementation agent continues it rather than opening a second one.
+  Opening it does not start `BUILDING`.
+- **The reviewed-head merge gate** (`framework/REVIEW_PROTOCOL.md`) — a significant PR does
+  not merge until an independent reviewer records `Approved` or `Approved with follow-ups`
+  against the PR's **current head**, named as a full 40-character SHA. An approval that names
+  no head does not count. The agent that wrote the code neither approves nor merges it. Any
+  executable, test, dependency, migration, configuration, or behavior-documentation change
+  after the reviewed head invalidates the approval.
+- **Merge finalization** (`REVIEW_PROTOCOL.md`, `WORKSTREAMS.md`) — the last commit before
+  merge is documentation-only, on the same PR, setting the workstream, `ACTIVE.md`, and
+  `Review State` to what becomes true when the PR lands. It is what stops `main` from
+  carrying workstreams that describe a state that ended at merge, without a second
+  bookkeeping PR.
+
+Two rules keep the review fields honest, and both matter to anyone writing them by hand:
+
+- **A verdict belongs to one PR.** A workstream spanning several records one verdict per PR, in
+  a `| PR | Verdict | Reviewed head | Finalization |` table. A record says nothing about a PR it
+  does not name, so approving a new PR never re-opens the question of one that merged long ago.
+- **A workstream declares which protocol it runs under.** A `**Build OS:** v0.5` header, or the
+  project's adopted version, is what puts a workstream under the merge gate — never the presence
+  of the review fields, or deleting a row would remove a significant PR from the gate. An
+  inherited project pin covers **current work only**: adopting v0.5 does not reach back and gate
+  a completed v0.4 workstream, a workstream untouched since before adoption, or a PR that was
+  opened and merged before it. That boundary is the date on your `Last compatibility check` line,
+  which is why step 1 below asks for today's date rather than a bare version.
+- **A GitHub approval closes the gate readily and opens it narrowly.** Only a reviewer's current
+  position counts, any outstanding `Changes required` keeps the gate shut, and a current-head
+  approval verifies the finalization head only when the workstream's own record already approves.
+  It never overrides a record that says `Changes required` — that is a contradiction to report.
+- **A finalization commit cannot contain its own SHA.** `Reviewed head` names the last commit
+  reviewed *in full*; `Finalization: pushed` says the PR head is legitimately ahead of it; and
+  the head that commit produced is recorded by the reviewer **on the PR**, after it exists —
+  a GitHub review carries the commit id it was submitted against. Merge targets that SHA.
+
+Supporting changes: structured `Verdict`, `Reviewed head`, `Reviewed PR`, and `Finalization`
+fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.template.md`; a
+`Review gate` section in `templates/PR_HANDOFF.template.md`; capture and review behavior in
+`templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md`; parsing rules and integrity warnings in
+`framework/BUILD_OS_PARSE_CONTRACT.md`; open-PR applicability in `framework/FRAMEWORK_SYNC.md`.
+
+**What an adopting project must do**
+
+1. **Read this entry, then update the Build OS block** in the project's agent-instructions
+   file to adopted v0.5 and last-checked v0.5 with today's date. Read before recording — the
+   check is the point, not the field.
+2. **Merge the capture, review, and merge bullets into the project's agent instructions** and
+   into its ChatGPT Project instructions: Capture Only entry and exit, the Design Handoff PR,
+   the reviewed-head gate, no self-approval, and the merge-finalization commit. Merge — do not
+   replace a project's own instructions, and leave `Project-specific:` rules intact.
+3. **Refresh local copies of the Workstream, Review Summary, and PR Handoff templates**, where
+   the project keeps copies rather than referencing the canonical ones.
+4. **Add the review fields to active workstreams at their next review checkpoint** — with a
+   `**Build OS:** v0.5` header on each one — not in a bulk edit, and never to completed
+   historical workstream files. The header is worth writing even though the project pin would
+   cover an active workstream anyway: it survives the workstream's completion, where an inherited
+   pin deliberately does not. A file written before v0.5
+   parses correctly with the fields absent; adding them retrospectively would record a review
+   that never happened. A workstream with more than one PR uses the per-PR table from the start,
+   so that a verdict on the current PR never makes a claim about an older merged one.
+5. **Apply the merge gate to significant PRs that are still open**, including ones opened
+   under v0.4. Merged history is not reopened and nothing already landed is retroactively
+   invalidated.
+6. **If the project cannot adopt now, record an explicit deferral** — a `DEC-n` naming the
+   reason and what would trigger a revisit — keep the prior adopted version, and update
+   last-checked to v0.5. A deferral on the record is a legitimate outcome; silent
+   non-adoption is not.
+
+No project architecture, product decision, or completed workstream is rewritten by this
+migration. Nothing here requires automation, CI, branch protection, or a Companion
+deployment: v0.5 is enforceable by people reading and writing Markdown, which is the only way
+it can apply to every adopting project.
+
+---
 
 ### v0.3 → v0.4 — Protocol contracts for machine consumers
 

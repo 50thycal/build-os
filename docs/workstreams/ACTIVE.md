@@ -1,23 +1,27 @@
 # Active Work
 
-**Updated:** 2026-08-23 · **Build OS v0.4**
+<!-- Build OS's own active-work control board. Protocol work only. -->
 
-Build OS's own active-work board. The Project Intelligence Companion program (design: PR #4,
-plan: `plans/PROJECT_INTELLIGENCE_FEED.md`) is tracked here until the Companion application is
-extracted to `50thycal/build-os-companion` — see `DEC-008`. On extraction, WS-001 … WS-006 and
-this board move with it; protocol contracts stay in this repository.
+**Updated:** 2026-08-24 · **Build OS v0.5**
+
+The Project Intelligence Companion program moved to
+[`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,
+taking WS-001 … WS-006 and their board with it (`DEC-008`, `DEC-011`). Its board now lives at
+[`docs/workstreams/ACTIVE.md`](https://github.com/50thycal/build-os-companion/blob/main/docs/workstreams/ACTIVE.md)
+in that repository.
+
+This board tracks protocol work in this repository: `framework/`, `contracts/`, `templates/`.
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| WS-001 | Companion domain + event ledger | BUILDING | Active | Land Phase 0 domain, parsers, attention rules, fixtures | #5, #6 |
-| WS-002 | GitHub feed MVP | BUILDING | Active | Wire polling sync + feed cards on the Phase 0 domain | #6 |
-| WS-003 | Build OS workstream integration | READY_TO_BUILD | Active | Promote the Phase 0 parsers to a live per-repository sync | #6 |
-| WS-004 | Agent session checkpoint protocol | READY_TO_BUILD | Active | Implement the checkpoint intake API against the v1 contract | #5 |
-| WS-005 | Attention engine + catch-up briefing | BUILDING | Active | Extend deterministic rules into `Needs Me` and `Since I last checked` | #6 |
-| WS-006 | Podcast renderer | IDEA | Blocked | Blocked until WS-005 produces a validated fact pack + written briefing | — |
+| WS-007 | Closed-loop feedback, review, and merge delivery | REVIEW | Active | Re-review #7 (round 3 findings corrected); owner to confirm D1–D5 | #7 |
+
+<!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
+     Status: Active · Paused · Blocked · Abandoned
+     Completed and abandoned workstreams leave this table; their files remain. -->
 
 ## Recently completed
 
 | ID | Workstream | Completed | Outcome |
 |---|---|---|---|
-| — | — | — | — |
+| WS-001 … WS-006 | Companion program | 2026-08-24 | Moved to `50thycal/build-os-companion` with the application (`DEC-011`) |

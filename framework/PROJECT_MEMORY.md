@@ -1,6 +1,6 @@
 # Project Memory
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 Project memory has **three layers**. Together they are the memory that outlives any chat
 session, any agent, and any individual contributor.

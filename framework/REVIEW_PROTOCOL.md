@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.4**
+**Build OS v0.5**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -198,6 +198,311 @@ the reader to re-triage it.
 
 ---
 
+## The merge gate
+
+A **significant** PR does not merge until all four of these hold:
+
+1. An **independent reviewer** has recorded `Approved` or `Approved with follow-ups`.
+2. The verdict names a **reviewed head**, and that head is the PR's **current head**.
+3. No **Blocking** or **Should fix** finding is unresolved.
+4. The project's own required validation is green — whatever the project names: tests, CI,
+   type checks, a build.
+
+"Significant" is the same threshold used everywhere else in Build OS: work that runs through
+a Build Card. A typo fix, a broken link, a one-line bug fix outside a significant workstream
+does not need a ceremonial review artifact — see *Proportionality* below. But **any PR that
+claims to complete a significant workstream is significant**, however small its diff.
+
+This gate is a protocol rule, not a piece of automation. Build OS requires no branch
+protection, no GitHub App, and no CI job to enforce it. A project may add those; a project
+that has not is still bound by the gate.
+
+### Who may do what
+
+| Role | May |
+|---|---|
+| Implementation agent | Prepare the PR, respond to findings, push corrections, write the finalization commit, request review |
+| Independent reviewer | Record `Approved`, `Approved with follow-ups`, or `Changes required` against a named head |
+| Owner, or a merger they authorize | Merge |
+
+**An implementation agent may not approve or merge its own significant PR.** Not "should
+not" — may not. The one exception is explicit owner direction to merge, *and* an independent
+approved verdict already exists for the current head. Owner direction replaces the merger,
+never the reviewer.
+
+"Independent" means no memory of writing the code: a human, or a separate agent session that
+did not implement it. An agent reviewing its own work in the same session is reading its own
+intent back to itself.
+
+### Recording the verdict
+
+Every review summary and every workstream `Review State` records two fields:
+
+```markdown
+**Verdict:** Approved
+**Reviewed head:** 0123456789abcdef0123456789abcdef01234567
+```
+
+| Verdict | Means |
+|---|---|
+| `Not started` | No review yet |
+| `In review` | A reviewer has the PR; no verdict yet |
+| `Changes required` | At least one unresolved Blocking or Should fix finding |
+| `Approved` | Clears the gate |
+| `Approved with follow-ups` | Clears the gate; named non-blocking work is filed to happen later |
+
+`Reviewed head` is the **full 40-character commit SHA** the verdict was reached against, or
+`—` when there is none. An abbreviation is not accepted: a seven-character prefix cannot
+prove which commit was reviewed, and proof is the entire purpose of the field.
+
+**A verdict belongs to one PR.** A workstream spanning several records one verdict per PR, as a
+table:
+
+```markdown
+## Review State
+
+| PR | Verdict | Reviewed head | Finalization |
+|---|---|---|---|
+| #84 | Approved | 0123456789abcdef0123456789abcdef01234567 | pushed |
+| #91 | In review | — | — |
+```
+
+A record says nothing about any PR but its own. Approving #91 does not un-approve #84, and a PR
+with no row is a PR this workstream makes no claim about.
+
+**But silence is not a way out of the gate.** A workstream running v0.5 that has reached an
+approved Build Card owes a record for every PR it links. Missing one is reported, not excused: an
+open PR raises a missing-record warning, a merged one raises `MERGED_WITHOUT_APPROVAL`. Deleting a
+row is not how a significant PR leaves the gate.
+
+Which brings the opposite risk, and it is the one that bites during a migration: **adopting v0.5
+must not reach back and condemn the work that came before it.** A project that upgrades has not
+claimed its finished v0.4 workstreams were reviewed under v0.5, and the migration rules promise
+completed history is neither rewritten nor retroactively invalidated.
+
+So the two are held apart by *where the version came from*:
+
+| Source | What it covers |
+|---|---|
+| The workstream's own `Build OS:` header | That workstream, in both directions — `v0.5` gates it even once complete, `v0.4` exempts it even under a v0.5 project |
+| The project's adopted version, inherited | Current work only: not a `COMPLETE` or `ABANDONED` workstream, not one last updated before the project's adoption date, and not a PR opened before that date that has already settled |
+
+The adoption date is the one `FRAMEWORK_SYNC.md` already asks every project to keep —
+`Last compatibility check: v0.5 on 2026-08-24`. A project that records no date gets the
+conservative reading: work already merged is left alone, because a false accusation about landed
+work is worse than a missed reminder.
+
+None of this turns on whether the review fields are present. Their absence is what is being
+reported; it can never be what excuses the report.
+
+**An approval with no reviewed head does not clear the gate.** Treat it as `In review`. This
+is not pedantry — an approval that names no commit is a statement about a conversation, not
+about code.
+
+Where a reviewer's finding is genuinely the owner's to settle, the verdict is
+`Changes required` and the summary's *Decisions requiring owner attention* section carries
+the question. The gate stays closed while an owner decision is outstanding; there is no
+separate verdict for it, because from the code's point of view the outcome is the same.
+
+### Staleness
+
+A verdict belongs to a commit, not to a PR. When the head moves, the approval does not move
+with it.
+
+Any of these after `Reviewed head` invalidates the approval:
+
+- executable code
+- tests
+- dependencies or lockfiles
+- migrations
+- configuration
+- documentation that describes behavior
+
+Which is nearly everything. **Tests count**: they are the evidence the review rested on, and
+a change to them changes what was proved.
+
+What remains is the narrow set of **finalization surfaces** (below). A change limited to
+those may be verified against the final head rather than re-reviewed in full — the reviewer
+reads the diff since the approved head, confirms it touches nothing else, and records the
+final head. That is a real verification with a real reader; it is not a formality, and it is
+not something the implementation agent performs on its own PR.
+
+A stale approval is not a lie, and finding one is not an accusation. It is the ordinary
+consequence of a PR that kept moving, and the remedy is a re-review of the current head.
+
+---
+
+## Merge finalization
+
+At the moment a PR merges, the workstream file on `main` should already describe what is
+true *after* the merge — not the state the PR was in while it was open. Otherwise `main`
+carries a workstream that says `REVIEW`, `Implementation State: PR open`, forever, or until
+somebody opens a second PR to clean up after the first.
+
+Build OS closes that with a **merge-finalization commit**: the last commit on the same PR,
+after approval and before merge, containing documentation only.
+
+It sets, to what becomes true when the PR lands:
+
+- the workstream's **Phase** and **Status**
+- **Implementation State** (`merged in #<n>`, or what actually comes next)
+- **Review State** — verdict and the final head
+- **Related PRs**
+- **Next Step**
+- the row in `ACTIVE.md`
+
+If the PR completes the workstream, it also does what completion requires — updates
+`PROJECT_MODEL.md` and `DECISIONS.md` and removes the active row — per the completion
+sequence in `framework/WORKSTREAMS.md`.
+
+### The permitted surfaces
+
+The finalization commit may touch **only**:
+
+- the workstream file
+- `ACTIVE.md`
+- `PROJECT_MODEL.md` and `DECISIONS.md`, where completion requires it
+- the PR's own description and handoff block
+
+Nothing else. Any executable, test, dependency, configuration, or behavior-documentation
+change in that commit **reopens full review** — the lightweight final-head verification is
+available only because the surfaces are known to be inert.
+
+### Where the final head is recorded
+
+A finalization commit **cannot contain its own SHA**. Writing the SHA into the commit changes
+the commit, and the SHA is stale before it is pushed. Any protocol that asks for one is asking
+for a number that cannot exist.
+
+So the two heads are recorded in two different places, by two different parties:
+
+| | What it names | Who writes it | When |
+|---|---|---|---|
+| `Reviewed head` in the workstream file | The last head reviewed **in full** | The implementation agent, at finalization | Before the finalization commit — the head it names already exists |
+| The **final head** | The head produced by the finalization commit | The **reviewer**, on the PR | After that commit exists |
+
+The workstream file therefore keeps naming the last fully-reviewed commit, and adds
+`Finalization: pushed` to say the PR head is legitimately ahead of it. That is a true statement
+about a commit that exists, written by someone who can know it.
+
+The final head is verified by the reviewer **on the pull request**: they read the diff since the
+approved head, confirm it touches only the permitted surfaces, and submit their approval on the
+PR. GitHub stamps that review with the commit id it was submitted against — a record created
+after the commit exists, by someone other than the commit's author. That is the authority. A
+project without GitHub reviews uses any equivalent record made after the fact: a PR comment
+naming the final SHA, a signed tag, a reviewer's note in the merge.
+
+**A verdict is a current position, not a history.** An approval a reviewer has since replaced with
+`Changes required` is not evidence of anything, and while *any* reviewer has an outstanding
+changes request the gate is closed — one reviewer's approval never cancels another's objection.
+This matters because a PR accumulates reviews: what counts is each reviewer's latest word, not
+the union of everything they have ever said.
+
+And this verification opens exactly one thing: the head the finalization commit produced, on a PR
+whose workstream record is already approving. It is not a general override. An approval on the PR
+against a workstream that records `Changes required` or `In review` is a contradiction between two
+durable records — report it and leave the gate shut. The rule everywhere in Build OS holds here
+too: **surface the disagreement, never repair it**.
+
+Then **merge targets that exact SHA**. A merge that takes whatever is at the tip of the branch at
+click time is a merge of something nobody named.
+
+A consumer reading these artifacts treats an approving review that names the current head as
+satisfying the gate, and flags a workstream that declares finalization with no such record. It
+never accepts a SHA a commit claims about itself.
+
+### Is this honest?
+
+It is worth naming the tension, because it looks like a violation of Build OS's own rule
+that durable memory must describe current reality: the finalization commit writes "merged"
+before the merge happens.
+
+It is honest for one reason — **the commit is only ever true on `main`**. On the PR branch
+it is a proposal, like every other commit in an open PR; the branch is not project memory. If
+the PR is closed instead of merged, the commit never reaches `main` and the claim it makes
+never becomes a claim about the project. What would be dishonest is finalizing a PR that is
+not about to merge, or leaving it finalized while the merge is abandoned.
+
+The alternative — a routine second PR whose only job is to correct the first PR's
+bookkeeping — was tried and rejected: it doubles the review surface for zero information, and
+in practice it is the PR that never gets opened.
+
+---
+
+## Review transitions
+
+What a verdict does to the workstream. Phases are the standard ones in
+`framework/WORKSTREAMS.md`; nothing here adds a phase.
+
+| Situation | Workstream goes | Also required |
+|---|---|---|
+| Implementation reported complete, PR ready | `BUILDING` → `REVIEW` | Verdict `In review`, reviewed head `—` |
+| Reviewer records `Approved` | stays `REVIEW` | Verdict + full reviewed head; then finalization |
+| Reviewer records `Approved with follow-ups` | stays `REVIEW` | Follow-ups filed as named work — a new workstream, an open decision, or an issue — never as a sentence in a review nobody reads again |
+| Reviewer records `Changes required`, PR open | `REVIEW` → `BUILDING` | Findings persisted on the workstream; corrections stay **on the same PR** |
+| Corrections pushed, ready again | `BUILDING` → `REVIEW` | New head awaiting review; verdict back to `In review` |
+| Finalization commit pushed | stays `REVIEW` | Only permitted surfaces changed; `Finalization: pushed` on the record; reviewer verifies the head that commit produced and records it **on the PR** |
+| Exact reviewed head merged, workstream done | `REVIEW` → `COMPLETE` | Completion sequence already in the merged commit |
+| Exact reviewed head merged, workstream continues | `REVIEW` → whatever is next | Finalization named the real next phase, not `COMPLETE` |
+| Finding is the owner's to settle | `REVIEW` → `BLOCKED` | The question, verbatim, in Next Step; gate stays closed |
+| Merged before review, or under an older protocol | stays active | Recovery, below |
+| Finding withdrawn after discussion | as it was | Say why in the review summary; a finding that quietly disappears looks like one that was suppressed |
+
+The `REVIEW → BUILDING → REVIEW` loop may run any number of times. It is the normal shape of
+a reviewed change, not a sign that something went wrong.
+
+---
+
+## Recovery: merged before review
+
+It happens. A PR merges under an older protocol, or because someone had the button and the
+tests were green, and only afterwards does a reviewer look at it.
+
+The response is not to pretend the review happened, and not to treat the code as settled
+because it is on `main`. It is:
+
+1. **Publish the finding on the merged PR.** That is where anyone tracing this change will
+   look. Say plainly that the PR merged without an independent approved verdict, and record
+   what review found.
+2. **Open a focused corrective PR**, if the findings require code. Focused: it fixes the
+   findings and does not become a second implementation. Link it from the merged PR and from
+   the workstream.
+3. **Checkpoint the workstream.** It returns to `BUILDING` with the findings in Next Step,
+   and both PRs in Related PRs.
+4. **Re-review independently**, under the full gate, including the reviewed head.
+5. **Do not call the workstream complete** while a correction is outstanding. A merged PR is
+   not a finished workstream, and this is exactly the case where the two come apart.
+
+If the findings need no code — the review was clean, the process was skipped — record that
+plainly too: verdict, reviewed head (the merge commit's parent on the branch), and a note
+that the review was retrospective. A retrospective approval is worth having. It is simply
+not the same thing as a gate that was honoured, and the record should not blur them.
+
+**Merged history is not rewritten.** Nothing here reopens a PR that landed before the
+project adopted v0.5.
+
+---
+
+## Proportionality
+
+The gate is for significant work. Build OS has never required a Build Card for a typo, and
+v0.5 does not require a review artifact for one.
+
+A change is small enough to skip the ceremony when all of these hold: it does not implement
+or alter owner-visible behavior, it is not part of a significant workstream, it changes no
+architecture and no invariant, and describing it takes one sentence. Fix it, say what it was,
+merge it.
+
+The moment a PR claims to complete a significant workstream, it is significant — the size of
+the diff has nothing to do with it. So is any PR that touches a documented invariant, an
+owner decision, or the definition of done.
+
+When it is genuinely unclear which side a change falls on, treat it as significant. The cost
+of an unnecessary review is an hour; the cost of an unreviewed owner-decision change is
+discovered by the owner, in production.
+
+---
+
 ## Owner-facing review summary
 
 The reviewer produces a summary for the owner. **It should be understandable without
@@ -206,7 +511,18 @@ reading the PR.** No file names, no function names, no diffs.
 Structure:
 
 ### Verdict
-One line. `Approved` · `Approved with follow-ups` · `Changes required` · `Needs owner decision`.
+
+Two stable fields, first, before the prose:
+
+```markdown
+**Verdict:** Approved
+**Reviewed head:** 0123456789abcdef0123456789abcdef01234567
+```
+
+`Not started` · `In review` · `Changes required` · `Approved` · `Approved with follow-ups`.
+The head is the full 40-character SHA the verdict was reached against, and the summary says
+whether it is still the PR's current head at publication. A finding that only the owner can
+settle is `Changes required`, with the question in *Decisions requiring owner attention*.
 
 ### What actually changed
 Plain language, from the perspective of someone using the system. This is the reviewer's
@@ -233,8 +549,11 @@ implementation, something the agent escalated, something the reviewer thinks the
 would not want as built. Each with options and a recommendation.
 
 ### Recommended next action
-One clear instruction: merge; merge and file the follow-ups; fix the blocking items and
-re-review; answer the decisions above first.
+One clear instruction: finalize and merge; merge and file the follow-ups; fix the blocking
+items and re-review; answer the decisions above first.
+
+Note that "merge" is never the reviewer's own next action. The reviewer approves; the owner
+or an authorized merger merges.
 
 Where the change belongs to a workstream, say what happens to it: does this PR complete it,
 or does it return to `BUILDING` with the findings above?
@@ -260,3 +579,7 @@ requests both pass the eligibility check before either writes, so both release s
 
 **Say what is right.** A review that reports only problems gives the owner no way to judge
 overall quality, and gives the implementation agent no signal about what to keep doing.
+
+**Name the commit.** Every verdict carries the full head SHA it was reached against. A review
+that does not say what it reviewed cannot be checked, cannot go stale, and cannot be relied
+on later — which means it cannot open the gate.

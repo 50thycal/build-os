@@ -257,6 +257,14 @@ describe("v0.5 participation metadata", () => {
   it("prefers the workstream's own declaration over the project pin", () => {
     const ws = reconcileWith("**Phase:** REVIEW · **Status:** Active · **Build OS:** v0.4", "v0.5");
     expect(ws.protocolVersion).toBe("v0.4");
+    expect(ws.protocolVersionSource).toBe("WORKSTREAM");
+  });
+
+  it("records that an inherited version came from the project, not the file", () => {
+    // The distinction the gate needs: a pin the project holds is not a claim that this
+    // workstream's history was done under it.
+    const ws = reconcileWith("**Phase:** REVIEW · **Status:** Active", "v0.5");
+    expect(ws.protocolVersionSource).toBe("PROJECT");
   });
 
   it("leaves it absent when neither declares one", () => {

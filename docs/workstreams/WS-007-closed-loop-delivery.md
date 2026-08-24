@@ -178,9 +178,9 @@ Capture → Consolidate → Approve card → Draft handoff PR → Build → Revi
 
 Implemented on PR #7, the same branch the design handoff opened. The v0.5 protocol package is complete: `DESIGN_ROOM.md` (Capture Only, Design Handoff PR), `REVIEW_PROTOCOL.md` (merge gate, verdicts, staleness, transitions, recovery, finalization, proportionality), `WORKSTREAMS.md` (handoff PR, finalization checkpoint, phase boundaries), `CLAUDE_HANDOFF.md` (single-PR ownership, no self-approval), `FRAMEWORK_SYNC.md` (open-PR applicability), `BUILD_OS_PARSE_CONTRACT.md` (fields and integrity warnings), four templates, two examples, `VERSION.md` v0.5 with migration notes, `README.md`, and DEC-011/012/013.
 
-Companion support for the new fields is in the same PR: per-PR review records, verdict and reviewed-head parsing in both field and table form, HTML-comment stripping, the PR head SHA and GitHub review commit ids threaded through observation and projection, and the four cross-source integrity checks. Suite green at 164 tests.
+Companion support for the new fields is in the same PR: per-PR review records, verdict and reviewed-head parsing in both field and table form, HTML-comment stripping, the PR head SHA and GitHub review commit ids threaded through observation and projection, and the cross-source integrity checks. Suite green at 200 tests.
 
-Review round 1 (2026-08-24) returned Changes required; corrections are on this same PR — see Review State.
+Review rounds 1–3 (2026-08-24) each returned Changes required; every finding is corrected on this same PR — see Review State.
 
 ## Review State
 
@@ -192,6 +192,8 @@ Review round 1 (2026-08-24) returned Changes required; corrections are on this s
 Round 1 — `Changes required` against `1607e800168eac17d7b81b1d6c13aa7a9d99ca50`, reported outside GitHub. Five findings: the finalization commit was specified to contain its own SHA; one workstream-level reviewed head was compared against every linked PR; both needed regression tests; `VERSION.md` claimed the repository contained no code; `git diff --check` failed. All corrected on this PR.
 
 Round 2 — `Changes required` against `c1b9316b6b6e13e2b6f0db104ba1400ea12306ea`, published on PR #7. Two gate bypasses: a historical GitHub approval could outlive the reviewer's own later changes request and clear the gate, and a current-head approval could override a workstream record saying `Changes required`; and omitting a review record silently removed a significant PR from the gate, because absence of a record was what marked a workstream legacy. Plus an approval-provenance correction and a test-count fix. All corrected on this PR; the workstream returned to `BUILDING` for the round and back to `REVIEW` with a new head.
+
+Round 3 — `Changes required` against `39f2f3d2483a05c8781e0886162673a38fa38d9d`, published on PR #7. One blocking regression: the project's adopted version was copied onto every workstream without its own header, so upgrading a project to v0.5 retroactively gated its completed v0.4 workstreams and re-opened the round-1 multi-PR false positive. Fixed by distinguishing a declared version from an inherited pin and honouring the project's adoption boundary. Corrected on this PR.
 
 Awaiting an independent verdict on the current head. This PR is subject to the gate it introduces: it does not merge without an approved verdict naming that head, and the implementing agent neither approves nor merges it.
 

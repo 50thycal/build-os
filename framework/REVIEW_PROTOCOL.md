@@ -270,15 +270,30 @@ table:
 A record says nothing about any PR but its own. Approving #91 does not un-approve #84, and a PR
 with no row is a PR this workstream makes no claim about.
 
-**But silence is not a way out of the gate.** A workstream declares which protocol it runs
-under — its own `Build OS:` header, or its project's adopted version — and a workstream running
-v0.5 that has reached an approved Build Card owes a record for every PR it links. Missing one is
-reported, not excused: an open PR raises a missing-record warning, a merged one raises
-`MERGED_WITHOUT_APPROVAL`. Deleting a row is not how a significant PR leaves the gate.
+**But silence is not a way out of the gate.** A workstream running v0.5 that has reached an
+approved Build Card owes a record for every PR it links. Missing one is reported, not excused: an
+open PR raises a missing-record warning, a merged one raises `MERGED_WITHOUT_APPROVAL`. Deleting a
+row is not how a significant PR leaves the gate.
 
-What stays undisturbed is work that genuinely predates adoption: a workstream on v0.4, or one
-that never reached a Build Card, raises nothing. The distinction is the declared version, never
-the presence or absence of the review fields themselves.
+Which brings the opposite risk, and it is the one that bites during a migration: **adopting v0.5
+must not reach back and condemn the work that came before it.** A project that upgrades has not
+claimed its finished v0.4 workstreams were reviewed under v0.5, and the migration rules promise
+completed history is neither rewritten nor retroactively invalidated.
+
+So the two are held apart by *where the version came from*:
+
+| Source | What it covers |
+|---|---|
+| The workstream's own `Build OS:` header | That workstream, in both directions — `v0.5` gates it even once complete, `v0.4` exempts it even under a v0.5 project |
+| The project's adopted version, inherited | Current work only: not a `COMPLETE` or `ABANDONED` workstream, not one last updated before the project's adoption date, and not a PR opened before that date that has already settled |
+
+The adoption date is the one `FRAMEWORK_SYNC.md` already asks every project to keep —
+`Last compatibility check: v0.5 on 2026-08-24`. A project that records no date gets the
+conservative reading: work already merged is left alone, because a false accusation about landed
+work is worse than a missed reminder.
+
+None of this turns on whether the review fields are present. Their absence is what is being
+reported; it can never be what excuses the report.
 
 **An approval with no reviewed head does not clear the gate.** Treat it as `In review`. This
 is not pedantry — an approval that names no commit is a statement about a conversation, not

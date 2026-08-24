@@ -297,7 +297,10 @@ Notes on the sections that are most often done badly:
   has since been falsified is usually the reason a design stopped making sense.
 - **Build OS** in the header names the protocol version this workstream runs under, defaulting
   to the project's adopted version. From v0.5 it is what decides whether the merge gate applies —
-  deliberately, so that removing a review record cannot quietly remove the gate with it.
+  deliberately, so that removing a review record cannot quietly remove the gate with it. Stating
+  it explicitly matters most in two places: on a workstream that should stay under the old rules
+  while the project moves on, and on one that should stay gated after it completes. An inherited
+  default covers current work only, never finished history.
 - **Review State** leads with machine-readable fields — `Verdict` and `Reviewed head`, plus
   `Reviewed PR` and `Finalization` where they apply — before any prose. A workstream spanning
   several PRs records one row per PR; a verdict never applies to a PR it does not name. The head is the full 40-character SHA the verdict was reached against —

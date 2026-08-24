@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { checkReviewGate } from "../src/projection/review-gate.ts";
+import { reconcileBuildOsState } from "../src/ingest/buildos/reconcile.ts";
 import type {
   IntegrityWarning,
   PullRequestState,
@@ -350,8 +351,14 @@ describe("GitHub review currency", () => {
 describe("v0.5 participation is declared, not inferred", () => {
   // Absence of a review record must not be what makes a workstream look legacy — otherwise the
   // gate is opt-out by deleting one table row.
+  // A workstream that declares v0.5 in its own `Build OS:` header.
   const v05 = (overrides: Partial<WorkstreamState> = {}) =>
-    workstream({ protocolVersion: "v0.5", reviewRecords: [], ...overrides });
+    workstream({
+      protocolVersion: "v0.5",
+      protocolVersionSource: "WORKSTREAM",
+      reviewRecords: [],
+      ...overrides,
+    });
 
   it("stays silent on a genuine pre-v0.5 workstream with no record", () => {
     const ws = workstream({ reviewRecords: [], phase: "COMPLETE", status: "COMPLETE" });
@@ -387,8 +394,7 @@ describe("v0.5 participation is declared, not inferred", () => {
     expect(codes(checkReviewGate([deleted], [stale]))).toEqual(["REVIEW_RECORD_MISSING"]);
   });
 
-  it("inherits the project's adopted version when the file declares none", () => {
-    // reconcile() sets protocolVersion from the project pin; here that is what is under test.
+  it("applies to any version from v0.5 onward", () => {
     const ws = v05({ protocolVersion: "v0.6" });
     expect(codes(checkReviewGate([ws], [pullRequest()]))).toContain("REVIEW_RECORD_MISSING");
   });
@@ -396,5 +402,170 @@ describe("v0.5 participation is declared, not inferred", () => {
   it("says nothing about a v0.5 workstream that has not reached a Build Card", () => {
     const ws = v05({ phase: "EXPLORE", buildCardReady: false });
     expect(checkReviewGate([ws], [pullRequest()])).toEqual([]);
+  });
+});
+
+describe("adoption never reaches backwards", () => {
+  // A project upgrading to v0.5 must not thereby claim that every headerless workstream it
+  // inherits was done under v0.5. Completed history stays exempt; current work does not.
+  const ADOPTED = "2026-08-20";
+
+  /** A workstream with no `Build OS:` header, carrying the project's pin by inheritance. */
+  const inherited = (overrides: Partial<WorkstreamState> = {}) =>
+    workstream({
+      protocolVersion: "v0.5",
+      protocolVersionSource: "PROJECT",
+      reviewRecords: [],
+      ...overrides,
+    });
+
+  const legacyPr = (overrides: Partial<PullRequestState> = {}) =>
+    pullRequest({ lifecycle: "MERGED", createdAt: "2026-07-01T09:00:00Z", ...overrides });
+
+  it("says nothing about a completed pre-v0.5 workstream whose PR already merged", () => {
+    const ws = inherited({ phase: "COMPLETE", status: "COMPLETE" });
+    expect(checkReviewGate([ws], [legacyPr()], { adoptedAt: ADOPTED })).toEqual([]);
+  });
+
+  it("says nothing about an active workstream last touched before adoption", () => {
+    const ws = inherited({ phase: "BUILDING", updatedAt: "2026-08-01" });
+    expect(checkReviewGate([ws], [legacyPr()], { adoptedAt: ADOPTED })).toEqual([]);
+  });
+
+  it("stays quiet on settled work when the project records no adoption date", () => {
+    // Without a boundary there is no way to tell pre- from post-adoption, and the safe answer
+    // for something already merged is silence.
+    const ws = inherited({ phase: "BUILDING" });
+    expect(checkReviewGate([ws], [legacyPr()])).toEqual([]);
+  });
+
+  it("leaves an older merged PR alone while covering the current one", () => {
+    // The round-1 multi-PR false positive, re-entered through the participation model.
+    const ws = inherited({
+      phase: "REVIEW",
+      updatedAt: "2026-08-23",
+      relatedPrNumbers: [84, 91],
+      reviewRecords: [record({ prNumber: 91, reviewedHead: CURRENT_HEAD })],
+    });
+    const open = pullRequest({
+      number: 91,
+      lifecycle: "OPEN",
+      headSha: CURRENT_HEAD,
+      createdAt: "2026-08-22T09:00:00Z",
+      source: { ...PR_SOURCE, sourceId: "pr:91" },
+    });
+    expect(checkReviewGate([ws], [legacyPr(), open], { adoptedAt: ADOPTED })).toEqual([]);
+  });
+
+  it("covers a current significant PR opened after adoption", () => {
+    const ws = inherited({ phase: "REVIEW", updatedAt: "2026-08-23" });
+    const pr = pullRequest({ createdAt: "2026-08-22T09:00:00Z" });
+    expect(codes(checkReviewGate([ws], [pr], { adoptedAt: ADOPTED }))).toEqual([
+      "REVIEW_RECORD_MISSING",
+    ]);
+  });
+
+  it("covers a PR merged after adoption", () => {
+    const ws = inherited({ phase: "REVIEW", updatedAt: "2026-08-23" });
+    const pr = pullRequest({ lifecycle: "MERGED", createdAt: "2026-08-22T09:00:00Z" });
+    expect(codes(checkReviewGate([ws], [pr], { adoptedAt: ADOPTED }))).toContain(
+      "MERGED_WITHOUT_APPROVAL",
+    );
+  });
+
+  it("cannot be silenced by deleting the current PR's record", () => {
+    const base = inherited({ phase: "REVIEW", updatedAt: "2026-08-23" });
+    const pr = pullRequest({ headSha: CURRENT_HEAD, createdAt: "2026-08-22T09:00:00Z" });
+
+    const withRecord = { ...base, reviewRecords: [record()] };
+    expect(codes(checkReviewGate([withRecord], [pr], { adoptedAt: ADOPTED }))).toEqual([
+      "REVIEW_STALE",
+    ]);
+    expect(codes(checkReviewGate([base], [pr], { adoptedAt: ADOPTED }))).toEqual([
+      "REVIEW_RECORD_MISSING",
+    ]);
+  });
+
+  it("honours a workstream's own v0.4 header over a v0.5 project pin", () => {
+    const ws = workstream({
+      protocolVersion: "v0.4",
+      protocolVersionSource: "WORKSTREAM",
+      reviewRecords: [],
+      phase: "REVIEW",
+      updatedAt: "2026-08-23",
+    });
+    const pr = pullRequest({ createdAt: "2026-08-22T09:00:00Z" });
+    expect(checkReviewGate([ws], [pr], { adoptedAt: ADOPTED })).toEqual([]);
+  });
+
+  it("covers a completed workstream that declares v0.5 itself", () => {
+    // A declaration is a statement about this workstream, so it holds even once complete.
+    const ws = workstream({
+      protocolVersion: "v0.5",
+      protocolVersionSource: "WORKSTREAM",
+      reviewRecords: [],
+      phase: "COMPLETE",
+      status: "COMPLETE",
+    });
+    expect(
+      codes(checkReviewGate([ws], [pullRequest({ lifecycle: "MERGED" })], { adoptedAt: ADOPTED })),
+    ).toEqual(["MERGED_WITHOUT_APPROVAL"]);
+  });
+});
+
+describe("end to end — a project upgrading to v0.5", () => {
+  // The regression as it actually reached the repository: the project pin was copied onto every
+  // headerless workstream at reconcile time, so adopting v0.5 condemned finished v0.4 work.
+  const ADOPTED = "2026-08-20";
+
+  function reconcileOne(markdown: string, boardRow: string) {
+    return reconcileBuildOsState("proj_cargo_ship", {
+      activeBoardPath: "docs/workstreams/ACTIVE.md",
+      activeBoardMarkdown: [
+        "# Active Work",
+        "",
+        "| ID | Title | Phase | Status | Next Step | PRs |",
+        "|---|---|---|---|---|---|",
+        boardRow,
+      ].join("\n"),
+      workstreamFiles: [
+        {
+          path: "docs/workstreams/WS-011-legacy.md",
+          markdown,
+          commitSha: "abc123",
+          htmlUrl: "https://github.com/50thycal/cargo-ship/blob/main/docs/workstreams/WS-011.md",
+        },
+      ],
+      observedAt: "2026-08-24T12:00:00Z",
+      buildOsVersion: "v0.5",
+      buildOsAdoptedAt: ADOPTED,
+    }).workstreams;
+  }
+
+  const legacyMerged = pullRequest({
+    lifecycle: "MERGED",
+    createdAt: "2026-07-01T09:00:00Z",
+    headSha: MERGED_HEAD,
+  });
+
+  it("leaves a completed v0.4 workstream alone after the project adopts v0.5", () => {
+    const workstreams = reconcileOne(
+      `# WS-011 — Legacy work\n\n**Phase:** COMPLETE · **Status:** Complete\n**Updated:** 2026-07-15\n\n## Review State\n\nReviewed 2026-07-14. No findings.\n\n## Related PRs\n\n#84\n`,
+      "| WS-011 | Legacy work | COMPLETE | Complete | None | #84 |",
+    );
+    expect(workstreams[0]!.protocolVersion).toBe("v0.5");
+    expect(workstreams[0]!.protocolVersionSource).toBe("PROJECT");
+    expect(checkReviewGate(workstreams, [legacyMerged], { adoptedAt: ADOPTED })).toEqual([]);
+  });
+
+  it("covers current work on the same project", () => {
+    const workstreams = reconcileOne(
+      `# WS-011 — Current work\n\n**Phase:** REVIEW · **Status:** Active\n**Updated:** 2026-08-23\n\n## Related PRs\n\n#84\n`,
+      "| WS-011 | Current work | REVIEW | Active | Await review | #84 |",
+    );
+    const current = pullRequest({ createdAt: "2026-08-22T09:00:00Z" });
+    expect(codes(checkReviewGate(workstreams, [current], { adoptedAt: ADOPTED }))).toEqual([
+      "REVIEW_RECORD_MISSING",
+    ]);
   });
 });

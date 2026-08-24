@@ -97,6 +97,8 @@ export interface ProjectStateInput {
   decisions?: DecisionRecord[];
   integrityWarnings?: IntegrityWarning[];
   conflicts?: SourceConflict[];
+  /** When the project adopted its current Build OS version, if recorded. */
+  buildOsAdoptedAt?: string;
 }
 
 export function buildProjectState(input: ProjectStateInput): ProjectState {
@@ -109,7 +111,7 @@ export function buildProjectState(input: ProjectStateInput): ProjectState {
   // layer noticed.
   const integrityWarnings = [
     ...(input.integrityWarnings ?? []),
-    ...checkReviewGate(workstreams, pullRequests),
+    ...checkReviewGate(workstreams, pullRequests, { adoptedAt: input.buildOsAdoptedAt }),
   ];
 
   return {

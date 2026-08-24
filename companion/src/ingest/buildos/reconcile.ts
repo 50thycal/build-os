@@ -39,6 +39,8 @@ export interface BuildOsSnapshot {
    * subject to the v0.5 merge gate when the file does not declare its own version.
    */
   buildOsVersion?: string;
+  /** When the project adopted that version. The boundary between history and current work. */
+  buildOsAdoptedAt?: string;
 }
 
 export interface ReconciledWorkstreams {
@@ -242,9 +244,11 @@ export function reconcileBuildOsState(
       implementationState: parsed.implementationState,
       reviewState: parsed.reviewState,
       reviewRecords,
-      // The project's pin applies unless the workstream declares its own. Never inferred from
-      // whether review fields happen to be present.
+      // The project's pin applies unless the workstream declares its own — but an inherited pin
+      // is weaker evidence than a declaration, and the gate treats it that way. Never inferred
+      // from whether review fields happen to be present.
       protocolVersion: parsed.protocolVersion ?? snapshot.buildOsVersion,
+      protocolVersionSource: parsed.protocolVersion ? "WORKSTREAM" : "PROJECT",
       updatedAt: parsed.updatedAt,
       sourcePath: file.path,
       source: fileSource,

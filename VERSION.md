@@ -80,8 +80,12 @@ Two rules keep the review fields honest, and both matter to anyone writing them 
   a `| PR | Verdict | Reviewed head | Finalization |` table. A record says nothing about a PR it
   does not name, so approving a new PR never re-opens the question of one that merged long ago.
 - **A workstream declares which protocol it runs under.** A `**Build OS:** v0.5` header, or the
-  project's adopted version, is what puts a workstream under the merge gate. Never the presence
-  of the review fields — otherwise deleting a row would remove a significant PR from the gate.
+  project's adopted version, is what puts a workstream under the merge gate — never the presence
+  of the review fields, or deleting a row would remove a significant PR from the gate. An
+  inherited project pin covers **current work only**: adopting v0.5 does not reach back and gate
+  a completed v0.4 workstream, a workstream untouched since before adoption, or a PR that was
+  opened and merged before it. That boundary is the date on your `Last compatibility check` line,
+  which is why step 1 below asks for today's date rather than a bare version.
 - **A GitHub approval closes the gate readily and opens it narrowly.** Only a reviewer's current
   position counts, any outstanding `Changes required` keeps the gate shut, and a current-head
   approval verifies the finalization head only when the workstream's own record already approves.
@@ -109,8 +113,10 @@ fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.templ
 3. **Refresh local copies of the Workstream, Review Summary, and PR Handoff templates**, where
    the project keeps copies rather than referencing the canonical ones.
 4. **Add the review fields to active workstreams at their next review checkpoint** — with a
-   `**Build OS:** v0.5` header on each one, or the project's adopted version covering them all —
-   not in a bulk edit, and never to completed historical workstream files. A file written before v0.5
+   `**Build OS:** v0.5` header on each one — not in a bulk edit, and never to completed
+   historical workstream files. The header is worth writing even though the project pin would
+   cover an active workstream anyway: it survives the workstream's completion, where an inherited
+   pin deliberately does not. A file written before v0.5
    parses correctly with the fields absent; adding them retrospectively would record a review
    that never happened. A workstream with more than one PR uses the per-PR table from the start,
    so that a verdict on the current PR never makes a claim about an older merged one.

@@ -173,23 +173,49 @@ already-merged PRs quiet. Whether that silence is legitimate depends on the next
 
 ### Participation is declared, never inferred
 
-A workstream is subject to the v0.5 merge gate when it says so, or when its project does:
+Two rules have to hold at once, and they pull in opposite directions:
+
+- **Current significant work cannot leave the gate by deleting its evidence.** If a missing review
+  record were what made a workstream look legacy, the gate would be opt-out by omission.
+- **Adoption never reaches backwards.** A project that upgrades to v0.5 has not thereby claimed
+  that its finished v0.4 work was done under v0.5. Completed workstreams are not rewritten and
+  merged PRs are not retroactively invalidated — the migration rules say so plainly.
+
+They are reconciled by distinguishing a **declaration** from an **inherited pin**, and by
+honouring the project's **adoption boundary**.
+
+A workstream may declare its own version in its header:
 
 ```markdown
 **Phase:** REVIEW · **Status:** Active · **Build OS:** v0.5
 ```
 
-The workstream's own `Build OS:` header wins; absent it, the project's adopted version from its
-agent-instructions file applies (`framework/FRAMEWORK_SYNC.md`).
+That is a statement about *this workstream*, and it is honoured in both directions: `v0.5` brings
+it under the gate even once complete, `v0.4` keeps it out even under a v0.5 project.
 
-**A missing review record must never be what makes a workstream look legacy.** If it were,
-deleting one table row would remove a significant PR from the gate — the gate would be opt-out by
-omission. So a consumer that finds a gated workstream linking a PR with no record reports it:
-`REVIEW_RECORD_MISSING` while the PR is open, `MERGED_WITHOUT_APPROVAL` once it has merged.
+Absent a header, the project's adopted version applies — but as the weaker evidence it is. An
+**inherited** pin covers current work only. It does not cover:
 
-Two limits keep that from becoming noise: it applies only to workstreams that have reached an
-approved Build Card — Build OS's own threshold for significant work — and only to versions from
-v0.5 onward. A v0.4 workstream, or one still in `EXPLORE`, raises nothing.
+- a workstream that is `COMPLETE` or `ABANDONED`;
+- a workstream last `Updated` before the project's adoption date;
+- a PR that was opened before that date and has already merged or closed.
+
+The adoption date comes from the line `framework/FRAMEWORK_SYNC.md` already requires:
+
+```markdown
+- Adopted version: v0.5
+- Last compatibility check: v0.5 on 2026-08-24
+```
+
+A check line naming some other version is ignored — it says nothing about when the current one
+arrived. **Where a project records no adoption date, a consumer stays silent about anything
+already settled**, because it has no way to tell a pre-adoption merge from a post-adoption one and
+a false accusation about merged work is the worse error.
+
+Within the gate, a linked PR with no record is reported: `REVIEW_RECORD_MISSING` while it is open,
+`MERGED_WITHOUT_APPROVAL` once it has merged. One further limit keeps that from becoming noise —
+it applies only to workstreams that have reached an approved Build Card, Build OS's own threshold
+for significant work. A workstream still in `EXPLORE` raises nothing.
 
 ### The final head is verified on the PR, not in the file
 
@@ -275,7 +301,7 @@ winner. Cases worth reporting:
 | A record's reviewed head differs from **its own** PR's current head, finalization not declared | Report `REVIEW_STALE`: the approval is against an older commit. |
 | A record declares `Finalization: pushed` and no approving GitHub review names the PR's current head | Report `FINAL_HEAD_UNVERIFIED`: the divergence is expected, the verification is not there. |
 | A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. |
-| A **gated** workstream links a PR with no review record | Report `REVIEW_RECORD_MISSING` while open, `MERGED_WITHOUT_APPROVAL` once merged. A workstream that declares no v0.5-or-later version, or has not reached a Build Card, is exempt. |
+| A **gated** workstream links a PR with no review record | Report `REVIEW_RECORD_MISSING` while open, `MERGED_WITHOUT_APPROVAL` once merged. Exempt: no v0.5-or-later version, no Build Card yet, or pre-adoption work under an inherited pin (above). |
 | A record declares finalization while its verdict is not approving | Report `WORKSTREAM_PR_STATE_MISMATCH`: finalization comes after approval, not before. |
 | A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |

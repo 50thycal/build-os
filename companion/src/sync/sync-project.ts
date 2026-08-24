@@ -91,6 +91,7 @@ async function loadBuildOsState(
     workstreamFiles: files,
     observedAt: now.toISOString(),
     buildOsVersion: project.buildOsVersion,
+    buildOsAdoptedAt: project.buildOsAdoptedAt,
   });
 
   const decisionsFile = await github.readFile(project.repositoryFullName, project.paths.decisions);
@@ -196,6 +197,7 @@ export async function syncProject(input: SyncInput): Promise<SyncResult> {
     decisions,
     integrityWarnings: warnings,
     conflicts,
+    buildOsAdoptedAt: project.buildOsAdoptedAt,
   });
 
   const attention = computeAttention({

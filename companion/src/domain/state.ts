@@ -16,6 +16,11 @@ export interface FollowedProject {
   defaultBranch: string;
   buildOsDetected: boolean;
   buildOsVersion?: string;
+  /**
+   * When this project adopted `buildOsVersion`. Work that predates it ran under the previous
+   * version, and a later adoption never reaches back to judge it.
+   */
+  buildOsAdoptedAt?: string;
   /** Resolved paths, honouring per-repository overrides. */
   paths: BuildOsPaths;
   enabled: boolean;
@@ -205,6 +210,12 @@ export interface WorkstreamState {
    * would delete the gate.
    */
   protocolVersion?: string;
+  /**
+   * Where `protocolVersion` came from. A version the workstream states itself is a declaration
+   * about this workstream; one inherited from the project pin is a fact about the project, and
+   * must not be read as a claim that historical work was done under it.
+   */
+  protocolVersionSource?: "WORKSTREAM" | "PROJECT";
   updatedAt?: string;
   sourcePath: string;
   source: SourceRef;

@@ -19,9 +19,13 @@
  * workstream's own record for that PR is approving and declares finalization. It never overrides
  * a workstream that says `Changes required` or `In review`: that is a contradiction to report.
  *
- * **Participation is declared, not inferred.** Whether the gate applies comes from the Build OS
- * version the workstream or its project declares. If absence of a review record were what made a
- * workstream look legacy, deleting the record would delete the gate.
+ * **Participation is declared, not inferred, and it never reaches backwards.** Whether the gate
+ * applies comes from the Build OS version a workstream declares, or — for work that is current —
+ * from its project's pin. If absence of a review record were what made a workstream look legacy,
+ * deleting the record would delete the gate; but if a project's upgrade to v0.5 silently claimed
+ * every headerless file it inherited, adopting the version would retroactively condemn history
+ * the migration rules promise to leave alone. Both failures are avoided by treating an inherited
+ * pin as weaker than a declaration and by honouring the project's adoption boundary.
  *
  * **A commit cannot name itself.** The merge-finalization commit changes the head by existing, so
  * no SHA written inside it can be the head it produces. The workstream file therefore records the
@@ -76,9 +80,70 @@ function isSignificant(ws: WorkstreamState): boolean {
   );
 }
 
+export interface ReviewGateOptions {
+  /**
+   * When the project adopted its current Build OS version, as `YYYY-MM-DD`. Work created before
+   * it belongs to the previous version. Absent, the gate stays conservative about anything
+   * already settled — see `expectsRecord`.
+   */
+  adoptedAt?: string;
+}
+
+/**
+ * Is this workstream itself finished? A completed or abandoned workstream is history. A project
+ * that upgrades to v0.5 does not thereby claim its finished work was done under v0.5, and the
+ * migration rules say completed workstreams are never rewritten.
+ */
+function isHistorical(ws: WorkstreamState): boolean {
+  return ws.phase === "COMPLETE" || ws.status === "COMPLETE" || ws.status === "ABANDONED";
+}
+
+/**
+ * Does the gate expect a review record for this particular PR?
+ *
+ * The two rules that must both survive:
+ *
+ * - **Current significant work cannot escape by deleting its record.** A workstream that declares
+ *   v0.5, or an active one under a v0.5 project, owes a record for the PRs it links.
+ * - **History is not re-judged.** A completed workstream, a workstream last touched before the
+ *   project adopted v0.5, and a PR opened before that adoption and already settled are all
+ *   outside the gate — whatever the project pin now says.
+ *
+ * A workstream's own `Build OS:` header is a statement about that workstream and is honoured in
+ * both directions: it can bring one under the gate, and `v0.4` can keep one out.
+ */
+function expectsRecord(
+  ws: WorkstreamState,
+  pr: PullRequestState,
+  options: ReviewGateOptions,
+): boolean {
+  if (!participatesInReviewGate(ws.protocolVersion)) return false;
+  if (!isSignificant(ws)) return false;
+
+  const declared = ws.protocolVersionSource === "WORKSTREAM";
+  const settled = pr.lifecycle === "MERGED" || pr.lifecycle === "CLOSED";
+
+  if (!declared) {
+    // Inherited from the project pin. Weaker evidence, so it covers current work only.
+    if (isHistorical(ws)) return false;
+    if (options.adoptedAt && ws.updatedAt && ws.updatedAt < options.adoptedAt) return false;
+    // With no adoption date there is no way to tell a pre-adoption merge from a post-adoption
+    // one, and the safe answer for something already settled is silence.
+    if (settled && !options.adoptedAt) return false;
+  }
+
+  // A PR opened before adoption and already settled is work from the previous version, even on a
+  // workstream that has since come under v0.5. This is the multi-PR case: an old merged PR beside
+  // a current reviewed one.
+  if (settled && options.adoptedAt && pr.createdAt < options.adoptedAt) return false;
+
+  return true;
+}
+
 export function checkReviewGate(
   workstreams: WorkstreamState[],
   pullRequests: PullRequestState[],
+  options: ReviewGateOptions = {},
 ): IntegrityWarning[] {
   const warnings: IntegrityWarning[] = [];
   const byNumber = new Map(pullRequests.map((pr) => [pr.number, pr]));
@@ -87,19 +152,16 @@ export function checkReviewGate(
     const linked = ws.relatedPrNumbers
       .map((n) => byNumber.get(n))
       .filter((pr): pr is PullRequestState => pr !== undefined);
-    const gated = participatesInReviewGate(ws.protocolVersion) && isSignificant(ws);
 
     for (const pr of linked) {
       const record = reviewRecordFor(ws.reviewRecords, pr.number);
       if (record) {
         warnings.push(...checkRecord(ws, pr, record));
-      } else if (gated) {
-        // A workstream running v0.5 owes a record for every PR it claims. Silence here would let
-        // a significant PR out from under the gate by deleting one table row.
+      } else if (expectsRecord(ws, pr, options)) {
         warnings.push(...checkMissingRecord(ws, pr));
       }
-      // Otherwise the workstream predates v0.5 or is not significant work: it makes no claim
-      // about this PR and neither do we.
+      // Otherwise this PR is outside the gate — pre-adoption work, a finished workstream, or one
+      // that never reached a Build Card. It makes no claim about this PR and neither do we.
     }
 
     warnings.push(...checkStateAgreement(ws, linked));

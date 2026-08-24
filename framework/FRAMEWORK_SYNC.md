@@ -112,6 +112,12 @@ Three fields, and each earns its place:
   This is what distinguishes *checked and unchanged* from *never checked*, which the adopted
   version alone cannot express.
 
+From v0.5 the date on that line does a second job: it is the project's **adoption boundary**.
+Work that predates it was done under the previous version, and nothing a later version introduces
+reaches back to judge it — a completed workstream, or a PR opened and merged before that date, is
+not retroactively brought under the new rules. That is why the date matters and why an upgrade
+should carry the day it happened rather than a version alone.
+
 The block lives in the agent-instructions file because that file is already read at the start
 of every session by every agent that matters. A dedicated metadata file would be read by
 nothing that does not already read `CLAUDE.md`, and would be one more thing to forget.
@@ -166,6 +172,11 @@ v0.5's merge gate is the first of these. On adoption:
   before adoption, and no completed workstream is rewritten to add fields it never had.
 - **Active workstreams gain the new fields at their next review checkpoint**, not in a
   bulk edit of every file in the directory.
+- **Completed workstreams are untouched, and stay untouched.** Adopting v0.5 does not gate the
+  history the project already has. Where a finished workstream should nonetheless remain under
+  the new rules — an audit trail worth keeping honest — say so explicitly with a `Build OS:`
+  header on that file, rather than relying on the project pin, which deliberately does not reach
+  finished work.
 
 State the effect on open PRs when announcing the upgrade — an owner who learns at merge time
 that a new gate applies will reasonably read it as the framework getting in the way.

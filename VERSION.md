@@ -94,6 +94,14 @@ Two rules keep the review fields honest, and both matter to anyone writing them 
   reviewed *in full*; `Finalization: pushed` says the PR head is legitimately ahead of it; and
   the head that commit produced is recorded by the reviewer **on the PR**, after it exists —
   a GitHub review carries the commit id it was submitted against. Merge targets that SHA.
+- **A verdict may be a comment** (clarified 2026-08-25, DEC-015). GitHub refuses a review on a
+  pull request the account authored, so a repository worked by one account cannot produce an
+  approving review at all — the gate is not strict there, it is inoperable, and this repository
+  proved it by merging v0.5 itself twice without one. A verdict may therefore be a PR comment
+  carrying a `Build OS review verdict:` line and a `Reviewed head:` line with a full SHA, read
+  only where it is stated and never where it is quoted, fenced, or commented out. It records
+  that a verdict was given against a named commit; it does not establish that whoever gave it
+  was independent. Where that matters most, use a second identity.
 
 Supporting changes: structured `Verdict`, `Reviewed head`, `Reviewed PR`, and `Finalization`
 fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.template.md`; a

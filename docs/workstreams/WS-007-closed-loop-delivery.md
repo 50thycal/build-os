@@ -217,13 +217,19 @@ Independent review of `c769227` returned `Changes required` on 2026-08-25, with 
 
 **#9 carries the finalization content for this workstream**, but its `Finalization` column reads `not pushed`, and that distinction is the protocol's rather than a quibble: finalization is the commit made *after* an approving verdict, and #9 does not have one yet. Claiming otherwise would be a record declaring finalization ahead of approval — which the gate reports, and which it reported on this very file before this correction. It touches only finalization surfaces — this file, `ACTIVE.md`, and the spec's owner-decisions heading — and nothing else. After an approving verdict names its current head, only those surfaces may move, and the reviewer verifies the final head before merge.
 
-**On this file saying `COMPLETE` while #9 is still open:** that is the finalization pattern working, not an oversight. A finalization commit always describes the state that becomes true when its PR lands; on the branch it is a proposal, and it is only ever true on `main`. If #9 is closed instead of merged, this claim never becomes a claim about the project — and would have to be undone, per `REVIEW_PROTOCOL.md`.
+**On this file saying `COMPLETE` while #9 was open:** that was the finalization pattern working, not an oversight. A finalization commit always describes the state that becomes true when its PR lands; on the branch it is a proposal, and it is only ever true on `main`. #9 merged on 2026-08-25, so the claim is now a claim about the project.
+
+**#9 also merged without an approving verdict on its own head**, as `5029a5f`. Its last recorded verdict is `Changes required` against `c769227`; the head that merged was `42ea13c`, and no verdict names it. The same code as #7, recorded the same way and for the same reason: the correction stands, and reverting it to satisfy process would put the false record back on `main` to buy nothing.
+
+**Why that stopped happening rather than repeating.** Both merges landed ungated because the gate could not be satisfied at all: GitHub refuses an `APPROVE` review on a pull request the account authored, and this repository has one account. Three rounds of real review ran on #7 and one on #9 — every one of them arrived as a *comment*, because GitHub had nowhere else to put it, and a gate reading only reviews saw none of them. Chasing each merge with a corrective PR would have produced another PR merging under the same condition, indefinitely.
+
+`REVIEW_PROTOCOL.md` now defines a comment verdict form, and the Companion reads it. That is the fix: the gate becomes satisfiable by the evidence this project actually produces, instead of demanding an artifact GitHub will not issue. Recorded here rather than corrected away — two ungated merges happened, and the record of a release about honest records should say so.
 
 ## Related Decisions
 
 Existing foundations: DEC-002 (GitHub is the handoff), DEC-004 (workstreams are durable state), DEC-005 (persistence claims require write access), DEC-006 (version preflight), and DEC-007 (framework state in agent instructions).
 
-Added by this implementation: DEC-012 (owner input is captured before it is processed), DEC-013 (significant work merges only on an independent verdict naming the current head), DEC-014 (durable memory is finalized on the PR, before the merge). DEC-011 is the Companion extraction, folded in from PR #8. Capture Only received its own entry because its rules stand independently of the merge gate.
+Added by this implementation: DEC-012 (owner input is captured before it is processed), DEC-013 (significant work merges only on an independent verdict naming the current head), DEC-014 (durable memory is finalized on the PR, before the merge), DEC-015 (a verdict may be a comment, in a form nothing writes by accident — added after this workstream's own merges proved the gate unsatisfiable in a single-account repository). DEC-011 is the Companion extraction, folded in from PR #8. Capture Only received its own entry because its rules stand independently of the merge gate.
 
 ## Related PRs
 

@@ -677,3 +677,69 @@ The lightweight final-head verification is safe only because the permitted surfa
 - `main` becomes readable as a true record of the board at any commit, which is what makes an
   arriving agent's first read trustworthy.
 
+
+---
+
+### DEC-015 — A verdict may be a comment, in a form nothing writes by accident
+
+**Date:** 2026-08-25
+**Status:** Accepted
+
+**Context**
+DEC-013 makes a merge conditional on an independent verdict naming the current head, and v0.5
+implemented that verification against GitHub's review record, which stamps a review with the
+commit id it was submitted against.
+
+GitHub refuses to let an account submit `APPROVE` or `REQUEST_CHANGES` on a pull request it
+authored. A repository worked by one account therefore cannot produce that artifact at all.
+This one is such a repository, and the consequence was immediate rather than theoretical:
+v0.5 shipped through four rounds of genuine independent review, every one of which arrived as
+a **comment** because GitHub had nowhere else to put it, and both PRs merged reported as
+`MERGED_WITHOUT_APPROVAL` by a gate with no reachable satisfying state.
+
+A gate that cannot be satisfied is not strict. It trains everyone to merge past it.
+
+**Decision**
+A verdict may be given as a pull request comment, read only in a fixed form: a
+`Build OS review verdict:` line naming one of the five verdicts, and a `Reviewed head:` line
+naming a full 40-character SHA. Quoted, fenced and HTML-commented text carries no verdict. A
+comment verdict ranks with a review from the same author, newest position winning.
+
+This is stated as a clarification of v0.5, not a new version: `REVIEW_PROTOCOL.md` already
+named a PR comment as equivalent evidence, and this fixes the shape so a tool can read it. No
+existing file becomes invalid and no new obligation is added.
+
+**Rationale**
+The alternative to reading the evidence a project actually produces is a gate that reports a
+violation forever, which is worse than no gate: a permanent warning is indistinguishable from
+noise, and the first thing anyone does with it is stop reading it.
+
+The form carries the head for the same reason a review's `commit_id` is trusted — it ties the
+verdict to a commit that already existed when the verdict was given, so a later push cannot
+inherit it.
+
+**What this deliberately does not claim.** It does not establish independence. In a
+single-account repository the author can post an approving verdict on their own work, and no
+parser can tell that from a reviewer doing it. What the form buys is that the act is explicit,
+deliberate, and permanently public. Independence remains a property of how the review was
+actually obtained, asserted in the record and judged by whoever reads it — the same standing as
+an owner decision relayed through an agent, which must name its channel rather than pass as
+something stronger.
+
+**Alternatives considered**
+- **Require a second GitHub identity.** Not rejected — it is the stronger answer and the
+  protocol says to use one where independence matters most. Rejected as a *precondition*,
+  because it makes the gate depend on account administration a solo project may not do, and
+  until then every merge is ungated.
+- **Accept `MERGED_WITHOUT_APPROVAL` as the permanent state here.** Rejected: it makes the
+  release's central check inert on the project that wrote it.
+- **Read any comment containing an approving word.** Rejected: it makes "looks good to me" a
+  merge authorization, and every quoted review table an approval.
+
+**Consequences**
+- The gate is satisfiable in a single-account repository, which is most projects adopting this.
+- Reviewers have one form to learn, and it is two lines.
+- A consumer reading verdicts must strip quotes, fences and HTML comments first — Build OS's
+  own PR comments quote the review table, and would otherwise issue verdicts by discussing them.
+- The strength of the evidence now varies by who posted it, which the record has to carry
+  rather than flatten.

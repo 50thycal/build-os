@@ -390,7 +390,45 @@ approved head, confirm it touches only the permitted surfaces, and submit their 
 PR. GitHub stamps that review with the commit id it was submitted against — a record created
 after the commit exists, by someone other than the commit's author. That is the authority. A
 project without GitHub reviews uses any equivalent record made after the fact: a PR comment
-naming the final SHA, a signed tag, a reviewer's note in the merge.
+naming the final SHA, a signed tag, a reviewer's note in the merge. The comment form has a
+required shape, below, because a tool has to be able to tell a verdict from a sentence about one.
+
+#### The comment verdict form
+
+GitHub will not let an account submit `APPROVE` or `REQUEST_CHANGES` on a pull request it
+authored. A repository worked by one account — one owner, one agent, one identity — therefore
+**cannot produce an approving review at all**, and a merge gate that reads only reviews is not
+strict there, it is inoperable. Build OS's own v0.5 release merged twice under exactly that
+condition, each merge correctly reported as `MERGED_WITHOUT_APPROVAL` by a gate that had no way
+to be satisfied.
+
+A verdict may therefore be given as a PR comment, in this form and no other:
+
+```markdown
+Build OS review verdict: Approved
+Reviewed head: 42ea13c260a8e8952f8dc044e4ac20a6dcfc60e5
+```
+
+- Both lines are required. A verdict naming no head is not a verdict — the head is the whole
+  point, and it must be a **full 40-character SHA** for the same reason the workstream field
+  refuses an abbreviation: a prefix cannot prove which commit was reviewed.
+- The verdict word is one of the five in this document. Emphasis (`**Reviewed head:**`) is fine.
+- It is read only where it is **stated**, never where it is discussed. Text that is quoted
+  (`>`), fenced, or inside an HTML comment carries no verdict — otherwise replying to an
+  approval, or quoting the review table to argue with it, would issue one.
+- It is a position of the same standing as a review, and the two live in one sequence per
+  reviewer: whoever approves in a review and later objects in a comment has **one** current
+  position, and it is the later one. This is not the `Commented` review state, which is a review
+  deliberately withholding a verdict.
+
+**This form does not establish independence, and must not be read as doing so.** In a
+single-account repository the author of a PR can post an approving verdict on their own work.
+What the form buys is that doing so is explicit, deliberate, and permanently on the public
+record — not that a tool can tell a reviewer from an author. Where the review genuinely came
+from elsewhere (a second agent, a person reading in another window), say so in the same comment
+and name the channel, exactly as an owner decision relayed through an agent must name its
+channel. **Where independence matters most, use a second identity**, and treat the comment form
+as what keeps the record honest in its absence rather than as a substitute for it.
 
 **A verdict is a current position, not a history.** An approval a reviewer has since replaced with
 `Changes required` is not evidence of anything, and while *any* reviewer has an outstanding

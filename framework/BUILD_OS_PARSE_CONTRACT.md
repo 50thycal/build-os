@@ -227,6 +227,26 @@ ahead of it.
 The head that finalization produced is verified through a record created *after* it exists:
 GitHub stamps an approving review with the commit id it was submitted against.
 
+Where GitHub will not produce that review — it refuses one on a PR the account authored, so a
+single-account repository can never obtain one — the equivalent record is a **comment verdict**,
+which a consumer reads only in this exact form:
+
+```markdown
+Build OS review verdict: Approved
+Reviewed head: <full 40-character SHA>
+```
+
+Both lines are required and the head must be full-length; an abbreviated SHA is refused here
+exactly as it is in the file. The marker must **begin its line**, so a table cell or a sentence
+containing the words is not a verdict. Quoted (`>`), fenced and HTML-commented text is stripped
+before reading, so discussing a verdict never issues one. A comment verdict ranks with a review
+from the same author, newest position winning; it is not the `Commented` review state, which
+withholds a verdict deliberately.
+
+A consumer must not treat this form as evidence of *independence* — the author of a PR can post
+one on their own work. It records that a verdict was given against a named commit. Who gave it,
+and whether that person was independent, is the reader's judgement and not the parser's.
+
 **That evidence closes the gate readily and opens it narrowly.** A consumer may treat a GitHub
 approval as verifying a finalization head only when all of these hold:
 
@@ -245,7 +265,9 @@ as verification.
 
 The verdict and head fields also appear in a review summary, and may appear in a PR review or
 top-level PR comment. Wherever they appear, they mean the same thing: *this verdict was reached
-against exactly this commit.*
+against exactly this commit* — which is why the comment form above names the head rather than
+relying on the PR's head at the time of reading. A verdict that names no commit verifies nothing
+and a consumer must discard it.
 
 **Missing sections are normal.** A workstream in `IDEA` legitimately has almost nothing. Absence
 is not an error.

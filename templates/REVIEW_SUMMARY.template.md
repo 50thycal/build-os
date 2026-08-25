@@ -26,6 +26,17 @@ re-reviewed in full. Record that verification by approving on the PR itself, aft
 finalization commit exists — the review carries the commit id, and that is the only final-head
 record that is not self-referential. A summary written before that commit cannot name it.
 
+If GitHub will not let you file that review — it refuses one on a pull request your own account
+authored, which is every PR in a single-account repository — post it as a comment instead, in
+the form the protocol reads:
+
+    Build OS review verdict: Approved
+    Reviewed head: <full 40-character SHA>
+
+Same standing as a review, same requirement to name the commit. It records that a verdict was
+given, not that the reviewer was independent — if the review came from elsewhere, say where in
+the same comment.
+
 This verdict is about one PR. Name it above; it says nothing about the workstream's other PRs.
 
 A finding only the owner can settle is `Changes required`, with the question under

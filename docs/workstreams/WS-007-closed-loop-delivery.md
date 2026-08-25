@@ -215,9 +215,19 @@ Retrospective assessment, offered as evidence rather than as a verdict the imple
 
 Independent review of `c769227` returned `Changes required` on 2026-08-25, with one blocking finding: this section recorded #7 and not #9, leaving the record incomplete in exactly the dimension #9 exists to repair. Corrected here, along with a stale PR handoff and a duplicated heading.
 
-**#9 carries the finalization content for this workstream**, but its `Finalization` column reads `not pushed`, and that distinction is the protocol's rather than a quibble: finalization is the commit made *after* an approving verdict, and #9 does not have one yet. Claiming otherwise would be a record declaring finalization ahead of approval — which the gate reports, and which it reported on this very file before this correction. It touches only finalization surfaces — this file, `ACTIVE.md`, and the spec's owner-decisions heading — and nothing else. After an approving verdict names its current head, only those surfaces may move, and the reviewer verifies the final head before merge.
+**#9 carried the finalization content for this workstream**, but its `Finalization` column reads `not pushed`, and that distinction is the protocol's rather than a quibble: finalization is the commit made *after* an approving verdict, and #9 never had one. Claiming otherwise would be a record declaring finalization ahead of approval — which the gate reports, and which it reported on this very file before that correction. #9 touched only finalization surfaces — this file, `ACTIVE.md`, and the spec's owner-decisions heading — and nothing else.
 
-**On this file saying `COMPLETE` while #9 was open:** that was the finalization pattern working, not an oversight. A finalization commit always describes the state that becomes true when its PR lands; on the branch it is a proposal, and it is only ever true on `main`. #9 merged on 2026-08-25, so the claim is now a claim about the project.
+The two heads for #9, kept apart because conflating them is the failure being recorded:
+
+| | SHA |
+|---|---|
+| Head the `Changes required` verdict was reached against | `c76922734c6de1572a2a1a49f5b9ab9b1ea72993` |
+| Final head that merged, never independently reviewed | `42ea13c260a8e8952f8dc044e4ac20a6dcfc60e5` |
+| Merge commit on `main` | `5029a5f0a0220529ac82d4ec24c6c96714c64618` |
+
+The verdict against `c769227` says nothing about `42ea13c`. No approval is manufactured here, and none should be read into the corrections having been made: correcting findings is not the same as someone confirming they were corrected.
+
+**On this file having said `COMPLETE` while #9 was still open:** that was the finalization pattern working, not an oversight. A finalization commit always describes the state that becomes true when its PR lands; on the branch it is a proposal, and it is only ever true on `main`. #9 merged on 2026-08-25, so the claim is now a claim about the project.
 
 **#9 also merged without an approving verdict on its own head**, as `5029a5f`. Its last recorded verdict is `Changes required` against `c769227`; the head that merged was `42ea13c`, and no verdict names it. The same code as #7, recorded the same way and for the same reason: the correction stands, and reverting it to satisfy process would put the false record back on `main` to buy nothing.
 

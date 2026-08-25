@@ -701,9 +701,20 @@ A gate that cannot be satisfied is not strict. It trains everyone to merge past 
 
 **Decision**
 A verdict may be given as a pull request comment, read only in a fixed form: a
-`Build OS review verdict:` line naming one of the five verdicts, and a `Reviewed head:` line
-naming a full 40-character SHA. Quoted, fenced and HTML-commented text carries no verdict. A
-comment verdict ranks with a review from the same author, newest position winning.
+`Build OS review verdict:` line naming one of the five verdicts, a `Reviewed head:` line naming
+a full 40-character SHA, and a `Review actor:` line naming who issued it. Quoted, fenced and
+HTML-commented text carries no verdict.
+
+**Positions are keyed on the actor, never on the GitHub login.** That is the substance of this
+decision rather than a detail of it: the premise is a repository where the login is transport
+and several actors share it, so keying on the login merges an independent reviewer with the
+implementation agent and lets whichever spoke last replace the other. Two actors through one
+account are two reviewers; one actor speaking twice is one position, the later one.
+
+A comment verdict clears the independent-review requirement only when its actor differs from the
+`Implementation actor` the PR handoff declares. Absent either declaration, or where they match,
+the verdict is recorded as given but does not clear the gate — while an objection closes the
+gate whoever raised it.
 
 This is stated as a clarification of v0.5, not a new version: `REVIEW_PROTOCOL.md` already
 named a PR comment as equivalent evidence, and this fixes the shape so a tool can read it. No
@@ -718,13 +729,19 @@ The form carries the head for the same reason a review's `commit_id` is trusted 
 verdict to a commit that already existed when the verdict was given, so a later push cannot
 inherit it.
 
-**What this deliberately does not claim.** It does not establish independence. In a
-single-account repository the author can post an approving verdict on their own work, and no
-parser can tell that from a reviewer doing it. What the form buys is that the act is explicit,
-deliberate, and permanently public. Independence remains a property of how the review was
-actually obtained, asserted in the record and judged by whoever reads it — the same standing as
-an owner decision relayed through an agent, which must name its channel rather than pass as
-something stronger.
+**What this deliberately does not claim.** It does not *verify* independence. An actor
+identifier is an assertion, and in a single-account repository nothing stops a false one. What
+the form buys is that independence becomes something the record states and can be checked
+against — rather than something a reader must assume — and that two actors stop being silently
+merged. The same standing as an owner decision relayed through an agent, which must name its
+channel rather than pass as something stronger.
+
+The first draft of this decision stopped at "does not establish independence" and left it there,
+documenting the limitation instead of narrowing it. Independent review of the PR pointed out
+that the reader then actively *merged* distinct actors — weakening the very invariant the form
+claimed to serve — and that the record could not answer who issued a verdict. The actor field is
+the correction. Where independence matters most, use a second GitHub identity, which GitHub
+itself authenticates.
 
 **Alternatives considered**
 - **Require a second GitHub identity.** Not rejected — it is the stronger answer and the
@@ -735,6 +752,10 @@ something stronger.
   release's central check inert on the project that wrote it.
 - **Read any comment containing an approving word.** Rejected: it makes "looks good to me" a
   merge authorization, and every quoted review table an approval.
+- **Key positions on the GitHub login and note the limitation in prose.** Rejected on review,
+  correctly: it silently merges actors, so the gate could be opened or closed by the wrong one.
+- **Infer independence from the actor's name** (a `-independent-` convention, say). Rejected:
+  magic strings that anyone can type, dressed as verification.
 
 **Consequences**
 - The gate is satisfiable in a single-account repository, which is most projects adopting this.
@@ -743,3 +764,6 @@ something stronger.
   own PR comments quote the review table, and would otherwise issue verdicts by discussing them.
 - The strength of the evidence now varies by who posted it, which the record has to carry
   rather than flatten.
+- A PR handoff that names no `Implementation actor` makes every comment verdict on it
+  non-gate-clearing. That is the intended direction — unknown independence must not read as
+  approved — but it means the handoff template's new field is load-bearing, not decorative.

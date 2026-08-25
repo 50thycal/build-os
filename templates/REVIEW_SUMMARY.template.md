@@ -32,10 +32,14 @@ the form the protocol reads:
 
     Build OS review verdict: Approved
     Reviewed head: <full 40-character SHA>
+    Review actor: <stable identifier for you, not the account you post from>
 
-Same standing as a review, same requirement to name the commit. It records that a verdict was
-given, not that the reviewer was independent — if the review came from elsewhere, say where in
-the same comment.
+Same standing as a review, same requirement to name the commit. The actor is required and is
+what distinguishes you from the account carrying the comment — in a single-account repository
+several actors share one login, and without it the record cannot say who spoke.
+
+It clears the independent-review gate only when your actor differs from the PR's declared
+`Implementation actor`. It records that a verdict was given; it does not prove independence.
 
 This verdict is about one PR. Name it above; it says nothing about the workstream's other PRs.
 

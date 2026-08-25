@@ -234,18 +234,36 @@ which a consumer reads only in this exact form:
 ```markdown
 Build OS review verdict: Approved
 Reviewed head: <full 40-character SHA>
+Review actor: <stable actor identifier>
 ```
 
-Both lines are required and the head must be full-length; an abbreviated SHA is refused here
-exactly as it is in the file. The marker must **begin its line**, so a table cell or a sentence
-containing the words is not a verdict. Quoted (`>`), fenced and HTML-commented text is stripped
-before reading, so discussing a verdict never issues one. A comment verdict ranks with a review
-from the same author, newest position winning; it is not the `Commented` review state, which
-withholds a verdict deliberately.
+All three lines are required and the head must be full-length; an abbreviated SHA is refused
+here exactly as it is in the file. Each marker must **begin its line**, so a table cell or a
+sentence containing the words is not a verdict. Quoted (`>`), fenced and HTML-commented text is
+stripped before reading, so discussing a verdict never issues one. Fields bind to the marker
+above them, so two verdict blocks in one comment cannot cross-wire. It is not the `Commented`
+review state, which withholds a verdict deliberately.
 
-A consumer must not treat this form as evidence of *independence* — the author of a PR can post
-one on their own work. It records that a verdict was given against a named commit. Who gave it,
-and whether that person was independent, is the reader's judgement and not the parser's.
+**Positions are keyed on the actor, not on the GitHub login.** This is the rule the form exists
+for: in a single-account repository the login is transport, and several actors share it. A
+consumer that keys on the login merges them, so one actor's later verdict silently replaces
+another's — which is the specific failure this form is meant to prevent, reintroduced at the
+parser. A GitHub review carries no actor field and needs none: GitHub authenticated it, so its
+login is its actor.
+
+A consumer reads **`Implementation actor:`** from the pull request body — the same line rules
+apply — and treats a comment verdict as clearing the independent-review gate **only** when the
+verdict names an actor, the PR names an implementation actor, and the two differ, compared
+case-insensitively. Otherwise the verdict is recorded as given but never clears the gate: an
+unnamed actor cannot be checked, a matching actor is self-review, and an undeclared
+implementation actor would otherwise make every verdict trivially independent.
+
+A non-clearing position is still a position. It displaces an earlier position by the same actor,
+and a `Changes required` closes the gate whoever raised it.
+
+None of this verifies the claim. An actor identifier is an assertion, and a consumer must not
+report it as proof of independence — only that the record states it, which is what makes it
+checkable at all.
 
 **That evidence closes the gate readily and opens it narrowly.** A consumer may treat a GitHub
 approval as verifying a finalization head only when all of these hold:

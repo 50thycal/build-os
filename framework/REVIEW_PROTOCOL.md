@@ -407,28 +407,68 @@ A verdict may therefore be given as a PR comment, in this form and no other:
 ```markdown
 Build OS review verdict: Approved
 Reviewed head: 42ea13c260a8e8952f8dc044e4ac20a6dcfc60e5
+Review actor: chatgpt-independent-session
 ```
 
-- Both lines are required. A verdict naming no head is not a verdict — the head is the whole
-  point, and it must be a **full 40-character SHA** for the same reason the workstream field
-  refuses an abbreviation: a prefix cannot prove which commit was reviewed.
+- All three lines are required. A verdict naming no head is not a verdict — the head is the
+  whole point, and it must be a **full 40-character SHA** for the same reason the workstream
+  field refuses an abbreviation: a prefix cannot prove which commit was reviewed.
 - The verdict word is one of the five in this document. Emphasis (`**Reviewed head:**`) is fine.
 - It is read only where it is **stated**, never where it is discussed. Text that is quoted
   (`>`), fenced, or inside an HTML comment carries no verdict — otherwise replying to an
   approval, or quoting the review table to argue with it, would issue one.
-- It is a position of the same standing as a review, and the two live in one sequence per
-  reviewer: whoever approves in a review and later objects in a comment has **one** current
-  position, and it is the later one. This is not the `Commented` review state, which is a review
-  deliberately withholding a verdict.
+- It is a position of the same standing as a review. This is not the `Commented` review state,
+  which is a review deliberately withholding a verdict.
 
-**This form does not establish independence, and must not be read as doing so.** In a
-single-account repository the author of a PR can post an approving verdict on their own work.
-What the form buys is that doing so is explicit, deliberate, and permanently on the public
-record — not that a tool can tell a reviewer from an author. Where the review genuinely came
-from elsewhere (a second agent, a person reading in another window), say so in the same comment
-and name the channel, exactly as an owner decision relayed through an agent must name its
-channel. **Where independence matters most, use a second identity**, and treat the comment form
-as what keeps the record honest in its absence rather than as a substitute for it.
+#### `Review actor` — who spoke, as distinct from what carried it
+
+This is the field the form turns on, and the reason is the same one that makes the form
+necessary: **in a single-account repository the GitHub login is transport, not identity.** The
+owner, the implementation agent and an independent reviewer all post as the same account. A
+record keyed on that login cannot answer who issued a verdict, and — worse — treats them as one
+reviewer, so the last to speak silently replaces the others. An implementation agent's own
+position could supersede an independent reviewer's for no reason but sharing a pipe.
+
+So the actor is named in the artifact, and it is the actor, not the login, that identifies a
+position:
+
+- A stable identifier for the actor — `chatgpt-independent-session`, `claude-implementation-session`,
+  a person's own GitHub identity. The vocabulary is the project's; stability across comments is
+  what matters, since that is what lets one actor's later verdict replace their earlier one.
+- **Two actors relayed through one account are two reviewers.** Each holds their own current
+  position, and one actor's approval never cancels another's outstanding `Changes required`.
+- A GitHub review needs no such field: GitHub authenticated it, so there the login *is* the actor.
+
+The implementing side names itself too. A PR handoff carries **`Implementation actor:`** in its
+`Review Gate` section, which is what makes self-review recognisable rather than merely
+discouraged.
+
+#### What clears the independent-review gate
+
+A comment verdict clears DEC-013's independent-review requirement only when **its recorded actor
+is independent of implementation** — the comment names an actor, the PR names the implementation
+actor, and the two differ.
+
+Short of that, the verdict is **evidence that a verdict was given, not gate-clearing independent
+approval**. That covers three cases, all deliberate:
+
+| Case | Why it does not clear |
+|---|---|
+| No `Review actor` | The record cannot say who spoke |
+| Actor is the implementation actor | Self-review, named as such |
+| PR declares no implementation actor | Independence is unestablished, and an implementing agent that declines to name itself must not thereby make every verdict independent |
+
+Non-clearing positions are still positions. They displace an earlier position by the same actor,
+and an **objection closes the gate whoever raised it** — including one from the implementing
+agent, because closing is always the safe direction and a self-identified problem is still a
+problem.
+
+**None of this verifies the claim.** An actor identifier is an assertion, and in a single-account
+repository nothing stops one from being false. What the field buys is that independence is now
+something the record *states* and can be checked against, rather than something a reader has to
+assume — and that two actors stop being silently merged. **Where independence matters most, use
+a second GitHub identity**, which GitHub itself authenticates; treat the comment form as what
+keeps the record honest in its absence, not as a substitute for it.
 
 **A verdict is a current position, not a history.** An approval a reviewer has since replaced with
 `Changes required` is not evidence of anything, and while *any* reviewer has an outstanding

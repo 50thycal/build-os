@@ -98,10 +98,14 @@ Two rules keep the review fields honest, and both matter to anyone writing them 
   pull request the account authored, so a repository worked by one account cannot produce an
   approving review at all — the gate is not strict there, it is inoperable, and this repository
   proved it by merging v0.5 itself twice without one. A verdict may therefore be a PR comment
-  carrying a `Build OS review verdict:` line and a `Reviewed head:` line with a full SHA, read
-  only where it is stated and never where it is quoted, fenced, or commented out. It records
-  that a verdict was given against a named commit; it does not establish that whoever gave it
-  was independent. Where that matters most, use a second identity.
+  carrying a `Build OS review verdict:` line, a `Reviewed head:` line with a full SHA, and a
+  `Review actor:` line naming who issued it — read only where it is stated and never where it is
+  quoted, fenced, or commented out. The actor matters because in such a repository the login is
+  transport: several actors share it, and a record keyed on the login merges them. Positions are
+  therefore keyed on the actor, and a comment verdict clears the independent-review gate only
+  when its actor differs from the `Implementation actor` the PR handoff declares. It records that
+  a verdict was given; it does not verify that whoever gave it was independent. Where that
+  matters most, use a second identity.
 
 Supporting changes: structured `Verdict`, `Reviewed head`, `Reviewed PR`, and `Finalization`
 fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.template.md`; a

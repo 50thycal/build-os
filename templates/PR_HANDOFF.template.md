@@ -75,11 +75,19 @@ Framework:
 
 ## Review Gate
 
+Implementation actor: <stable identifier for the agent or person who implemented this>
+
 Review gate: Pending independent review
 
 <!--
 Written by the implementation agent, which never claims an approval it did not receive.
 Until a reviewer records a verdict, this line reads exactly `Pending independent review`.
+
+`Implementation actor` names who did the work, as distinct from the GitHub account that pushed
+it — in a single-account repository they are not the same thing, and several actors share one
+login. It is what lets a comment verdict be recognised as self-review rather than independent
+approval. Omitting it does not make a review look independent; it makes every comment verdict
+non-gate-clearing, because independence can no longer be established either way.
 
 Once reviewed, repeat the verdict and the full 40-character head it was reached against:
 

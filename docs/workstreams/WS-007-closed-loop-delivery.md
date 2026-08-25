@@ -188,12 +188,16 @@ Review rounds 1–3 (2026-08-24) each returned Changes required; every finding i
 
 ## Review State
 
-**Verdict:** Changes required
-**Reviewed head:** 39f2f3d2483a05c8781e0886162673a38fa38d9d
-**Reviewed PR:** #7
-**Finalization:** not pushed
+| PR | Verdict | Reviewed head | Finalization |
+|---|---|---|---|
+| #7 | Changes required | 39f2f3d2483a05c8781e0886162673a38fa38d9d | not pushed |
+| #9 | Changes required | c76922734c6de1572a2a1a49f5b9ab9b1ea72993 | not pushed |
 
-**Merged without an approved verdict on its final head, 2026-08-24.** Recording that plainly rather than tidying it away.
+Two PRs, two records, because a verdict belongs to one pull request. #7 delivered v0.5 and merged; #9 is the corrective PR that finalizes this workstream afterwards, and it is significant under the same rule — a PR claiming to complete a significant workstream is significant however small its diff.
+
+### #7 — merged without an approved verdict on its final head, 2026-08-24
+
+Recording that plainly rather than tidying it away.
 
 Three rounds of independent review ran on PR #7 and each returned `Changes required`:
 
@@ -207,7 +211,13 @@ Under the gate this release introduces, that is `MERGED_WITHOUT_APPROVAL`. It is
 
 Retrospective assessment, offered as evidence rather than as a verdict the implementing agent may issue: the delta from `39f2f3d` to `caca3e0` is the PR #8 merge plus decision renumbering, `VERSION.md`'s contains-code line, `ACTIVE.md`, and a resolution note in the spec. No protocol rule changed in it. An independent reviewer may still find otherwise, and this workstream's completion does not foreclose that.
 
-## Related Decisions
+### #9 — the corrective and finalization PR
+
+Independent review of `c769227` returned `Changes required` on 2026-08-25, with one blocking finding: this section recorded #7 and not #9, leaving the record incomplete in exactly the dimension #9 exists to repair. Corrected here, along with a stale PR handoff and a duplicated heading.
+
+**#9 carries the finalization content for this workstream**, but its `Finalization` column reads `not pushed`, and that distinction is the protocol's rather than a quibble: finalization is the commit made *after* an approving verdict, and #9 does not have one yet. Claiming otherwise would be a record declaring finalization ahead of approval — which the gate reports, and which it reported on this very file before this correction. It touches only finalization surfaces — this file, `ACTIVE.md`, and the spec's owner-decisions heading — and nothing else. After an approving verdict names its current head, only those surfaces may move, and the reviewer verifies the final head before merge.
+
+**On this file saying `COMPLETE` while #9 is still open:** that is the finalization pattern working, not an oversight. A finalization commit always describes the state that becomes true when its PR lands; on the branch it is a proposal, and it is only ever true on `main`. If #9 is closed instead of merged, this claim never becomes a claim about the project — and would have to be undone, per `REVIEW_PROTOCOL.md`.
 
 ## Related Decisions
 
@@ -217,7 +227,14 @@ Added by this implementation: DEC-012 (owner input is captured before it is proc
 
 ## Related PRs
 
-- [#7 — WS-007: Build OS v0.5 closed-loop delivery](https://github.com/50thycal/build-os/pull/7) — the design handoff PR, continued as the implementation PR. One workstream, one PR.
+- [#7 — WS-007: Build OS v0.5 closed-loop delivery](https://github.com/50thycal/build-os/pull/7) — the design handoff PR, continued as the implementation PR, merged as `8de3b8c`.
+- [#9 — Finalize WS-007 after the merge, and record how it merged](https://github.com/50thycal/build-os/pull/9) — the corrective and finalization PR. It exists because #7 merged without the finalization commit that would normally have preceded it, leaving `main` describing a state that had ended.
+
+The Companion half lives in another repository and is deliberately not listed above: `Related PRs`
+holds pull requests of *this* repository, and a cross-repository reference written as a bare
+number would be read as one. It is
+[build-os-companion pull request 2](https://github.com/50thycal/build-os-companion/pull/2)
+(`DEC-011`).
 
 ## Next Step
 

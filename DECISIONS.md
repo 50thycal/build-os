@@ -677,3 +677,114 @@ The lightweight final-head verification is safe only because the permitted surfa
 - `main` becomes readable as a true record of the board at any commit, which is what makes an
   arriving agent's first read trustworthy.
 
+
+---
+
+### DEC-015 — A verdict may be a comment, in a form nothing writes by accident
+
+**Date:** 2026-08-25
+**Status:** Accepted
+
+**Context**
+DEC-013 makes a merge conditional on an independent verdict naming the current head, and v0.5
+implemented that verification against GitHub's review record, which stamps a review with the
+commit id it was submitted against.
+
+GitHub refuses to let an account submit `APPROVE` or `REQUEST_CHANGES` on a pull request it
+authored. A repository worked by one account therefore cannot produce that artifact at all.
+This one is such a repository, and the consequence was immediate rather than theoretical:
+v0.5 shipped through four rounds of genuine independent review, every one of which arrived as
+a **comment** because GitHub had nowhere else to put it, and both PRs merged reported as
+`MERGED_WITHOUT_APPROVAL` by a gate with no reachable satisfying state.
+
+A gate that cannot be satisfied is not strict. It trains everyone to merge past it.
+
+**Decision**
+A verdict may be given as a pull request comment, read only in a fixed form: a
+`Build OS review verdict:` line naming one of the five verdicts, a `Reviewed head:` line naming
+a full 40-character SHA, a `Review actor:` line naming who issued it, and an
+`Implementation actor reviewed:` line naming who the reviewer understood they were reviewing.
+Quoted, fenced and HTML-commented text carries no verdict.
+
+**Positions are keyed on the actor, never on the GitHub login.** That is the substance of this
+decision rather than a detail of it: the premise is a repository where the login is transport
+and several actors share it, so keying on the login merges an independent reviewer with the
+implementation agent and lets whichever spoke last replace the other. Two actors through one
+account are two reviewers; one actor speaking twice is one position, the later one.
+
+**Evidence must not be able to move after it is given**, which is the other half of the same
+principle. A comment is editable in place and the PR body is editable without moving the head,
+so both authoritative inputs could otherwise be rewritten after a review: a `Changes required`
+turned into an `Approved`, or a self-review made independent by editing the body to name a
+different implementer. Therefore independence is decided by the **pair inside the verdict** —
+`Review actor` against `Implementation actor reviewed` — never against the body's current
+declaration; an **edited comment never clears the gate** (corrections go in a new comment); and
+where the body disagrees with what a verdict recorded, the gate **fails closed and reports**
+rather than choosing a side.
+
+Absent either actor, or where they match, the verdict is recorded as given but does not clear
+the gate — while an objection closes the gate whoever raised it, edited or not. Refusing to open
+on doubtful evidence and refusing to close on it are not symmetric, and only one is safe.
+
+This is stated as a clarification of v0.5, not a new version: `REVIEW_PROTOCOL.md` already
+named a PR comment as equivalent evidence, and this fixes the shape so a tool can read it. No
+existing file becomes invalid and no new obligation is added.
+
+**Rationale**
+The alternative to reading the evidence a project actually produces is a gate that reports a
+violation forever, which is worse than no gate: a permanent warning is indistinguishable from
+noise, and the first thing anyone does with it is stop reading it.
+
+The form carries the head for the same reason a review's `commit_id` is trusted — it ties the
+verdict to a commit that already existed when the verdict was given, so a later push cannot
+inherit it.
+
+**What this deliberately does not claim.** It does not *verify* independence. An actor
+identifier is an assertion, and in a single-account repository nothing stops a false one. What
+the form buys is that independence becomes something the record states and can be checked
+against — rather than something a reader must assume — and that two actors stop being silently
+merged. The same standing as an owner decision relayed through an agent, which must name its
+channel rather than pass as something stronger.
+
+The first draft of this decision stopped at "does not establish independence" and left it there,
+documenting the limitation instead of narrowing it. Independent review of the PR pointed out
+that the reader then actively *merged* distinct actors — weakening the very invariant the form
+claimed to serve — and that the record could not answer who issued a verdict. The actor field is
+the correction. Where independence matters most, use a second GitHub identity, which GitHub
+itself authenticates.
+
+**Alternatives considered**
+- **Require a second GitHub identity.** Not rejected — it is the stronger answer and the
+  protocol says to use one where independence matters most. Rejected as a *precondition*,
+  because it makes the gate depend on account administration a solo project may not do, and
+  until then every merge is ungated.
+- **Accept `MERGED_WITHOUT_APPROVAL` as the permanent state here.** Rejected: it makes the
+  release's central check inert on the project that wrote it.
+- **Read any comment containing an approving word.** Rejected: it makes "looks good to me" a
+  merge authorization, and every quoted review table an approval.
+- **Key positions on the GitHub login and note the limitation in prose.** Rejected on review,
+  correctly: it silently merges actors, so the gate could be opened or closed by the wrong one.
+- **Infer independence from the actor's name** (a `-independent-` convention, say). Rejected:
+  magic strings that anyone can type, dressed as verification.
+- **Compare the verdict against the PR body's current `Implementation actor`.** Rejected on
+  review, correctly: the body is editable and the head does not move when it changes, so a
+  non-clearing self-review could be made clearing afterwards without touching the code.
+- **Accept edited comments and note the edit.** Rejected: an approval that can be written after
+  the fact is not evidence of what was approved, and a note beside it does not change that.
+
+**Consequences**
+- The gate is satisfiable in a single-account repository, which is most projects adopting this.
+- Reviewers have one form to learn, and it is four lines. Two of them — the actor pair — exist
+  only because the record has to survive later edits to the surfaces it lives on.
+- A reviewer who edits their own verdict silently disarms it. The protocol says to post a new
+  comment instead, and the tool reports the edit rather than failing quietly.
+- A consumer reading verdicts must strip quotes, fences and HTML comments first — Build OS's
+  own PR comments quote the review table, and would otherwise issue verdicts by discussing them.
+- The strength of the evidence now varies by who posted it, which the record has to carry
+  rather than flatten.
+- **The PR handoff's `Implementation actor` is a cross-check, not a gate.** A complete verdict
+  clears on its own captured pair even where the handoff declares nothing; where the handoff
+  declares something different, the gate fails closed and reports. An earlier draft of this
+  decision made the handoff authoritative, which reintroduced the mutability this decision
+  exists to remove — a body edit could have turned a self-review independent. The field is still
+  worth writing: it is what makes a contradiction detectable at all.

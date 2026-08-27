@@ -94,6 +94,23 @@ Two rules keep the review fields honest, and both matter to anyone writing them 
   reviewed *in full*; `Finalization: pushed` says the PR head is legitimately ahead of it; and
   the head that commit produced is recorded by the reviewer **on the PR**, after it exists —
   a GitHub review carries the commit id it was submitted against. Merge targets that SHA.
+- **A verdict may be a comment** (clarified 2026-08-25, DEC-015). GitHub refuses a review on a
+  pull request the account authored, so a repository worked by one account cannot produce an
+  approving review at all — the gate is not strict there, it is inoperable, and this repository
+  proved it by merging v0.5 itself twice without one. A verdict may therefore be a PR comment
+  carrying a `Build OS review verdict:` line, a `Reviewed head:` line with a full SHA, and a
+  `Review actor:` line naming who issued it, and an `Implementation actor reviewed:` line naming
+  who the reviewer understood they were reviewing — read only where it is stated and never where
+  it is quoted, fenced, or commented out. **An edited comment never clears the gate**, and both
+  actors travel inside the verdict, because a comment and a PR body can both be rewritten after
+  a review while the commit named stays fixed. The actor matters because in such a repository the
+  login is transport: several actors share it, and a record keyed on the login merges them.
+  Positions are therefore keyed on the actor, and a comment verdict clears the
+  independent-review gate only when **the two actors named inside it differ** — never by
+  comparison against the PR body, which is editable and would let an old verdict change meaning.
+  The body stays a cross-check: where it names a different implementation actor than the verdict
+  captured, the gate fails closed and reports. It records that a verdict was given; it does not
+  verify that whoever gave it was independent. Where that matters most, use a second identity.
 
 Supporting changes: structured `Verdict`, `Reviewed head`, `Reviewed PR`, and `Finalization`
 fields in `templates/WORKSTREAM.template.md` and `templates/REVIEW_SUMMARY.template.md`; a

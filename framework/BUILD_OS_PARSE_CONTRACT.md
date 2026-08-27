@@ -227,6 +227,59 @@ ahead of it.
 The head that finalization produced is verified through a record created *after* it exists:
 GitHub stamps an approving review with the commit id it was submitted against.
 
+Where GitHub will not produce that review — it refuses one on a PR the account authored, so a
+single-account repository can never obtain one — the equivalent record is a **comment verdict**,
+which a consumer reads only in this exact form:
+
+```markdown
+Build OS review verdict: Approved
+Reviewed head: <full 40-character SHA>
+Review actor: <stable actor identifier>
+Implementation actor reviewed: <the actor this verdict understood it was reviewing>
+```
+
+**A consumer recognises a verdict on the marker plus a full-length `Reviewed head:`** — an
+abbreviated SHA is refused here exactly as it is in the file, and a verdict naming no head is
+not a verdict. **All four lines are required for that verdict to be gate-clearing.** A verdict
+with fewer is still a position: it displaces an earlier one by the same actor, and a
+`Changes required` still closes the gate. It never opens one. Each marker must **begin its line**, so a table cell or a
+sentence containing the words is not a verdict. Quoted (`>`), fenced and HTML-commented text is
+stripped before reading, so discussing a verdict never issues one. Fields bind to the marker
+above them, so two verdict blocks in one comment cannot cross-wire. It is not the `Commented`
+review state, which withholds a verdict deliberately.
+
+**Positions are keyed on the actor, not on the GitHub login.** This is the rule the form exists
+for: in a single-account repository the login is transport, and several actors share it. A
+consumer that keys on the login merges them, so one actor's later verdict silently replaces
+another's — which is the specific failure this form is meant to prevent, reintroduced at the
+parser. A GitHub review carries no actor field and needs none: GitHub authenticated it, so its
+login is its actor.
+
+**Independence is decided by the pair inside the verdict**, compared case-insensitively — never
+against the pull request body's current declaration. The body is editable and its head does not
+move when it changes, so a body-based comparison lets a non-clearing self-review become clearing
+after the fact: edit the body to name a different implementer and the old comment silently starts
+opening the gate. A verdict missing either actor never clears; matching actors are self-review.
+
+**A consumer must read each comment's last-edited time and refuse an edited comment as
+gate-clearing evidence.** A comment is mutable in place, so a `Changes required` can become an
+`Approved` — and the head or actor can be swapped — while the commit named stays fixed. Where a
+source carries no edit timestamp at all, treat the comment as unedited: that is the conservative
+reading for an observation captured before the field was available, since the alternative
+retroactively voids evidence. An edited comment still *closes* the gate when it objects.
+
+A consumer still reads **`Implementation actor:`** from the pull request body — the same line
+rules apply — but only as a cross-check. Where it disagrees with what a verdict recorded as the
+implementation actor, something changed after the review; the consumer must **fail closed and
+report** rather than choosing a side.
+
+A non-clearing position is still a position. It displaces an earlier position by the same actor,
+and a `Changes required` closes the gate whoever raised it.
+
+None of this verifies the claim. An actor identifier is an assertion, and a consumer must not
+report it as proof of independence — only that the record states it, which is what makes it
+checkable at all.
+
 **That evidence closes the gate readily and opens it narrowly.** A consumer may treat a GitHub
 approval as verifying a finalization head only when all of these hold:
 
@@ -245,7 +298,9 @@ as verification.
 
 The verdict and head fields also appear in a review summary, and may appear in a PR review or
 top-level PR comment. Wherever they appear, they mean the same thing: *this verdict was reached
-against exactly this commit.*
+against exactly this commit* — which is why the comment form above names the head rather than
+relying on the PR's head at the time of reading. A verdict that names no commit verifies nothing
+and a consumer must discard it.
 
 **Missing sections are normal.** A workstream in `IDEA` legitimately has almost nothing. Absence
 is not an error.
@@ -306,6 +361,7 @@ winner. Cases worth reporting:
 | A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
+| A comment verdict was edited after posting, or the PR body now names a different implementation actor than the verdict recorded | Report `REVIEW_EVIDENCE_MUTATED` and refuse it as gate-clearing. Evidence that moved after it was given is not evidence; an objection still closes the gate. |
 
 \* `Approved with follow-ups` is treated identically to `Approved` by every rule here.
 

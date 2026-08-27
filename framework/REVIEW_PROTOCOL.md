@@ -390,7 +390,128 @@ approved head, confirm it touches only the permitted surfaces, and submit their 
 PR. GitHub stamps that review with the commit id it was submitted against — a record created
 after the commit exists, by someone other than the commit's author. That is the authority. A
 project without GitHub reviews uses any equivalent record made after the fact: a PR comment
-naming the final SHA, a signed tag, a reviewer's note in the merge.
+naming the final SHA, a signed tag, a reviewer's note in the merge. The comment form has a
+required shape, below, because a tool has to be able to tell a verdict from a sentence about one.
+
+#### The comment verdict form
+
+GitHub will not let an account submit `APPROVE` or `REQUEST_CHANGES` on a pull request it
+authored. A repository worked by one account — one owner, one agent, one identity — therefore
+**cannot produce an approving review at all**, and a merge gate that reads only reviews is not
+strict there, it is inoperable. Build OS's own v0.5 release merged twice under exactly that
+condition, each merge correctly reported as `MERGED_WITHOUT_APPROVAL` by a gate that had no way
+to be satisfied.
+
+A verdict may therefore be given as a PR comment, in this form and no other — read
+literally, since a tool has to tell a verdict from a sentence about one:
+
+```markdown
+Build OS review verdict: Approved
+Reviewed head: 42ea13c260a8e8952f8dc044e4ac20a6dcfc60e5
+Review actor: chatgpt-independent-session
+Implementation actor reviewed: claude-implementation-session
+```
+
+**Two thresholds, deliberately different.** The marker and a `Reviewed head:` carrying a **full
+40-character SHA** are what make a comment a *verdict at all*: a verdict naming no head is not a
+verdict, since the head is the whole point, and an abbreviation cannot prove which commit was
+reviewed. All four lines are what make it **gate-clearing independent approval**.
+
+A verdict short of four lines is therefore still a position on the record — it displaces an
+earlier position by the same actor, and an actorless `Changes required` still closes the gate.
+It simply cannot open one. That asymmetry is the point: incomplete evidence should never read as
+approved, but it also should not silently discard someone's objection.
+
+- The verdict word is one of the five in this document. Emphasis (`**Reviewed head:**`) is fine.
+- It is read only where it is **stated**, never where it is discussed. Text that is quoted
+  (`>`), fenced, or inside an HTML comment carries no verdict — otherwise replying to an
+  approval, or quoting the review table to argue with it, would issue one.
+- It is a position of the same standing as a review. This is not the `Commented` review state,
+  which is a review deliberately withholding a verdict.
+
+#### `Review actor` — who spoke, as distinct from what carried it
+
+This is the field the form turns on, and the reason is the same one that makes the form
+necessary: **in a single-account repository the GitHub login is transport, not identity.** The
+owner, the implementation agent and an independent reviewer all post as the same account. A
+record keyed on that login cannot answer who issued a verdict, and — worse — treats them as one
+reviewer, so the last to speak silently replaces the others. An implementation agent's own
+position could supersede an independent reviewer's for no reason but sharing a pipe.
+
+So the actor is named in the artifact, and it is the actor, not the login, that identifies a
+position:
+
+- A stable identifier for the actor — `chatgpt-independent-session`, `claude-implementation-session`,
+  a person's own GitHub identity. The vocabulary is the project's; stability across comments is
+  what matters, since that is what lets one actor's later verdict replace their earlier one.
+- **Two actors relayed through one account are two reviewers.** Each holds their own current
+  position, and one actor's approval never cancels another's outstanding `Changes required`.
+- A GitHub review needs no such field: GitHub authenticated it, so there the login *is* the actor.
+
+The implementing side names itself too. A PR handoff carries **`Implementation actor:`** in its
+`Review Gate` section, which is what makes self-review recognisable rather than merely
+discouraged.
+
+But the verdict carries that name as well, in **`Implementation actor reviewed:`** — *who the
+reviewer understood they were reviewing*, recorded at the moment of the verdict. That is not
+duplication, and the reason is the next section.
+
+#### Evidence must not be able to move after it is given
+
+A verdict is a statement about one commit, fixed when it was made. Two things can break that,
+and both are ordinary GitHub features rather than exotic attacks:
+
+- **A comment is editable in place.** A `Changes required` can be rewritten to `Approved`, and
+  the head or the actor swapped, while the commit named stays exactly as it was.
+- **The PR body is editable, and the head does not move when it changes.** A self-review that is
+  correctly non-clearing today could be made clearing tomorrow by editing the body to name a
+  different implementer. The old comment would silently begin opening the gate.
+
+So:
+
+1. **An edited comment never clears the gate.** A consumer compares the comment's created and
+   last-edited times and refuses an edited one as gate-clearing evidence. Corrections and
+   retractions are posted as **new comments**, which preserves the history rather than replacing
+   it. An edited comment *does* still close the gate when it objects: refusing to open on
+   doubtful evidence and refusing to close on it are not symmetric, and only one of them is safe.
+2. **Independence is decided by the pair inside the verdict** — `Review actor` against
+   `Implementation actor reviewed` — never against the PR body's current declaration.
+3. **The body remains a cross-check.** Where it disagrees with what a verdict says it reviewed,
+   something changed after the review. Which side is not knowable from the outside, so the gate
+   **fails closed and reports** rather than choosing one.
+
+The rule underneath all three: a record that can be rewritten after the fact is not evidence,
+and the gate must prefer saying "I cannot tell" to saying "approved".
+
+#### What clears the independent-review gate
+
+A comment verdict clears DEC-013's independent-review requirement only when **its recorded actor
+is independent of implementation, immutably** — the comment names both actors, they differ, the
+comment has not been edited since it was posted, and nothing since contradicts it.
+
+Short of that, the verdict is **evidence that a verdict was given, not gate-clearing independent
+approval**. Five cases, all deliberate — and in every one the verdict remains a position that
+can close the gate:
+
+| Case | Why it does not clear |
+|---|---|
+| No `Review actor` | The record cannot say who spoke |
+| No `Implementation actor reviewed` | The verdict cannot say who it believed it was reviewing, and the body could change later |
+| The two actors are the same | Self-review, named as such |
+| The comment was edited after posting | The verdict could have been written after the fact; post a new one |
+| The body now names a different implementer | Something changed after the review; fail closed and report |
+
+Non-clearing positions are still positions. They displace an earlier position by the same actor,
+and an **objection closes the gate whoever raised it** — including one from the implementing
+agent, because closing is always the safe direction and a self-identified problem is still a
+problem.
+
+**None of this verifies the claim.** An actor identifier is an assertion, and in a single-account
+repository nothing stops one from being false. What the field buys is that independence is now
+something the record *states* and can be checked against, rather than something a reader has to
+assume — and that two actors stop being silently merged. **Where independence matters most, use
+a second GitHub identity**, which GitHub itself authenticates; treat the comment form as what
+keeps the record honest in its absence, not as a substitute for it.
 
 **A verdict is a current position, not a history.** An approval a reviewer has since replaced with
 `Changes required` is not evidence of anything, and while *any* reviewer has an outstanding

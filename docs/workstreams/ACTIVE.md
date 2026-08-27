@@ -25,4 +25,4 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 | ID | Workstream | Completed | Outcome |
 |---|---|---|---|
 | WS-001 … WS-006 | Companion program | 2026-08-24 | Moved to `50thycal/build-os-companion` with the application (`DEC-011`) |
-| WS-007 | Closed-loop feedback, review, and merge delivery | 2026-08-24 | Build OS v0.5 released in #7 (`DEC-012`, `DEC-013`, `DEC-014`). Merged without an approved verdict on its final head — recorded in the workstream, not reversed. |
+| WS-007 | Closed-loop feedback, review, and merge delivery | 2026-08-24 | Build OS v0.5 released in #7 (`DEC-012`, `DEC-013`, `DEC-014`), finalized in #9. Both merged without an approved verdict on their final heads — recorded in the workstream, not reversed. `DEC-015` (#10) makes the gate satisfiable where GitHub allows no review, and #10 is the first PR here to clear it. |

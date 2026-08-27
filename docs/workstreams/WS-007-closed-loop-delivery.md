@@ -192,8 +192,9 @@ Review rounds 1–3 (2026-08-24) each returned Changes required; every finding i
 |---|---|---|---|
 | #7 | Changes required | 39f2f3d2483a05c8781e0886162673a38fa38d9d | not pushed |
 | #9 | Changes required | c76922734c6de1572a2a1a49f5b9ab9b1ea72993 | not pushed |
+| #10 | Approved | 035f2ca1eabf937ff5edba48cd4c175b6dcfe72a | pushed |
 
-Two PRs, two records, because a verdict belongs to one pull request. #7 delivered v0.5 and merged; #9 is the corrective PR that finalizes this workstream afterwards, and it is significant under the same rule — a PR claiming to complete a significant workstream is significant however small its diff.
+Three PRs, three records, because a verdict belongs to one pull request. #7 delivered v0.5 and merged; #9 is the corrective PR that finalized this workstream afterwards; #10 is the protocol clarification that made the merge gate satisfiable at all. Each is significant under the same rule — a PR claiming to complete or change a significant workstream is significant however small its diff.
 
 ### #7 — merged without an approved verdict on its final head, 2026-08-24
 
@@ -235,6 +236,21 @@ The verdict against `c769227` says nothing about `42ea13c`. No approval is manuf
 
 `REVIEW_PROTOCOL.md` now defines a comment verdict form, and the Companion reads it. That is the fix: the gate becomes satisfiable by the evidence this project actually produces, instead of demanding an artifact GitHub will not issue. Recorded here rather than corrected away — two ungated merges happened, and the record of a release about honest records should say so.
 
+### #10 — the first PR here to clear the gate
+
+Independent review ran four rounds against `6e4d8c7`, `78bcf3e`, `57b1b61` and `035f2ca`, each returning `Changes required` until the last:
+
+| Round | Head | Finding |
+|---|---|---|
+| 1 | `6e4d8c7` | Reviewer identity collapsed into the transport account — distinct actors sharing one login overwrote each other |
+| 2 | `78bcf3e` | The gate rested on mutable metadata: a comment and a PR body can both be rewritten after a review without the head moving |
+| 3 | `57b1b61` | DEC-015 and `VERSION.md` still stated the rule the protocol had replaced, putting the editable body back in authority; and "all four lines are required" contradicted the degraded evidence the same document defines |
+| 4 | `035f2ca` | **Approved** — verdict, reviewed head, `Review actor: chatgpt-independent-session`, `Implementation actor reviewed: claude-implementation-session` |
+
+**This is the demonstration the workstream was missing.** #7 and #9 both merged ungated, and the record above says so. #10 is the first head here to carry an approving verdict naming it — given in the comment form the same PR defines, by an actor named apart from the account that carried it, on evidence that cannot be edited afterwards without voiding itself.
+
+`Finalization: pushed` means the commit that wrote this row exists on the PR. Per `REVIEW_PROTOCOL.md`, that commit cannot name the head it produces: `Reviewed head` keeps naming `035f2ca`, the last head reviewed in full, and the head this commit creates is verified by the reviewer on the PR before the owner merges.
+
 ## Related Decisions
 
 Existing foundations: DEC-002 (GitHub is the handoff), DEC-004 (workstreams are durable state), DEC-005 (persistence claims require write access), DEC-006 (version preflight), and DEC-007 (framework state in agent instructions).
@@ -245,17 +261,20 @@ Added by this implementation: DEC-012 (owner input is captured before it is proc
 
 - [#7 — WS-007: Build OS v0.5 closed-loop delivery](https://github.com/50thycal/build-os/pull/7) — the design handoff PR, continued as the implementation PR, merged as `8de3b8c`.
 - [#9 — Finalize WS-007 after the merge, and record how it merged](https://github.com/50thycal/build-os/pull/9) — the corrective and finalization PR. It exists because #7 merged without the finalization commit that would normally have preceded it, leaving `main` describing a state that had ended.
+- [#10 — Let a verdict be a comment, because GitHub allows no review](https://github.com/50thycal/build-os/pull/10) — `DEC-015`. The clarification that made this release's own gate satisfiable, and the first PR here to clear it.
+- [#11 — WS-007: record PR #9 merge-without-approval and close the loop](https://github.com/50thycal/build-os/pull/11) — a design handoff opened by the reviewer, **closed without merging** as superseded by #10, which implements its audit requirements. Listed so the record does not have a gap where a PR used to be.
 
 The Companion half lives in another repository and is deliberately not listed above: `Related PRs`
 holds pull requests of *this* repository, and a cross-repository reference written as a bare
 number would be read as one. It is
 [build-os-companion pull request 2](https://github.com/50thycal/build-os-companion/pull/2)
-(`DEC-011`).
+(`DEC-011`), and the reader for the comment verdict form is
+[build-os-companion pull request 8](https://github.com/50thycal/build-os-companion/pull/8).
 
 ## Next Step
 
-None. Build OS v0.5 is released on `main`; the Companion half is `50thycal/build-os-companion#2`.
+None. Build OS v0.5 is released on `main`; the Companion half is `50thycal/build-os-companion#2`, and the reader for `DEC-015` is `50thycal/build-os-companion#8`.
 
-One thing remains on the record rather than open as work: `caca3e0` merged without an approving verdict naming it (see Review State). That is not resolvable by this workstream and is not being reversed.
+Two things remain on the record rather than open as work. `caca3e0` merged without an approving verdict naming it, and so did `42ea13c` (see Review State). Neither is resolvable by this workstream and neither is being reversed — what closed that loop was making the gate satisfiable in #10, not chasing the merges that happened while it was not.
 
 The owner's approval of D1–D5 landed on 2026-08-24 and is recorded in Decisions Made with its provenance.

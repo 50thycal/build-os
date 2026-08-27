@@ -330,6 +330,13 @@ not something the implementation agent performs on its own PR.
 A stale approval is not a lie, and finding one is not an accusation. It is the ordinary
 consequence of a PR that kept moving, and the remedy is a re-review of the current head.
 
+**The handoff names the current head, and is updated in the same act as pushing.** Not written
+once at the start: every push restates it. A PR body that describes a head three commits behind
+sends a reviewer at the wrong diff and makes the durable handoff quietly false — the same failure
+as a verdict drifting from its commit, slower and easier to forgive. The implementation agent
+owns this; nobody else can notice it reliably, because a stale body looks exactly like a current
+one.
+
 ---
 
 ## Merge finalization

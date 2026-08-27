@@ -238,8 +238,11 @@ Review actor: <stable actor identifier>
 Implementation actor reviewed: <the actor this verdict understood it was reviewing>
 ```
 
-All four lines are required and the head must be full-length; an abbreviated SHA is refused
-here exactly as it is in the file. Each marker must **begin its line**, so a table cell or a
+**A consumer recognises a verdict on the marker plus a full-length `Reviewed head:`** — an
+abbreviated SHA is refused here exactly as it is in the file, and a verdict naming no head is
+not a verdict. **All four lines are required for that verdict to be gate-clearing.** A verdict
+with fewer is still a position: it displaces an earlier one by the same actor, and a
+`Changes required` still closes the gate. It never opens one. Each marker must **begin its line**, so a table cell or a
 sentence containing the words is not a verdict. Quoted (`>`), fenced and HTML-commented text is
 stripped before reading, so discussing a verdict never issues one. Fields bind to the marker
 above them, so two verdict blocks in one comment cannot cross-wire. It is not the `Commented`

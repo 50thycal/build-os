@@ -782,6 +782,9 @@ itself authenticates.
   own PR comments quote the review table, and would otherwise issue verdicts by discussing them.
 - The strength of the evidence now varies by who posted it, which the record has to carry
   rather than flatten.
-- A PR handoff that names no `Implementation actor` makes every comment verdict on it
-  non-gate-clearing. That is the intended direction — unknown independence must not read as
-  approved — but it means the handoff template's new field is load-bearing, not decorative.
+- **The PR handoff's `Implementation actor` is a cross-check, not a gate.** A complete verdict
+  clears on its own captured pair even where the handoff declares nothing; where the handoff
+  declares something different, the gate fails closed and reports. An earlier draft of this
+  decision made the handoff authoritative, which reintroduced the mutability this decision
+  exists to remove — a body edit could have turned a self-review independent. The field is still
+  worth writing: it is what makes a contradiction detectable at all.

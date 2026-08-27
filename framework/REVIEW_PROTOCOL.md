@@ -402,7 +402,8 @@ strict there, it is inoperable. Build OS's own v0.5 release merged twice under e
 condition, each merge correctly reported as `MERGED_WITHOUT_APPROVAL` by a gate that had no way
 to be satisfied.
 
-A verdict may therefore be given as a PR comment, in this form and no other:
+A verdict may therefore be given as a PR comment, in this form and no other — read
+literally, since a tool has to tell a verdict from a sentence about one:
 
 ```markdown
 Build OS review verdict: Approved
@@ -411,9 +412,16 @@ Review actor: chatgpt-independent-session
 Implementation actor reviewed: claude-implementation-session
 ```
 
-- All four lines are required. A verdict naming no head is not a verdict — the head is the
-  whole point, and it must be a **full 40-character SHA** for the same reason the workstream
-  field refuses an abbreviation: a prefix cannot prove which commit was reviewed.
+**Two thresholds, deliberately different.** The marker and a `Reviewed head:` carrying a **full
+40-character SHA** are what make a comment a *verdict at all*: a verdict naming no head is not a
+verdict, since the head is the whole point, and an abbreviation cannot prove which commit was
+reviewed. All four lines are what make it **gate-clearing independent approval**.
+
+A verdict short of four lines is therefore still a position on the record — it displaces an
+earlier position by the same actor, and an actorless `Changes required` still closes the gate.
+It simply cannot open one. That asymmetry is the point: incomplete evidence should never read as
+approved, but it also should not silently discard someone's objection.
+
 - The verdict word is one of the five in this document. Emphasis (`**Reviewed head:**`) is fine.
 - It is read only where it is **stated**, never where it is discussed. Text that is quoted
   (`>`), fenced, or inside an HTML comment carries no verdict — otherwise replying to an
@@ -482,7 +490,8 @@ is independent of implementation, immutably** — the comment names both actors,
 comment has not been edited since it was posted, and nothing since contradicts it.
 
 Short of that, the verdict is **evidence that a verdict was given, not gate-clearing independent
-approval**. That covers three cases, all deliberate:
+approval**. Five cases, all deliberate — and in every one the verdict remains a position that
+can close the gate:
 
 | Case | Why it does not clear |
 |---|---|

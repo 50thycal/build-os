@@ -702,8 +702,9 @@ A gate that cannot be satisfied is not strict. It trains everyone to merge past 
 **Decision**
 A verdict may be given as a pull request comment, read only in a fixed form: a
 `Build OS review verdict:` line naming one of the five verdicts, a `Reviewed head:` line naming
-a full 40-character SHA, and a `Review actor:` line naming who issued it. Quoted, fenced and
-HTML-commented text carries no verdict.
+a full 40-character SHA, a `Review actor:` line naming who issued it, and an
+`Implementation actor reviewed:` line naming who the reviewer understood they were reviewing.
+Quoted, fenced and HTML-commented text carries no verdict.
 
 **Positions are keyed on the actor, never on the GitHub login.** That is the substance of this
 decision rather than a detail of it: the premise is a repository where the login is transport
@@ -711,10 +712,19 @@ and several actors share it, so keying on the login merges an independent review
 implementation agent and lets whichever spoke last replace the other. Two actors through one
 account are two reviewers; one actor speaking twice is one position, the later one.
 
-A comment verdict clears the independent-review requirement only when its actor differs from the
-`Implementation actor` the PR handoff declares. Absent either declaration, or where they match,
-the verdict is recorded as given but does not clear the gate — while an objection closes the
-gate whoever raised it.
+**Evidence must not be able to move after it is given**, which is the other half of the same
+principle. A comment is editable in place and the PR body is editable without moving the head,
+so both authoritative inputs could otherwise be rewritten after a review: a `Changes required`
+turned into an `Approved`, or a self-review made independent by editing the body to name a
+different implementer. Therefore independence is decided by the **pair inside the verdict** —
+`Review actor` against `Implementation actor reviewed` — never against the body's current
+declaration; an **edited comment never clears the gate** (corrections go in a new comment); and
+where the body disagrees with what a verdict recorded, the gate **fails closed and reports**
+rather than choosing a side.
+
+Absent either actor, or where they match, the verdict is recorded as given but does not clear
+the gate — while an objection closes the gate whoever raised it, edited or not. Refusing to open
+on doubtful evidence and refusing to close on it are not symmetric, and only one is safe.
 
 This is stated as a clarification of v0.5, not a new version: `REVIEW_PROTOCOL.md` already
 named a PR comment as equivalent evidence, and this fixes the shape so a tool can read it. No
@@ -756,10 +766,18 @@ itself authenticates.
   correctly: it silently merges actors, so the gate could be opened or closed by the wrong one.
 - **Infer independence from the actor's name** (a `-independent-` convention, say). Rejected:
   magic strings that anyone can type, dressed as verification.
+- **Compare the verdict against the PR body's current `Implementation actor`.** Rejected on
+  review, correctly: the body is editable and the head does not move when it changes, so a
+  non-clearing self-review could be made clearing afterwards without touching the code.
+- **Accept edited comments and note the edit.** Rejected: an approval that can be written after
+  the fact is not evidence of what was approved, and a note beside it does not change that.
 
 **Consequences**
 - The gate is satisfiable in a single-account repository, which is most projects adopting this.
-- Reviewers have one form to learn, and it is two lines.
+- Reviewers have one form to learn, and it is four lines. Two of them — the actor pair — exist
+  only because the record has to survive later edits to the surfaces it lives on.
+- A reviewer who edits their own verdict silently disarms it. The protocol says to post a new
+  comment instead, and the tool reports the edit rather than failing quietly.
 - A consumer reading verdicts must strip quotes, fences and HTML comments first — Build OS's
   own PR comments quote the review table, and would otherwise issue verdicts by discussing them.
 - The strength of the evidence now varies by who posted it, which the record has to carry

@@ -99,8 +99,11 @@ Two rules keep the review fields honest, and both matter to anyone writing them 
   approving review at all — the gate is not strict there, it is inoperable, and this repository
   proved it by merging v0.5 itself twice without one. A verdict may therefore be a PR comment
   carrying a `Build OS review verdict:` line, a `Reviewed head:` line with a full SHA, and a
-  `Review actor:` line naming who issued it — read only where it is stated and never where it is
-  quoted, fenced, or commented out. The actor matters because in such a repository the login is
+  `Review actor:` line naming who issued it, and an `Implementation actor reviewed:` line naming
+  who the reviewer understood they were reviewing — read only where it is stated and never where
+  it is quoted, fenced, or commented out. **An edited comment never clears the gate**, and both
+  actors travel inside the verdict, because a comment and a PR body can both be rewritten after
+  a review while the commit named stays fixed. The actor matters because in such a repository the login is
   transport: several actors share it, and a record keyed on the login merges them. Positions are
   therefore keyed on the actor, and a comment verdict clears the independent-review gate only
   when its actor differs from the `Implementation actor` the PR handoff declares. It records that

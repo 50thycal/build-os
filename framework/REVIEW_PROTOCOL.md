@@ -408,9 +408,10 @@ A verdict may therefore be given as a PR comment, in this form and no other:
 Build OS review verdict: Approved
 Reviewed head: 42ea13c260a8e8952f8dc044e4ac20a6dcfc60e5
 Review actor: chatgpt-independent-session
+Implementation actor reviewed: claude-implementation-session
 ```
 
-- All three lines are required. A verdict naming no head is not a verdict — the head is the
+- All four lines are required. A verdict naming no head is not a verdict — the head is the
   whole point, and it must be a **full 40-character SHA** for the same reason the workstream
   field refuses an abbreviation: a prefix cannot prove which commit was reviewed.
 - The verdict word is one of the five in this document. Emphasis (`**Reviewed head:**`) is fine.
@@ -443,11 +444,42 @@ The implementing side names itself too. A PR handoff carries **`Implementation a
 `Review Gate` section, which is what makes self-review recognisable rather than merely
 discouraged.
 
+But the verdict carries that name as well, in **`Implementation actor reviewed:`** — *who the
+reviewer understood they were reviewing*, recorded at the moment of the verdict. That is not
+duplication, and the reason is the next section.
+
+#### Evidence must not be able to move after it is given
+
+A verdict is a statement about one commit, fixed when it was made. Two things can break that,
+and both are ordinary GitHub features rather than exotic attacks:
+
+- **A comment is editable in place.** A `Changes required` can be rewritten to `Approved`, and
+  the head or the actor swapped, while the commit named stays exactly as it was.
+- **The PR body is editable, and the head does not move when it changes.** A self-review that is
+  correctly non-clearing today could be made clearing tomorrow by editing the body to name a
+  different implementer. The old comment would silently begin opening the gate.
+
+So:
+
+1. **An edited comment never clears the gate.** A consumer compares the comment's created and
+   last-edited times and refuses an edited one as gate-clearing evidence. Corrections and
+   retractions are posted as **new comments**, which preserves the history rather than replacing
+   it. An edited comment *does* still close the gate when it objects: refusing to open on
+   doubtful evidence and refusing to close on it are not symmetric, and only one of them is safe.
+2. **Independence is decided by the pair inside the verdict** — `Review actor` against
+   `Implementation actor reviewed` — never against the PR body's current declaration.
+3. **The body remains a cross-check.** Where it disagrees with what a verdict says it reviewed,
+   something changed after the review. Which side is not knowable from the outside, so the gate
+   **fails closed and reports** rather than choosing one.
+
+The rule underneath all three: a record that can be rewritten after the fact is not evidence,
+and the gate must prefer saying "I cannot tell" to saying "approved".
+
 #### What clears the independent-review gate
 
 A comment verdict clears DEC-013's independent-review requirement only when **its recorded actor
-is independent of implementation** — the comment names an actor, the PR names the implementation
-actor, and the two differ.
+is independent of implementation, immutably** — the comment names both actors, they differ, the
+comment has not been edited since it was posted, and nothing since contradicts it.
 
 Short of that, the verdict is **evidence that a verdict was given, not gate-clearing independent
 approval**. That covers three cases, all deliberate:
@@ -455,8 +487,10 @@ approval**. That covers three cases, all deliberate:
 | Case | Why it does not clear |
 |---|---|
 | No `Review actor` | The record cannot say who spoke |
-| Actor is the implementation actor | Self-review, named as such |
-| PR declares no implementation actor | Independence is unestablished, and an implementing agent that declines to name itself must not thereby make every verdict independent |
+| No `Implementation actor reviewed` | The verdict cannot say who it believed it was reviewing, and the body could change later |
+| The two actors are the same | Self-review, named as such |
+| The comment was edited after posting | The verdict could have been written after the fact; post a new one |
+| The body now names a different implementer | Something changed after the review; fail closed and report |
 
 Non-clearing positions are still positions. They displace an earlier position by the same actor,
 and an **objection closes the gate whoever raised it** — including one from the implementing

@@ -235,9 +235,10 @@ which a consumer reads only in this exact form:
 Build OS review verdict: Approved
 Reviewed head: <full 40-character SHA>
 Review actor: <stable actor identifier>
+Implementation actor reviewed: <the actor this verdict understood it was reviewing>
 ```
 
-All three lines are required and the head must be full-length; an abbreviated SHA is refused
+All four lines are required and the head must be full-length; an abbreviated SHA is refused
 here exactly as it is in the file. Each marker must **begin its line**, so a table cell or a
 sentence containing the words is not a verdict. Quoted (`>`), fenced and HTML-commented text is
 stripped before reading, so discussing a verdict never issues one. Fields bind to the marker
@@ -251,12 +252,23 @@ another's — which is the specific failure this form is meant to prevent, reint
 parser. A GitHub review carries no actor field and needs none: GitHub authenticated it, so its
 login is its actor.
 
-A consumer reads **`Implementation actor:`** from the pull request body — the same line rules
-apply — and treats a comment verdict as clearing the independent-review gate **only** when the
-verdict names an actor, the PR names an implementation actor, and the two differ, compared
-case-insensitively. Otherwise the verdict is recorded as given but never clears the gate: an
-unnamed actor cannot be checked, a matching actor is self-review, and an undeclared
-implementation actor would otherwise make every verdict trivially independent.
+**Independence is decided by the pair inside the verdict**, compared case-insensitively — never
+against the pull request body's current declaration. The body is editable and its head does not
+move when it changes, so a body-based comparison lets a non-clearing self-review become clearing
+after the fact: edit the body to name a different implementer and the old comment silently starts
+opening the gate. A verdict missing either actor never clears; matching actors are self-review.
+
+**A consumer must read each comment's last-edited time and refuse an edited comment as
+gate-clearing evidence.** A comment is mutable in place, so a `Changes required` can become an
+`Approved` — and the head or actor can be swapped — while the commit named stays fixed. Where a
+source carries no edit timestamp at all, treat the comment as unedited: that is the conservative
+reading for an observation captured before the field was available, since the alternative
+retroactively voids evidence. An edited comment still *closes* the gate when it objects.
+
+A consumer still reads **`Implementation actor:`** from the pull request body — the same line
+rules apply — but only as a cross-check. Where it disagrees with what a verdict recorded as the
+implementation actor, something changed after the review; the consumer must **fail closed and
+report** rather than choosing a side.
 
 A non-clearing position is still a position. It displaces an earlier position by the same actor,
 and a `Changes required` closes the gate whoever raised it.
@@ -346,6 +358,7 @@ winner. Cases worth reporting:
 | A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
+| A comment verdict was edited after posting, or the PR body now names a different implementation actor than the verdict recorded | Report `REVIEW_EVIDENCE_MUTATED` and refuse it as gate-clearing. Evidence that moved after it was given is not evidence; an objection still closes the gate. |
 
 \* `Approved with follow-ups` is treated identically to `Approved` by every rule here.
 

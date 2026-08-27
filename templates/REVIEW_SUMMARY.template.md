@@ -33,13 +33,22 @@ the form the protocol reads:
     Build OS review verdict: Approved
     Reviewed head: <full 40-character SHA>
     Review actor: <stable identifier for you, not the account you post from>
+    Implementation actor reviewed: <who the PR says implemented it, as you see it now>
 
 Same standing as a review, same requirement to name the commit. The actor is required and is
 what distinguishes you from the account carrying the comment — in a single-account repository
 several actors share one login, and without it the record cannot say who spoke.
 
-It clears the independent-review gate only when your actor differs from the PR's declared
-`Implementation actor`. It records that a verdict was given; it does not prove independence.
+Record the implementation actor here too, copied from the PR's handoff. Both names travel
+inside your verdict so that a later edit to the PR body cannot change whether your review was
+independent.
+
+**Do not edit this comment afterwards.** An edited verdict cannot clear the gate, because an
+approval could have been written after the fact. Corrections and retractions go in a *new*
+comment, which keeps the history instead of replacing it.
+
+It clears the independent-review gate only when the two actors differ. It records that a verdict
+was given; it does not prove independence.
 
 This verdict is about one PR. Name it above; it says nothing about the workstream's other PRs.
 

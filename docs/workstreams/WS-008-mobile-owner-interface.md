@@ -4,9 +4,9 @@
 **Status:** Active
 **Updated:** 2026-08-29
 **Build OS:** v0.5
-**Implementation State:** Implemented on PR #13; framework, contracts, templates and examples updated; awaiting independent review
+**Implementation State:** Merged in #13. Build OS v0.6 is released; the workstream is not complete, because the merge preceded independent review.
 **Related PRs:** #13
-**Next Step:** Independent review of PR #13 against this workstream's Build Card and the issued Build Spec.
+**Next Step:** Retrospective independent review of the merged change at `e215865b92af850504b70b454bb5e0a4cab217c7`, by an actor that did not implement it.
 
 ## Goal
 
@@ -80,12 +80,33 @@ Let an owner initiate software work from any supported AI surface, approve only 
 
 ## Review State
 
-**Verdict:** In review
+**Verdict:** Not started
 **Reviewed head:** —
 **Reviewed PR:** #13
 **Finalization:** —
 
-Implementation complete and pushed; no independent verdict yet.
+**PR #13 merged without an independent approved verdict, and without a merge-finalization
+commit.** No reviewer held it and none was recorded — `MERGED_WITHOUT_APPROVAL` in the terms of
+`framework/BUILD_OS_PARSE_CONTRACT.md`, on a workstream that declares `Build OS: v0.5` and is
+therefore gated. The verdict above reads `Not started` rather than `In review` because nobody
+ever had it; an earlier commit on the PR said `In review`, which overstated what had happened.
+
+This record is the recovery in `framework/REVIEW_PROTOCOL.md` → *Recovery: merged before
+review*, at its first step. The merged code is not being treated as settled because it is on
+`main`, and the review that did not happen is not being written up as though it did. The head
+to review is `e215865b92af850504b70b454bb5e0a4cab217c7` — the merge commit's parent on the
+branch, and the last head the implementation actually produced.
+
+**Retrospective approval is worth having and is not the same thing as a gate that was
+honoured.** The record should not blur them, so this note stays in the file after the review
+lands, and the verdict that follows will say it was retrospective.
+
+The workstream stays `REVIEW` and is **not** `COMPLETE`: a merged PR is not a finished
+workstream, and this is exactly the case where the two come apart. Completion also owes
+`PROJECT_MODEL.md` and `DECISIONS.md` — the latter already carries DEC-016 through DEC-019.
+
+Four implementation decisions are the ones most worth a reviewer's attention, because each
+resolved a gap or a tension in the issued spec rather than merely expanding it:
 
 Four implementation decisions are the ones most worth a reviewer's attention, because each
 resolved a gap or a tension in the issued spec rather than merely expanding it:

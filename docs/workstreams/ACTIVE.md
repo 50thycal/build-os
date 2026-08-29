@@ -14,7 +14,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| WS-008 | Mobile-first owner interface | REVIEW | Active | Independent review of PR #13 against the Build Card and issued spec | #13 |
+| WS-008 | Mobile-first owner interface | REVIEW | Active | Retrospective review of #13, which merged without a verdict; head e215865 | #13 |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned

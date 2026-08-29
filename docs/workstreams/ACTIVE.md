@@ -2,7 +2,7 @@
 
 <!-- Build OS's own active-work control board. Protocol work only. -->
 
-**Updated:** 2026-08-24 · **Build OS v0.5**
+**Updated:** 2026-08-29 · **Build OS v0.5**
 
 The Project Intelligence Companion program moved to
 [`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,
@@ -14,7 +14,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| WS-008 | Mobile-first owner interface | READY_TO_BUILD | Active | Claude implements approved vNext spec on the design-handoff PR; preserve entry-point neutrality and SHIP / DECISION / BLOCKED owner states | design handoff pending |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned

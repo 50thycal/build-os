@@ -3,9 +3,9 @@
 **Phase:** READY_TO_BUILD
 **Status:** Active
 **Updated:** 2026-08-29
-**Implementation State:** Approved design; draft handoff PR open; implementation not started
-**Related PRs:** Design/implementation handoff PR pending
-**Next Step:** Claude implements the approved vNext owner-interface protocol on this same branch and PR.
+**Implementation State:** Approved design; draft handoff PR #13 open; implementation not started
+**Related PRs:** #13
+**Next Step:** Claude implements the approved vNext owner-interface protocol on PR #13 and its existing branch.
 
 ## Goal
 

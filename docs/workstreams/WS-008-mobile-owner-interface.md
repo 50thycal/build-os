@@ -108,9 +108,6 @@ workstream, and this is exactly the case where the two come apart. Completion al
 Four implementation decisions are the ones most worth a reviewer's attention, because each
 resolved a gap or a tension in the issued spec rather than merely expanding it:
 
-Four implementation decisions are the ones most worth a reviewer's attention, because each
-resolved a gap or a tension in the issued spec rather than merely expanding it:
-
 - **The three states cover simple work too.** OD-4 scoped `SHIP | DECISION | BLOCKED` to
   significant work while spec §11 ended a simple change in an unnamed "concise completion
   result", which contradicts AC-5. Resolved by having simple work also return `SHIP`, with its

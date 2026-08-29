@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.5 — protocol contract**
+**Build OS v0.6 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -307,6 +307,78 @@ is not an error.
 
 ---
 
+## The Owner Result — the owner's next action
+
+From v0.6 a piece of work ends in exactly one of three owner-facing states. A consumer answering
+*what does the owner need to do?* reads it from one marker, in this form and no other:
+
+```markdown
+Build OS owner result: SHIP
+```
+
+| Field | Rule |
+|---|---|
+| State | Exactly one of `SHIP`, `DECISION`, `BLOCKED`, case-insensitive. Unrecognized → absent, plus `OWNER_RESULT_MALFORMED`. |
+| Where | A pull request body or a top-level pull request comment. |
+| Binding | To the PR it appears on. |
+
+The reading rules are the ones the comment verdict already uses, for the same reasons:
+
+- The marker must **begin its line**. A sentence or a table cell containing the words is not a
+  result.
+- It is read only where it is **stated**, never where it is discussed. Quoted (`>`), fenced and
+  HTML-commented text is stripped first — otherwise this document, the templates, and every
+  worked example would issue owner results by describing them.
+- **The latest one on a PR wins.** A result is a current position, not a history: work that was
+  `DECISION` on Tuesday and `SHIP` on Thursday is `SHIP`. Where two markers appear in the *same*
+  body or comment, neither is read and `OWNER_RESULT_AMBIGUOUS` is reported — a result that is
+  two states is a writing error, and guessing which was meant is exactly the repair this
+  contract forbids. The common cause is benign and the handling is deliberate: the PR handoff
+  template ships all three blocks for the author to delete down to one, so an unfilled template
+  reads as *no result declared* rather than as whichever state happens to appear first.
+
+Everything below the marker — `What changed`, `Next action`, `Options`, `Blocker` — is prose for
+the owner. A consumer may display it. It should not parse fields out of it.
+
+### A result is a report, never evidence
+
+**`SHIP` is not an approval, does not clear the merge gate, and must never be treated as
+either.** It is the implementation agent's account of a gate that some *other* record either
+satisfies or does not. The verdict, the reviewed head, the finalization state and the
+independence rules are unchanged by anything here, and a consumer that let a `SHIP` stand in
+for a verdict would have handed the implementing party the approval the whole gate exists to
+withhold.
+
+So the precedence is the ordinary one, and it runs against the result:
+
+```text
+workstream record + PR review evidence   >   Owner Result
+```
+
+Where they disagree, the durable record wins and the disagreement is **reported**. It is not
+repaired, and the result is not upgraded, downgraded, or quietly ignored.
+
+A `SHIP` is contradicted when, for its own PR:
+
+- the review record's verdict is not `Approved` or `Approved with follow-ups`; or
+- the record is approving but **stale** — its reviewed head is not the PR's current head and
+  `Finalization: pushed` is not declared; or
+- any reviewer has an outstanding `Changes required`.
+
+Report `OWNER_RESULT_CONTRADICTED` in each case. The gate stays exactly as shut as it was.
+
+**A missing result is not a warning.** Most PRs at most moments have no owner result — work in
+flight has not reached one, and `SHIP` is never the default for silence. Absence is absence.
+
+The same three states appear as `owner_result` in
+[`contracts/agent-session-checkpoint.v1.schema.json`](../contracts/agent-session-checkpoint.v1.schema.json),
+where the enum is enforced by the schema rather than by this document. A checkpoint is the
+weaker source: `framework/AGENT_SESSION_CHECKPOINT.md` puts it below GitHub state, and a
+checkpoint claiming `SHIP` against a PR whose record disagrees is the same contradiction,
+reported the same way.
+
+---
+
 ## `DECISIONS.md` — the rationale log
 
 Stable surface: level-3 headings matching `### DEC-### — <title>`, each followed by:
@@ -362,6 +434,9 @@ winner. Cases worth reporting:
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
 | A comment verdict was edited after posting, or the PR body now names a different implementation actor than the verdict recorded | Report `REVIEW_EVIDENCE_MUTATED` and refuse it as gate-clearing. Evidence that moved after it was given is not evidence; an objection still closes the gate. |
+| An owner result says `SHIP` while its PR's record is non-approving, stale, or carries an outstanding `Changes required` | Report `OWNER_RESULT_CONTRADICTED`. The result is a report of the gate, never a way through it. |
+| Two owner-result markers in one body or comment | Report `OWNER_RESULT_AMBIGUOUS`; read neither. A result that is two states is a writing error, not a state to guess at. |
+| An owner-result state that is not one of the three | Report `OWNER_RESULT_MALFORMED`; the field is absent, the rest parses. |
 
 \* `Approved with follow-ups` is treated identically to `Approved` by every rule here.
 

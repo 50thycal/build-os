@@ -1,6 +1,6 @@
 # Workstreams
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 A **workstream** is one meaningful design/build thread — procurement redesign, an
 authentication rewrite, a scoring rebalance, a new simulation system. Several may proceed
@@ -17,10 +17,12 @@ meaningful work from the repository alone.
 Design work now happens across many conversations, in more than one tool, over weeks.
 Chat is where thinking happens; it is not where state lives.
 
-### ChatGPT Project — working conversational memory
+### The agent's working context — working conversational memory
 
-Holds multiple design conversations, project instructions, conversational context, and
-temporary exploration. It is fast, rich, and lossy. It is where the Design Room runs.
+Holds design conversations, project instructions, conversational context, and temporary
+exploration. It is fast, rich, and lossy. A ChatGPT Project is the common shape of it and the
+one this document uses for examples, but a Claude session, another capable agent, or a person
+with a notebook occupies the same slot. **Nothing below depends on which.**
 
 ### GitHub project repository — durable authoritative project memory
 
@@ -51,6 +53,30 @@ One meaningful design/build thread, tracked from raw idea to merged, documented 
   delivered in stages
 
 The unit is the *thread of intent*, not the vessel it travels in.
+
+### Where a workstream comes from
+
+Any entry surface. Intent may arrive in a Design Room conversation, in an implementation
+session, in a GitHub issue, or from an agent noticing something adjacent to what it was
+doing — and **the lifecycle is identical in all four cases.** What decides whether a
+workstream exists is the *classification*, never the origin:
+
+| Classification | Workstream |
+|---|---|
+| **Simple** | None. A workstream for a copy fix is the sprawl anti-pattern below, not diligence. |
+| **Significant** | Created, or resumed if the intent belongs to one already open — check `ACTIVE.md` first. |
+| **Promoted mid-flight** | Created at the moment of promotion, recording that it began as simple and what changed. |
+
+That third row is the one that gets skipped. Work promoted from simple to significant partway
+through has no workstream, and creating one retroactively feels like paperwork for something
+already half-built. It is not: the promotion is exactly the moment the effort acquired owner
+decisions worth remembering, and a PR that reaches review with no workstream behind it is a PR
+the reviewer cannot measure against anything.
+
+Intake, the classification, and the promotion rule are defined in
+`framework/OWNER_INTERFACE.md`. **They add no lifecycle phase** — a workstream created from a
+GitHub issue starts at `IDEA` or `EXPLORE` like any other, and the nine phases below are
+unchanged from v0.2.
 
 Workstreams get stable IDs — `WS-001`, `WS-002` — assigned in order and never reused. The
 ID is how a conversation, a Build Card, a Build Spec, a PR, and a decision entry all refer
@@ -562,4 +588,5 @@ voices, at which point nobody knows which one is true.
 | Unchecked framework | Resuming a workstream without confirming the adopted Build OS version | The effort continues under a protocol that has since changed |
 | Second PR for one build | The implementation agent opens its own PR beside the design handoff | The change's history splits; review reads half of it |
 | Post-merge bookkeeping | Leaving the workstream at `REVIEW` and planning a cleanup PR | `main` describes a state that ended at merge; the cleanup PR never comes |
+| Orphan promotion | Work promoted to significant that never gets the workstream it now needs | Review has nothing to measure the change against, and the decisions made along the way are unrecorded |
 | Approval without a commit | `Review State: Approved`, no reviewed head | Proves nothing, and the gate it opens was never really closed |

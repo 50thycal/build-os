@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 ---
 
@@ -788,3 +788,272 @@ itself authenticates.
   decision made the handoff authoritative, which reintroduced the mutability this decision
   exists to remove — a body edit could have turned a self-review independent. The field is still
   worth writing: it is what makes a contradiction detectable at all.
+
+---
+
+### DEC-016 — The owner reads a projection of the record, never a second copy of it
+
+**Date:** 2026-08-29
+**Status:** Accepted
+
+**Context**
+By v0.5 the framework was working and the artifacts were durable, and an owner who wanted to
+know whether they could merge read a Build Card, a PR handoff, a review summary and a
+workstream file — four documents, three of them written for somebody else. The handoff carried
+an *Owner Summary*, which described what changed but not what to do about it, leaving the owner
+to derive the answer from the sections above it.
+
+That is a real cost and it compounds: rigor that only survives at a desk is rigor a project
+abandons on the first busy week, and the way it gets abandoned is not a decision anyone records.
+
+The obvious fix — write the owner a short summary — is the one that fails, because a summary
+written independently of the record becomes a second record, and the two disagree within a week.
+
+**Decision**
+Build OS has an **owner layer** and an **engineering layer**, and the owner layer is a
+**projection** of the engineering layer rather than a source of truth. It has three surfaces:
+intent, an Owner Plan where approval is needed, and an Owner Result that is exactly one of
+`SHIP`, `DECISION`, or `BLOCKED`.
+
+The Owner Result **replaces** the handoff's Owner Summary rather than joining it. One
+owner-facing surface per PR.
+
+Two rules make the compression safe, and they are the substance of this decision:
+
+**A summary may omit detail. It may never omit material truth.** Brevity constrains the
+writing, not the content. A deviation, a red check, a stale approval, or an unresolved blocking
+finding is material by definition, and no word count excuses dropping one.
+
+**`SHIP` is a report of the merge gate, never a route through it.** It may not be written for
+significant work while validation is red, a `Blocking` or `Should fix` finding is unresolved,
+there is no independent approved verdict, that verdict is stale, or a material deviation is
+undisclosed. Writing one approves and merges nothing. Where the record and the result disagree,
+the record wins and the disagreement is reported — never repaired.
+
+A corollary that took a draft to find: **most PRs have no owner result at all.** The three
+states are terminal, not a running status, so a PR awaiting review says so and carries no
+marker. `SHIP` is written when review clears, not when coding stops — the same error as marking
+a workstream `COMPLETE` at merge, where the claim outruns the evidence.
+
+**Rationale**
+The projection framing is what stops this becoming the failure it is trying to fix. A summary
+that is *derived* can be checked against what it derives from, and a consumer finding a `SHIP`
+against a non-approving record has caught something rather than been misled by it. A summary
+that is *authored* has no such property, and its being short makes it worse rather than better.
+
+Naming the three states as an enum, rather than leaving the ending to prose, is what lets the
+owner know which of three situations they are in before reading a word of it — and what lets a
+tool sort a board by "what needs me". Prose cannot be sorted and cannot be checked.
+
+**Alternatives considered**
+- **Keep the Owner Summary and add a result beside it.** Rejected: two owner-facing surfaces on
+  one PR, drifting immediately, with no rule for which is current.
+- **A single summary with a status word in the first sentence.** Rejected: it is prose, so it
+  cannot be parsed conservatively, and "mostly ready" would appear within a month.
+- **More states — `IN_PROGRESS`, `NEEDS_REVIEW`, `PARTIAL`.** Rejected: every one of them is a
+  status the engineering layer already carries, and a status is not a terminal result. The
+  absence of a result already says "in flight", which is why the pre-result case needed no
+  fourth state.
+- **Let `SHIP` mean "the implementation agent believes this is done".** Rejected: that is what
+  the handoff already says, and attaching it to a word the owner will read as authorization
+  hands the implementing party the approval the gate exists to withhold.
+
+**Consequences**
+- The owner's default reading path is one section, and the durable evidence is untouched
+  beneath it.
+- The gate is unchanged, and a `SHIP` that contradicts it is now a *detectable* error rather
+  than an unexamined claim — `OWNER_RESULT_CONTRADICTED` in the parse contract.
+- An implementation agent has one more thing it can get wrong in a visible way, which is the
+  trade being made deliberately: a false `SHIP` is worse than a false handoff section, and it is
+  also much easier to catch.
+- Projects with local PR templates must replace a section. Nothing else in their history changes.
+
+---
+
+### DEC-017 — Intent has no privileged entry point
+
+**Date:** 2026-08-29
+**Status:** Accepted
+
+**Context**
+Build OS was written around a design agent and an implementation agent, and the documents said
+so concretely enough that the shape hardened into a requirement: the Design Room was where
+features came from, and `DESIGN_ROOM.md` described a ChatGPT Project as though it were the
+front door rather than one door.
+
+In practice intent arrives wherever the owner is. A one-line fix typed at an implementation
+agent is not a lesser kind of work with no protocol; it is ordinary work, and a framework that
+has nothing to say about it is a framework people route around for anything small — which is
+most changes.
+
+**Decision**
+Intent may originate with a design agent, an implementation agent, another capable agent, or
+directly in GitHub. **The lifecycle semantics are identical in all four cases**, and nothing
+about which one it was changes what the work needs.
+
+A single **Intent Intake** contract, satisfiable by any capable agent, is the shared front door:
+establish the desired outcome, capture the constraints and non-goals the owner actually stated,
+classify the work, create or resume the durable workstream where it is significant, and route
+genuine product choices to the owner rather than settling them quietly.
+
+**No product is mandatory** — not ChatGPT, not Claude, not a mobile app, a bot, a hosted
+service, or a CI integration. Where documents name a product, they name it as the common case.
+
+**Rationale**
+The alternative is not neutrality-by-omission but a de facto requirement nobody wrote down, and
+the cost of it is paid entirely by small work — the work most likely to be done at all.
+
+Intake being a contract rather than a document is what keeps it cheap. An implementation agent
+performing intake writes nothing; it establishes four things and proceeds. The obligation only
+grows where the work does.
+
+Step 5 is the one that carries the weight. Intake is allowed to be fast; it is not allowed to be
+where owner decisions get made by an agent in a hurry, which is the failure a fast front door
+would otherwise introduce.
+
+**Alternatives considered**
+- **Require every change to pass through the Design Room.** Rejected: it is the status quo, and
+  it is what sends owners around the framework for anything small.
+- **Define a separate lightweight lifecycle for agent-originated work.** Rejected: two
+  lifecycles diverge, and work that starts in one and belongs in the other has nowhere to go.
+  Proportionality within one lifecycle does the same job without the fork.
+- **Say nothing and let projects work it out.** Rejected: they already were, differently, which
+  is the drift the framework exists to prevent.
+
+**Consequences**
+- An implementation agent now has an obligation before writing code, and it is four lines.
+- `DESIGN_ROOM.md` describes an optional deep-design path rather than the universal one, which
+  is what it always actually was.
+- Work promoted to significant mid-flight needs a workstream created retroactively. That feels
+  like paperwork and is not: the promotion is the moment the effort acquired owner decisions
+  worth remembering.
+
+---
+
+### DEC-018 — Ceremony is proportional, and the classification only ever ratchets up
+
+**Date:** 2026-08-29
+**Status:** Accepted
+
+**Context**
+v0.5 said the merge gate is for significant work and that a typo needs no Build Card, but left
+"significant" to be judged case by case, in three places, by three different readers. Its one
+concrete criterion excluded any change that "does not implement or alter owner-visible
+behavior" — which, read literally, made a copy fix the owner had dictated word for word into
+significant work needing a Build Card, a spec, and independent review.
+
+**Decision**
+Three named classes — **simple**, **significant**, **escalated** — defined once in
+`framework/OWNER_INTERFACE.md` and used at intake, at implementation, and at review.
+
+Work is **simple** when the intended behavior is unambiguous, **no owner trade-off is being
+chosen on the owner's behalf**, nothing consequential to architecture, data, or security is
+involved, and it is not part of a significant workstream and does not claim to complete one.
+That second clause replaces v0.5's owner-visibility test and is a deliberate loosening: behavior
+the owner supplied is theirs already, while behavior an agent selects for them is not, however
+small it looks. "Change the subject line to X" is simple; "make the error message clearer" is
+not, because the second half of it is a decision.
+
+**Classification is promoted, never demoted.** Work becomes significant the moment it turns out
+to touch an owner decision, an invariant, or documented behavior — including partway through,
+and including for what it now needs before merge. Where it is genuinely unclear, it is
+significant.
+
+**A result for simple work names the classification.** That sentence is not ceremony; it is what
+makes a misclassification visible to the owner while it is still cheap.
+
+**Rationale**
+The asymmetry is the whole design, and it exists because the party doing the classifying is the
+party the classification constrains. An agent that under-classifies buys itself less work; an
+agent that over-classifies costs an hour. A rule that ratchets one way makes the cheap error the
+recoverable one.
+
+Stating the criterion positively — *am I choosing something on the owner's behalf?* — turns out
+to be the question that actually separates the cases, and it separates them better than size,
+than diff count, and than owner-visibility, all of which were tried in drafting and each of
+which puts an obvious case on the wrong side.
+
+**Alternatives considered**
+- **Keep v0.5's owner-visibility criterion.** Rejected: it makes an owner's own dictated sentence
+  into significant work, which is ceremony with nothing on the other end, and it is the kind of
+  rule people quietly stop applying.
+- **Size or diff thresholds.** Rejected: a one-line change to an owner decision is significant
+  and a thousand-line mechanical rename is not. Size correlates with nothing that matters here.
+- **Let the owner classify.** Rejected: it puts the owner back in the loop for every small
+  change, which is precisely the cost this release exists to remove.
+- **Allow demotion when a change turns out smaller than expected.** Rejected: it makes the gate
+  opt-out at the discretion of the party it constrains, and a gate with that property is not a
+  gate.
+
+**Consequences**
+- The same line is drawn in three places instead of three lines being drawn by feel.
+- One narrow class of change that was significant under v0.5 is simple under v0.6. Nothing moves
+  the other way.
+- Owners can audit classifications after the fact, because every simple result states its own.
+- An agent that misclassifies and then discovers it must promote mid-flight, which is more work
+  than classifying correctly. That cost is deliberate and falls in the right place.
+
+---
+
+### DEC-019 — Reviewer findings return to the implementation agent, not to the owner
+
+**Date:** 2026-08-29
+**Status:** Accepted
+
+**Context**
+v0.5 established independent review, the reviewed-head gate, and the
+`REVIEW → BUILDING → REVIEW` loop, and left one thing to circumstance: *who carries a finding
+from the reviewer to the implementation agent.* In practice, where the two are separate sessions
+in separate tools, the answer was the owner — reading a review summary, relaying its findings
+into another window, and relaying the response back.
+
+That makes the owner a message bus between two agents, on work neither of them needs them for.
+It is also the single largest consumer of owner attention in the framework, and none of it is
+judgment.
+
+**Decision**
+A reviewer's findings are addressed to the implementation agent. Four requirements:
+
+1. The reviewer publishes findings to the **durable surface** — the PR, or the review summary
+   committed beside it — not only to a chat transcript. A finding that exists in one session's
+   conversation cannot be answered by a different session, which is the condition that made the
+   relay necessary.
+2. Fixable `Blocking` and `Should fix` findings return to the implementation agent **on the same
+   PR**.
+3. The implementation agent responds, fixes, validates, restates the head, and requests
+   re-review — without owner involvement.
+4. The owner is interrupted for exactly three things: a decision genuinely theirs, a genuine
+   blocker, and the final ship or merge action.
+
+Reviewer escalation to `DECISION` or `BLOCKED` is defined and deliberately narrow: a finding
+only the owner can settle, or a condition that stops work responsibly continuing. Everything
+else stays in the loop.
+
+**Automation is optional.** Build OS specifies the contract and the state transitions; a project
+may realize the loop with GitHub reviews, agent sessions, CI, or two people talking.
+
+**Rationale**
+The requirement that does the work is the first one. Once findings are durable and attached to
+the PR, the relay is not so much prohibited as unnecessary — any session can read them, and the
+owner was only ever compensating for their absence.
+
+Keeping automation out is what makes this apply to every adopting project. A rule that needs a
+bot is a rule most projects do not have, and the framework has held since v0.5 that a gate
+nobody can satisfy trains everyone to ignore it.
+
+**Alternatives considered**
+- **Specify a GitHub-based automation.** Rejected: it makes the loop conditional on tooling, and
+  Build OS deliberately requires none.
+- **Let the owner opt into relaying.** Rejected: a default nobody chose is what the status quo
+  already was.
+- **Allow the reviewer to fix findings directly.** Rejected: it collapses reviewer and
+  implementer, which is the one separation the protocol will not bend.
+
+**Consequences**
+- The owner's attention is spent on judgment rather than transport.
+- Reviewers must publish durably rather than conversationally, which is a real change of habit
+  for a reviewer working in a chat window.
+- A reviewer can no longer discharge a finding by mentioning it. It has to land somewhere a
+  different session can read it.
+- The gate, the independence rule, and the reviewed head are untouched: fixing three findings
+  has never approved a PR and still does not.

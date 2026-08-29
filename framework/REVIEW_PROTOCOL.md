@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -581,6 +581,74 @@ a reviewed change, not a sign that something went wrong.
 
 ---
 
+## The correction loop
+
+A reviewer's findings are addressed to the **implementation agent**, not to the owner.
+
+```text
+Implementation agent
+  ↓
+Validation / CI
+  ↓
+Independent reviewer
+  ├─ Approved ──────────────────► finalization ──► owner result: SHIP
+  ├─ Fixable findings ──────────► implementation agent ──► validation ──► reviewer
+  ├─ Owner choice required ─────► owner result: DECISION
+  └─ Cannot proceed safely ─────► owner result: BLOCKED
+```
+
+This is the `REVIEW → BUILDING → REVIEW` loop above, with one thing made explicit that v0.5
+left to circumstance: **the owner is not the message bus.**
+
+Four requirements:
+
+1. **The reviewer publishes findings to the durable surface** — the PR, or the review summary
+   committed alongside it. Not only to a chat transcript. A finding that exists in one
+   session's conversation cannot be answered by a different session, which is the situation
+   the relay was compensating for.
+2. **Fixable `Blocking` and `Should fix` findings return to the implementation agent, on the
+   same PR.** No second PR, no new branch, and no owner in between.
+3. **The implementation agent responds, fixes, validates, and requests re-review** — updating
+   the handoff and restating the head, as it does on every push.
+4. **The owner is interrupted for three things only:** a decision that is genuinely theirs, a
+   genuine blocker, and the final ship or merge action.
+
+The loop may run any number of times. Nothing about it is a failure, and nothing about it
+needs the owner's attention while it is working.
+
+### When the reviewer escalates instead
+
+Two findings do not belong in the loop, because the implementation agent cannot resolve them
+by fixing code:
+
+- **A finding only the owner can settle** — an ambiguity in approved behavior, a trade-off
+  surfaced by implementation, something built as specified that the reviewer believes the
+  owner would not want. The verdict is `Changes required`, the question goes in *Decisions
+  requiring owner attention*, and the owner result is `DECISION`. The gate stays closed while
+  it is outstanding; there is no separate verdict for it, because from the code's point of
+  view the outcome is the same.
+- **A condition that stops the work responsibly continuing** — a missing authority or
+  credential, an unavailable external dependency, a conflict that cannot honestly be reduced
+  to a choice. The owner result is `BLOCKED`, and it names the smallest action that would
+  unblock it.
+
+Both are deliberately narrow. A reviewer escalating a finding the implementation agent could
+have fixed has put the owner back in the relay the loop exists to remove. The states, and what
+each must contain, are in `framework/OWNER_INTERFACE.md`.
+
+### What this does not change
+
+**Nothing in the merge gate.** Independence, the reviewed head, the full 40-character SHA, no
+self-approval, staleness, and the finalization rules are exactly as they are above. The loop
+describes where findings go; it does not describe a shortcut through the gate, and an
+implementation agent that fixes three findings has not thereby approved its own PR.
+
+**Automation is optional.** Build OS specifies the contract and the transitions. A project may
+realize the loop with GitHub reviews, with agent sessions, with CI, or with two people talking.
+No bot, no CI product, and no hosted service is required by anything here.
+
+---
+
 ## Recovery: merged before review
 
 It happens. A PR merges under an older protocol, or because someone had the button and the
@@ -613,13 +681,26 @@ project adopted v0.5.
 
 ## Proportionality
 
-The gate is for significant work. Build OS has never required a Build Card for a typo, and
-v0.5 does not require a review artifact for one.
+The gate is for significant work. Build OS has never required a Build Card for a typo, and it
+does not require a review artifact for one.
 
-A change is small enough to skip the ceremony when all of these hold: it does not implement
-or alter owner-visible behavior, it is not part of a significant workstream, it changes no
-architecture and no invariant, and describing it takes one sentence. Fix it, say what it was,
-merge it.
+v0.6 makes the threshold a named classification — **simple**, **significant**, **escalated** —
+defined once in `framework/OWNER_INTERFACE.md` → *Proportionality*, so that the same line is
+drawn at intake, at implementation and here rather than three times by feel. That definition is
+canonical; this section says what the classification means *for review*.
+
+**The line moved slightly, and in one direction only.** v0.5 said a change skips the ceremony
+when, among other things, "it does not implement or alter owner-visible behavior." Taken
+literally that excluded a copy fix the owner had just dictated word for word, which is not a
+change anyone needs a Build Card to authorize. v0.6 replaces that clause with the thing it was
+really protecting: **no owner trade-off is being chosen on the owner's behalf.** Behavior the
+owner supplied unambiguously is theirs already; behavior an agent selected for them is not,
+however small it looks.
+
+Everything else holds unchanged. A change is small enough to skip the ceremony when it is
+unambiguous in that sense, it is not part of a significant workstream and does not claim to
+complete one, and it changes no architecture, no invariant, and nothing consequential to data
+or security. Fix it, say what it was, merge it.
 
 The moment a PR claims to complete a significant workstream, it is significant — the size of
 the diff has nothing to do with it. So is any PR that touches a documented invariant, an
@@ -628,6 +709,11 @@ owner decision, or the definition of done.
 When it is genuinely unclear which side a change falls on, treat it as significant. The cost
 of an unnecessary review is an hour; the cost of an unreviewed owner-decision change is
 discovered by the owner, in production.
+
+**Classification is promoted, never demoted.** Work that turns out to touch an owner decision
+becomes significant from that moment, including for what it now needs before merge. A reviewer
+who finds a PR labelled simple that is not has found a `Blocking` finding, not a labelling
+quibble — the label is what decided which gate the change went through.
 
 ---
 
@@ -654,7 +740,7 @@ settle is `Changes required`, with the question in *Decisions requiring owner at
 
 ### What actually changed
 Plain language, from the perspective of someone using the system. This is the reviewer's
-independent account — not a restatement of the agent's Owner Summary. Where they differ,
+independent account — not a restatement of the agent's Owner Result. Where they differ,
 the difference is the point.
 
 ### Match to intended design
@@ -685,6 +771,12 @@ or an authorized merger merges.
 
 Where the change belongs to a workstream, say what happens to it: does this PR complete it,
 or does it return to `BUILDING` with the findings above?
+
+This is the field the owner result is derived from, so write it as an action rather than an
+assessment. `Approved` plus "fix the blocking items" is a contradiction the owner should never
+have to resolve. Where the next action is the owner's own — a decision to make, a blocker to
+clear — say which, and the implementation agent's result carries it as `DECISION` or
+`BLOCKED` rather than as a `SHIP` with a caveat.
 
 Template: `templates/REVIEW_SUMMARY.template.md`
 

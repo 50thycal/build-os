@@ -1,11 +1,12 @@
 # WS-008 — Mobile-first owner interface
 
-**Phase:** READY_TO_BUILD
+**Phase:** REVIEW
 **Status:** Active
 **Updated:** 2026-08-29
-**Implementation State:** Approved design; draft handoff PR #13 open; implementation not started
+**Build OS:** v0.5
+**Implementation State:** Implemented on PR #13; framework, contracts, templates and examples updated; awaiting independent review
 **Related PRs:** #13
-**Next Step:** Claude implements the approved vNext owner-interface protocol on PR #13 and its existing branch.
+**Next Step:** Independent review of PR #13 against this workstream's Build Card and the issued Build Spec.
 
 ## Goal
 
@@ -79,7 +80,32 @@ Let an owner initiate software work from any supported AI surface, approve only 
 
 ## Review State
 
-**Verdict:** Not started
+**Verdict:** In review
 **Reviewed head:** —
+**Reviewed PR:** #13
+**Finalization:** —
 
-No implementation review yet.
+Implementation complete and pushed; no independent verdict yet.
+
+Four implementation decisions are the ones most worth a reviewer's attention, because each
+resolved a gap or a tension in the issued spec rather than merely expanding it:
+
+- **The three states cover simple work too.** OD-4 scoped `SHIP | DECISION | BLOCKED` to
+  significant work while spec §11 ended a simple change in an unnamed "concise completion
+  result", which contradicts AC-5. Resolved by having simple work also return `SHIP`, with its
+  `Verification` naming the classification. No fourth state was invented.
+- **`SHIP` is defined against the real v0.5 gate.** Spec §4.2's "all prerequisites except the
+  owner's merge action" is not checkable, because finalization moves the head after approval and
+  the final head is verified by the reviewer on the PR. `Next action` now carries the three
+  points at which the gate terminates, which is what makes AC-6 enforceable.
+- **A pre-terminal state was needed and is not a fourth state.** A PR awaiting review has
+  reached no result; it says so and carries no marker.
+- **Proportionality genuinely loosened.** v0.5 excluded all owner-visible change from the simple
+  class; the spec's own examples (copy changes, visual tweaks) are owner-visible. Reconciled on
+  the principle underneath — no owner trade-off chosen on the owner's behalf — and disclosed as
+  a real, one-directional change rather than papered over. See `DEC-018`.
+
+`AC-14` is satisfied narrowly and deliberately: the only machine-readable addition is the
+`owner_result` enum in `contracts/agent-session-checkpoint.v1.schema.json`, validated against
+the schema and against fixtures during implementation. Build OS ships no test harness and
+`VERSION.md` excludes one on purpose, so no harness was added to satisfy the criterion.

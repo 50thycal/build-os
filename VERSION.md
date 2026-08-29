@@ -1,10 +1,10 @@
 # Build OS Version
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 | Field | Value |
 |---|---|
-| Version | 0.5 |
+| Version | 0.6 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts |
 | Contains code | No |
@@ -42,6 +42,120 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.5 → v0.6 — The owner interface
+
+**Type:** Minor. **Date:** 2026-08-29.
+
+**What changed**
+
+Build OS gained a defined **owner layer**. Nothing was removed from the engineering layer, and
+the v0.5 merge gate is not one comma weaker.
+
+The problem it addresses is not a gap in the protocol but a cost of it: by v0.5 an owner had to
+read a Build Card, a handoff, a review summary and a workstream to find out whether they could
+merge. Rigor that only survives at a desk is rigor most projects abandon on the first busy week.
+
+- **`framework/OWNER_INTERFACE.md`** (new) — the whole owner layer in one document: Intent
+  Intake, proportionality, the Owner Plan, and the Owner Result. The loop it defines is
+  `INTENT → [PLAN / APPROVE] → BUILD + VERIFY → SHIP | DECISION | BLOCKED`.
+- **Entry-point neutrality.** Intent may originate with a design agent, an implementation
+  agent, another capable agent, or a GitHub issue, and the lifecycle semantics are identical in
+  all four cases. **Intent Intake** is the shared front door: establish the outcome, capture the
+  constraints the owner actually stated, classify the work, and route genuine product choices to
+  the owner rather than settling them quietly. No chat product, mobile app, bot, hosted service,
+  or CI integration is mandatory anywhere.
+- **The Owner Plan** (`templates/OWNER_PLAN.template.md`) — a ~100–200 word approval surface
+  derived from the Build Card, carrying goal, scope, non-goals, risk, owner decisions, and a
+  recommendation, and no implementation surface at all. **The owner approves this.** The card
+  remains the durable behavior contract review measures against, which makes approval a chain:
+  plan expands to card expands to spec, and an owner-visible choice appearing at any level that
+  the plan did not carry goes back to the owner rather than into the spec.
+- **The Owner Result** (`templates/OWNER_RESULT.template.md`) — exactly one of `SHIP`,
+  `DECISION`, or `BLOCKED`, opened by a `Build OS owner result:` line and read under the same
+  quoting rules as the comment verdict. It **replaces** the PR handoff's *Owner Summary*: one
+  owner-facing surface per PR, because two drift within a week.
+- **`SHIP` is a report of the merge gate, never a route through it.** It may not be written for
+  significant work while validation is red, a `Blocking` or `Should fix` finding is unresolved,
+  there is no independent approved verdict, that verdict is stale, or a material deviation is
+  undisclosed. Writing one approves and merges nothing, and the agent that wrote the code still
+  neither approves nor merges it. Its `Next action` carries the three points at which the gate
+  terminates — approved, finalized-but-unverified, and final-head-verified — because a `SHIP`
+  saying "merge" while the final head is unverified is a false report rather than a rounding
+  error.
+- **Most PRs have no owner result, and that is correct.** The three states are terminal, not a
+  running status. A PR awaiting review says so and carries no marker; `SHIP` is written when
+  review clears, not when coding stops.
+- **The closed correction loop** (`framework/REVIEW_PROTOCOL.md`) — a reviewer's fixable
+  `Blocking` and `Should fix` findings are addressed to the implementation agent and answered on
+  the same PR. **The owner is not the message bus.** They are interrupted for three things only:
+  a decision genuinely theirs, a genuine blocker, and the final ship or merge action. Reviewer
+  escalation to `DECISION` or `BLOCKED` is defined and deliberately narrow.
+- **Proportionality is a named classification** — simple, significant, escalated — defined once
+  and used at intake, at implementation, and at review. **Promotion is one-way**: work becomes
+  significant the moment it turns out to touch an owner decision, an invariant, or documented
+  behavior, and is never demoted. When it is genuinely unclear, it is significant.
+
+**One rule genuinely changed, and it loosened.** v0.5 let a change skip the ceremony only if
+"it does not implement or alter owner-visible behavior." That excluded a copy fix the owner had
+dictated word for word. v0.6 replaces the clause with what it was protecting — **no owner
+trade-off is being chosen on the owner's behalf** — so behavior the owner supplied unambiguously
+is simple, while behavior an agent selects for them is not, however small. Everything else about
+the threshold is unchanged, and nothing that was significant under v0.5 becomes simple under
+v0.6 except in that one case.
+
+**The compression contract**, which is what makes the short surfaces trustworthy: a summary may
+omit detail; it may never omit material truth. The owner layer is a projection of the durable
+record, never a second copy of it, and where the two disagree the durable record wins and the
+disagreement is reported.
+
+Supporting changes: `README.md` leads with the owner loop; `framework/DESIGN_ROOM.md` gains
+Intent Intake and proportional routing and produces the Owner Plan at stage D;
+`framework/BUILD_SPEC.md` prohibits a spec introducing an owner-visible choice the approved plan
+did not carry; `framework/CLAUDE_HANDOFF.md` gains an intake section for work arriving there
+first and ends in the Owner Result; `framework/WORKSTREAMS.md` says how intent from any entry
+surface creates or resumes a workstream, **adding no lifecycle phase**;
+`framework/AGENT_SESSION_CHECKPOINT.md` and `contracts/agent-session-checkpoint.v1.schema.json`
+gain an optional `owner_result` enum; `framework/BUILD_OS_PARSE_CONTRACT.md` gains the marker
+form and the `OWNER_RESULT_CONTRADICTED` / `_AMBIGUOUS` / `_MALFORMED` warnings;
+`templates/PR_HANDOFF.template.md` and `templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md`
+follow; `examples/SIMPLE_CHANGE.example.md` is new and
+`examples/FEATURE_LIFECYCLE.example.md` gains the plan and the result.
+
+`examples/WORKSTREAM_SCENARIO.example.md` and `examples/MERGED_BEFORE_REVIEW.example.md` keep
+their v0.5 stamps deliberately: they demonstrate protocol this release does not change, and
+restamping them would claim they show v0.6 surfaces they do not contain.
+
+**What an adopting project must do**
+
+1. **Read this entry, then update the Build OS block** in the project's agent-instructions file
+   to adopted v0.6 and last-checked v0.6 with today's date.
+2. **Add the intake and result rules to the project's agent instructions** — the classification
+   and the one-way promotion, that reviewer findings return to the implementation agent rather
+   than to the owner, and that the handoff ends in an Owner Result rather than an Owner Summary.
+   The README's adoption block carries current wording for both the implementation agent and the
+   Design Room. Merge — do not replace a project's own instructions, and leave
+   `Project-specific:` rules intact.
+3. **Replace the Owner Summary section** in the project's PR handoff template with the Owner
+   Result, and add the Owner Plan and Owner Result templates where the project keeps local
+   copies. **Do not retrofit results onto open PRs** whose work predates this: an Owner Result
+   written after the fact records a state nobody was in. New PRs get one.
+4. **Nothing about the merge gate changes.** No workstream needs editing, no verdict is
+   re-examined, no review record gains or loses a field, and no open PR changes what it needs
+   before merge. A project that adopts v0.6 and changes only its instructions file has adopted
+   it correctly.
+5. **If the project consumes Build OS artifacts with tooling**, `owner_result` is optional and
+   absent in every checkpoint written before now — absent metadata, never an error. A consumer
+   must never infer a result, and must never let a `SHIP` stand in for a verdict.
+6. **If the project cannot adopt now, record an explicit deferral** — a `DEC-n` naming the
+   reason and what would trigger a revisit — keep the prior adopted version, and update
+   last-checked to v0.6.
+
+No project architecture, product decision, completed workstream, or open review is rewritten by
+this migration. As with v0.5, nothing here requires automation, CI, branch protection, or any
+deployed service: v0.6 is enforceable by people reading and writing Markdown.
+
+---
 
 ### v0.4 → v0.5 — Closed-loop delivery
 

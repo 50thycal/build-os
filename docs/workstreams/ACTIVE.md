@@ -14,7 +14,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| WS-008 | Mobile-first owner interface | READY_TO_BUILD | Active | Claude implements approved vNext spec on the design-handoff PR; preserve entry-point neutrality and SHIP / DECISION / BLOCKED owner states | design handoff pending |
+| WS-008 | Mobile-first owner interface | READY_TO_BUILD | Active | Claude implements approved vNext spec on PR #13; preserve entry-point neutrality and SHIP / DECISION / BLOCKED owner states | #13 |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned

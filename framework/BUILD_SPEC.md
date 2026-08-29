@@ -1,14 +1,36 @@
 # Build Spec
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 The Build Spec is the standard implementation packet handed to Claude or another coding
 agent. It is produced by the design agent in stage E of the Design Room, after the Build
 Card is approved — that is, when the workstream reaches `READY_TO_BUILD`.
 
 **Audience:** the implementation agent.
-**Not the audience:** the owner. The owner reads the Build Card. The design agent is
-responsible for the spec being a faithful translation of it.
+**Not the audience:** the owner. The owner reads the Owner Plan, and approves that. The design
+agent is responsible for the whole chain being faithful:
+
+```text
+Owner Plan  ──expands to──►  Build Card  ──expands to──►  Build Spec
+```
+
+**A spec may not introduce an owner-visible choice the approved plan did not carry.** Not
+"should not" — may not, in the same sense the implementation agent may not silently change an
+owner decision. The failure is identical and one step earlier: the owner approved a plan, the
+spec quietly resolved something the plan left open, and the first time they see the resolution
+is in the shipped product.
+
+Two things this does not prohibit, and both are ordinary:
+
+- **Expanding a decision the plan carried** into the enforceable detail implementation needs.
+  A plan saying "a pause expires after 90 days" becomes `OD-3` with the auto-resume and
+  auto-cancel behavior spelled out. That is the expansion working.
+- **Deciding anything invisible in behavior.** Storage shape, module layout, naming, algorithm
+  — those are not owner-visible and belong under *Implementation discretion* below.
+
+Where writing the spec surfaces a genuine new owner-visible choice — and it often will, which
+is the point of writing it — it goes back to the owner as a decision or a revised plan. It does
+not get resolved in a document the owner is not expected to read.
 
 **Property to preserve:** an implementation agent with no memory of the Design Room
 conversation should be able to build the right thing from the Build Card plus this spec
@@ -101,10 +123,13 @@ Include every section that applies. Mark the ones that do not as `N/A` rather th
 deleting them — an explicit `N/A` tells the reviewer the question was considered.
 
 ### 1. Objective
-One paragraph. What this change accomplishes and why now. Link the Build Card, name the
-workstream (`WS-###`) the change belongs to, if there is one, and state the Build OS version
-this spec was written under. Where the workstream will take
+One paragraph. What this change accomplishes and why now. Link the **approved Owner Plan** and
+the Build Card, name the workstream (`WS-###`) the change belongs to, if there is one, and
+state the Build OS version this spec was written under. Where the workstream will take
 more than one PR, say which part of it this spec covers.
+
+Linking the plan is what makes the expansion checkable: a reviewer comparing the spec against
+it can see whether anything owner-visible appeared in between.
 
 ### 2. Owner-approved behavior
 The `After this change, the system should...` sentence, verbatim from the Build Card,
@@ -221,6 +246,11 @@ specific risks to call out, a reviewer to request, an area to flag for review fo
 no behavioral question unanswered while leaving as many technical questions as possible
 open. Every technical choice made here is one the agent — which is looking at the actual
 code — cannot make better.
+
+**Answer every behavioral question, but only with answers the owner gave.** Those two rules
+pull against each other exactly once — where the plan is silent and the answer is visible to
+users — and that tension is not resolved by picking one. It is resolved by going back to the
+owner, which is why stage E so often returns to stage C.
 
 **Number things.** `OD-1`, `R-4`, `AC-2`. Numbered items can be referenced in handoffs and
 review findings. Prose cannot.

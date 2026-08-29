@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -11,6 +11,30 @@ ends. Everything that matters about an implementation goes into the pull request
 
 This applies to any implementation agent. "Claude" is used throughout because it is the
 common case.
+
+---
+
+## When intent arrives here first
+
+Not every change starts in a Design Room. An owner may hand an implementation agent a
+sentence — "the export is missing the claimed status", "make the reminder subject line
+shorter" — and expect it done, not designed.
+
+That is legitimate, and v0.6 names it. Before writing code, perform **Intent Intake**
+(`framework/OWNER_INTERFACE.md`): establish the outcome in one sentence, capture the
+constraints the owner actually stated, and **classify the work**.
+
+- **Simple** — unambiguous, no owner trade-off being chosen for them, nothing consequential
+  to architecture, data, or security, and not part of or completing a significant workstream.
+  Implement it, validate it, and return a `SHIP` whose `Verification` says it was classified
+  simple.
+- **Significant** — anything else. It gets a workstream, an approved Owner Plan or equivalent
+  explicit owner approval, a Build Spec, and the full merge gate. Where the design work has
+  not happened, say so and do that first rather than building ahead of an approval.
+
+**The classification is a claim, and it is yours.** Promote to significant the moment the work
+turns out to touch an owner decision, an invariant, or documented behavior — including
+partway through. Never the reverse. When it is genuinely unclear, it is significant.
 
 ---
 
@@ -82,6 +106,13 @@ approval into the workstream's `Review State`.
 
 The full gate, the verdict values, the staleness rules, and the merge-finalization commit
 are in `framework/REVIEW_PROTOCOL.md`.
+
+**Findings come back to you, not to the owner.** A reviewer's fixable `Blocking` and
+`Should fix` findings are addressed to the implementation agent: fix them on this same PR,
+re-validate, restate the head, and request re-review, without asking the owner to carry
+messages between the two of you. The owner hears from you when a decision is genuinely
+theirs, when work is genuinely blocked, or when the work is ready. See
+`framework/REVIEW_PROTOCOL.md` → *The correction loop*.
 
 **8. Apply any repository-update block supplied with the spec.**
 A design agent that can read but not write to GitHub hands over its checkpoint as a precise
@@ -236,27 +267,59 @@ Intentional deferrals, with the reason each was deferred. Distinguish "out of sc
 the Build Card's non-goals" from "should be done soon" from "will become a problem at
 scale." Do not use this section to park unfinished in-scope work.
 
-### Owner Summary
-**Maximum approximately 100 words.** Plain language. No file names, no function names, no
-jargon. This is often the only part of the PR the owner reads.
+### Owner Result
 
-Explain:
-
-- what changed,
-- what behaves differently,
-- meaningful deviations,
-- unresolved owner decisions.
-
-If there is an unresolved owner decision, it goes in the first sentence — not the last.
+**The last section, and usually the only one the owner reads.** Exactly one of `SHIP`,
+`DECISION`, or `BLOCKED`, in the form defined by `framework/OWNER_INTERFACE.md` — or, at first
+push, none of them:
 
 ```markdown
-Subscriptions on annual plans can now be paused for up to 90 days. While paused, billing
-stops and the subscription's seats return to the pool, so resuming requires seats to be
-available — resume fails with a clear message if the team has since filled up. Pauses that
-hit 90 days auto-resume, or cancel if seats are unavailable. No deviations from what was
-agreed. One thing needs your call: we don't currently email anyone when an auto-resume
-fails, and that's likely worth adding.
+## Owner Result
+
+Awaiting independent review. Nothing needed from you yet.
 ```
+
+**That is the correct content for a PR that has just been opened**, and it carries no marker.
+The three states are terminal, not a running status: the code being written is not the same as
+the work being verified, and `SHIP` may not be written without an independent verdict. Write
+the result when review clears.
+
+This is the handoff's owner-facing section — **one surface, not two.** Before v0.6 this slot
+held an *Owner Summary*, which described what changed but not what to do about it, and left
+the owner to work out from the sections above whether the PR was ready. The result states
+both. Do not keep an Owner Summary beside it: two owner-facing summaries on one PR drift
+within a week, and nobody knows which is current.
+
+Plain language. No file names, no function names, no jargon. Nothing restated from the
+sections above it, and nothing in it that contradicts them — it is generated from the durable
+state this PR already carries, not composed independently of it.
+
+```markdown
+Build OS owner result: SHIP
+
+**What changed:** Subscriptions on annual plans can now be paused for up to 90 days. Billing
+stops while paused and the seats return to the pool, so resuming needs seats to be available.
+**Intent:** All four approved behaviors are in place.
+**Verification:** Full billing suite green, 18 new tests. Independent review approved the
+current head.
+**Deviations:** None.
+**Residual risk:** The expiry job scans all paused subscriptions — fine now, needs an index
+well before 100k.
+**Next action:** Finalize and merge PR #267.
+```
+
+`SHIP` is a **report** of the merge gate, not a substitute for it, and writing one approves
+and merges nothing. It may not be written for significant work while validation is red, a
+`Blocking` or `Should fix` finding is unresolved, there is no independent approved verdict,
+that verdict is stale, or a material deviation is undisclosed. The full rules, including what
+`Next action` must say at each of the three points where the gate terminates, are in
+`framework/OWNER_INTERFACE.md`.
+
+An unresolved owner decision is not a caveat inside a `SHIP`. It is a `DECISION`.
+
+The `Build OS owner result:` line is what a machine consumer reads, so it carries exactly one
+state. **Delete the two states you are not in** — a handoff left with all three, as the template
+ships them, declares nothing and is reported as ambiguous rather than read as the first one.
 
 ---
 
@@ -269,15 +332,21 @@ Duplicating the handoff into chat undermines the whole protocol: it teaches ever
 chat is where the real information lives, and it creates a second version that immediately
 starts diverging from the PR.
 
-Example:
+**Lead with the owner result state, then point at it.** One or two lines:
 
 ```text
-PR #267 opened. Implementation complete. 94 tests passed. No spec deviations.
-Full handoff is in GitHub.
+SHIP — PR #267. Pause/resume works as approved, 94 tests green, review approved the current
+head. Full result in the PR.
 ```
 
-Include: the PR reference, completion status, headline validation result, whether there
-were deviations, and a pointer to GitHub.
+```text
+DECISION — PR #267. One choice needs you: what happens when an auto-resume fails and nobody
+is emailed. Options and recommendation are in the PR.
+```
+
+Include: the state, the PR reference, the headline validation result, and a pointer. The
+Owner Result in the PR carries the rest — restating it here is the failure this rule exists
+to prevent, not thoroughness.
 
 Exceptions — when more belongs in chat:
 
@@ -308,7 +377,10 @@ Before considering the work complete:
 - [ ] Neither approval nor merge was performed by the agent that wrote the code
 - [ ] Any repository-update block supplied by the design agent has been applied
 - [ ] Framework compatibility checked for significant work, and the `Framework:` field reflects what actually happened
-- [ ] Owner Summary is under ~100 words and free of jargon
-- [ ] The final chat response is two or three lines
+- [ ] The Owner Result is exactly one state — or, before review, says it is awaiting one and carries no marker — and no Owner Summary sits beside it
+- [ ] A `SHIP` is true against the gate — validation green, verdict present and not stale, no unresolved Blocking or Should fix, deviations disclosed
+- [ ] `Next action` names what is actually outstanding, including an unverified final head
+- [ ] Simple-classified work says so in the result's `Verification`
+- [ ] The final chat response is one or two lines and leads with the state
 
 Template: `templates/PR_HANDOFF.template.md`

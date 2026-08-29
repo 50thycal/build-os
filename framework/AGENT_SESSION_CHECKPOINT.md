@@ -1,6 +1,6 @@
 # Agent Session Checkpoint
 
-**Build OS v0.5 — protocol contract**
+**Build OS v0.6 — protocol contract**
 
 A **session** is one agent working context: a Claude implementation run, a ChatGPT design
 conversation, a review pass, an investigation. A **session checkpoint** is a small, structured
@@ -17,6 +17,12 @@ the contract is not specific to it.
 ## The one rule
 
 **A checkpoint describes state. It never contains a transcript.**
+
+The corollary is what v0.6 leans on: a session's published state is *structured*, so a
+consumer — or an owner glancing at a phone — can see where the work is without reading a
+narrative of how it got there. A checkpoint is not a short transcript. `completed: ["Region
+schema"]` is state; "I went ahead and implemented the region schema, which took a while
+because…" is narration that happens to be brief.
 
 The schema has no field that could hold conversation text, and it sets
 `additionalProperties: false` so one cannot be added by accident. This is deliberate: the moment
@@ -119,6 +125,21 @@ a week, and a stream of no-op checkpoints hides the ones that matter.
   ghosts.
 - **`updated_at`** — the real time this checkpoint was produced. Consumers compute staleness from
   it, so a stamped-forward value silently disables the one safety property this contract has.
+- **`owner_result`** — the terminal owner-facing state this session has reached: `SHIP`,
+  `DECISION`, or `BLOCKED`. **Null or absent while work is in flight**, which is most of the
+  time. "Not finished yet" is not a `SHIP`, and a session that sets one before the work is
+  actually in that state has published the one field an owner would act on without checking.
+
+  It is **derived**, like everything else in a checkpoint: the durable artifacts decide, and a
+  checkpoint claiming `SHIP` against a PR with a `Changes required` verdict is a disagreement
+  to surface, not a state to believe. The precedence order above already says which wins.
+
+  `status` and `owner_result` answer different questions and are not redundant. `status` is
+  about the *session* — is it running, waiting, dead. `owner_result` is about the *work* — what
+  does the owner do now. A `COMPLETED` session can end in any of the three results, and a
+  session that is `BLOCKED` in the `status` sense is not automatically a `BLOCKED` owner
+  result: an agent waiting on CI is blocked and needs nobody, which is the same distinction
+  `blockers[].needs_owner` already draws.
 
 ---
 
@@ -139,13 +160,19 @@ a week, and a stream of no-op checkpoints hides the ones that matter.
   "in_progress": ["Baltic region configuration"],
   "blockers": [],
   "next_step": "Run balancing simulation",
+  "owner_result": null,
   "related_pr": 84,
   "updated_at": "2026-08-23T18:00:00Z"
 }
 ```
 
 A consumer renders that as session state — beside, and subordinate to, whatever GitHub says
-about PR #84.
+about PR #84. `owner_result` is null because the work is running; when the session ends it
+becomes exactly one of the three, and that is the field an owner-facing view sorts on.
+
+A checkpoint written before v0.6 has no `owner_result` at all. That is absent metadata, not an
+error, and it parses exactly as it did — the field is optional and its absence means the same
+thing as null.
 
 ---
 
@@ -153,6 +180,9 @@ about PR #84.
 
 - Treat a checkpoint as canonical when a durable Build OS artifact disagrees.
 - Infer `COMPLETED` from silence.
+- Infer an `owner_result` from anything — a null one means the session has not reached a
+  terminal state, and inventing `SHIP` from green CI is exactly the claim the merge gate
+  exists to withhold.
 - Merge a contradiction instead of showing it.
 - Accept a checkpoint whose `schema_version` it does not understand.
 - Store, request, or reconstruct transcript content by any route.

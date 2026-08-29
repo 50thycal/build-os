@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.5**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.6**
 
 ## Goal
 
@@ -129,10 +129,74 @@ work.>
 
 -
 
-## Owner Summary
+## Owner Result
 
-<!-- ~100 words max. Plain language, no file or function names. What changed, what behaves
-     differently, meaningful deviations, unresolved owner decisions. Put any unresolved
-     decision in the first sentence. -->
+<!-- The owner's default reading path, and usually the only section they read. Exactly ONE
+     of the three below — delete the other two. Plain language, no file or function names,
+     nothing restated from the sections above.
 
-<summary>
+     AT FIRST PUSH, delete all three and write this instead:
+
+         Awaiting independent review. Nothing needed from you yet.
+
+     The three states are terminal, not a running status. A PR that has just been opened has
+     reached none of them and carries no marker — SHIP is written when review clears, not when
+     coding stops.
+
+     This is the handoff's only owner-facing section. Do not keep an Owner Summary beside it.
+
+     Full rules: framework/OWNER_INTERFACE.md · Template: templates/OWNER_RESULT.template.md -->
+
+### SHIP
+
+Build OS owner result: SHIP
+
+**What changed:** <1–3 plain-language sentences>
+**Intent:** <requirements satisfied, or an equivalent concise statement>
+**Verification:** <validation + independent review status, in plain language>
+**Deviations:** None | <material deviations only>
+**Residual risk:** None | <material remaining risk only>
+**Next action:** Merge PR #<n> | <the exact next action>
+
+<!-- ~150 words max.
+
+     SHIP reports the merge gate; it does not replace it, and writing one approves and merges
+     nothing. For SIGNIFICANT work it may not be written while validation is red, a Blocking
+     or Should fix finding is unresolved, there is no independent approved verdict, that
+     verdict is stale, or a material deviation is undisclosed.
+
+     Next action names what is actually outstanding:
+       approved, not finalized     → "Finalize and merge PR #<n>"
+       finalized, head unverified  → "Reviewer verifies the final head on PR #<n>, then merge
+                                      that SHA"
+       final head verified         → "Merge PR #<n> at <SHA>"
+
+     For SIMPLE work, Verification names the classification too:
+       "Simple change — full test suite green. No independent review required under
+        proportionality." -->
+
+### DECISION
+
+Build OS owner result: DECISION
+
+**Decision:** <one sentence>
+**Why now:** <why implementation or review cannot settle this>
+**Options:** <2–4 concise choices>
+**Recommendation:** <preferred option and why, where appropriate>
+**Impact:** <what changes once chosen>
+
+<!-- Scarce: a choice that changes what users experience, what the business commits to, what
+     data is kept or lost, or what becomes hard to reverse. An unresolved owner decision is a
+     DECISION, never a caveat inside a SHIP. -->
+
+### BLOCKED
+
+Build OS owner result: BLOCKED
+
+**Blocker:** <one sentence>
+**Why agents cannot resolve it:** <plain language>
+**Smallest action needed:** <specific owner or external action>
+**Work preserved:** <what remains safely completed>
+
+<!-- Scarcer still. Difficulty is not a blocker, and neither is a failing test, a merge
+     conflict, or a reviewer finding this agent could fix. -->

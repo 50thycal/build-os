@@ -1,10 +1,16 @@
 # Design Room
 
-**Build OS v0.5**
+**Build OS v0.6**
 
 The Design Room is where an abstract idea becomes something buildable. It is run by the
-design agent with the owner. It ends with two artifacts: a **Build Card** the owner
-approves, and a **Build Spec** the implementation agent executes.
+design agent with the owner. It ends with three artifacts: an **Owner Plan** the owner
+approves, a **Build Card** that plan expands into, and a **Build Spec** the implementation
+agent executes.
+
+**The room is not the only way in, and from v0.6 it is not assumed to be.** Every piece of
+work starts with *Intent Intake*, and only some of it earns the five stages below. That
+routing decision is the first section of this document rather than an aside, because the
+common failure it prevents is a one-line fix waiting on a design ceremony nobody wanted.
 
 Five stages, in order:
 
@@ -37,6 +43,39 @@ The single rule that governs the whole room: **do not write an implementation
 specification before the design is understood.** A specification produced too early
 encodes the first plausible interpretation of a vague idea and gives it the authority of
 detail.
+
+---
+
+## Intent Intake, and what it routes to
+
+Before any of the five stages, one step happens, and it happens wherever the intent landed —
+in this room, in an implementation session, in a GitHub issue, in another agent entirely.
+**Intent Intake** is defined once, in `framework/OWNER_INTERFACE.md`; the short version is:
+establish the outcome in one sentence the owner would recognize as theirs, capture the
+constraints and non-goals they actually stated, classify the work, and route genuine product
+choices to the owner rather than settling them quietly.
+
+The classification decides how much of this document runs:
+
+| Classification | What runs |
+|---|---|
+| **Simple** — unambiguous, no owner trade-off, nothing consequential to architecture, data or security, not part of a significant workstream | Nothing here. Implement, validate, return a result. |
+| **Significant** — everything else, including anything claiming to complete a significant workstream | Stages A–E, proportionate to the change |
+
+**Proportionate is doing real work in that sentence.** A significant change is not
+automatically a five-session exploration. A well-understood feature with one open question
+may spend a single exchange in A–C and go straight to a card; a contested one earns the full
+loop. What proportionality never buys is skipping the *approval* — significant work is
+approved by the owner before implementation, however fast the design was.
+
+The room's own bias is toward more exploration, and that bias is usually right. It is wrong
+in exactly one case, which v0.6 exists to fix: when the owner already knows what they want,
+has said so unambiguously, and is waiting on a ceremony to agree with them.
+
+**Promotion is one-way.** Work classified simple that turns out to touch an owner decision,
+an invariant, or documented behavior becomes significant from that moment — including
+retroactively, for what it now needs before merge. Nothing is ever demoted, and where the
+classification is genuinely unclear it is significant.
 
 ---
 
@@ -214,10 +253,47 @@ One sentence, plain language, describing intended behavior. It is the single lin
 in the PR handoff and checked first in review. If it cannot be written in one sentence,
 the design is still doing more than one thing.
 
-Get explicit owner approval on the Build Card before stage E. This is the approval gate
-of the whole framework.
+### The Owner Plan — what the owner actually approves
 
-Template: `templates/BUILD_CARD.template.md`
+The card is a 30–60 second read at a desk. On a phone, between two other things, it is still
+longer than it needs to be for the question being asked, which is *should we build this?*
+
+So stage D produces two things: the **Build Card**, which is the durable behavior contract
+review measures against, and the **Owner Plan** derived from it — roughly 100–200 words, goal,
+scope, non-goals, risk, decisions needed, recommendation. The owner approves the plan.
+
+```markdown
+## Owner Plan
+
+**Goal:** <plain-language intended outcome>
+**Scope:** <3–7 concise behavior-level bullets>
+**Not changing:** <only material non-goals>
+**Risk:** Low | Medium | High — <one sentence>
+**Owner decisions needed:** None | <concise choices>
+**Recommendation:** Proceed | Revise plan | <specific recommendation>
+```
+
+That produces a chain, and the chain is the framework's central mechanic stated once:
+
+```text
+Owner Plan  ──faithfully expands to──►  Build Card  ──faithfully expands to──►  Build Spec
+     ▲                                                                              │
+     └───── a new owner-visible choice at any level returns here ───────────────────┘
+```
+
+**Approval attaches at the top and flows down only through faithfulness.** The design agent is
+accountable for each expansion adding nothing the owner did not agree to and dropping nothing
+they did — the responsibility stage E already carries for the spec, now stated for the card as
+well. An owner-visible choice appearing at any level that the plan did not carry is not an
+expansion; it goes back to the owner.
+
+Where the change is small enough that the plan and the card would say the same thing, write
+the card and derive the plan from it. Never maintain two divergent descriptions of one intent.
+
+Get explicit owner approval before stage E. This is the approval gate of the whole framework.
+
+Full rules and the compression contract: `framework/OWNER_INTERFACE.md`.
+Templates: `templates/BUILD_CARD.template.md`, `templates/OWNER_PLAN.template.md`
 
 ---
 
@@ -507,3 +583,5 @@ most easily broken: **never claim that state has been written to GitHub when it 
 | Helpful interruption | Diagnosing observation 3 while the owner is still on their list | The owner stops reporting; the remaining observations are lost |
 | Consolidation creep | A proposed rule appearing in `Decisions made` because it sounded agreed | The owner is bound by a decision they never made |
 | Costume PR | A draft PR opened mid-design so work "looks started" | The implementation PR's history begins before the design existed |
+| Ceremony tax | A one-line fix routed through five stages because that is what the room does | The owner routes around Build OS for anything small, and the protocol stops covering real work |
+| Plan-card drift | An Owner Plan maintained separately from the card it summarizes | Two descriptions of one intent, and the owner approved whichever was shorter |

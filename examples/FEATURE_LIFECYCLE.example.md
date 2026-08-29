@@ -1,6 +1,12 @@
 # Worked Example — a feature through the full lifecycle
 
-**Build OS v0.5**
+**Build OS v0.6**
+
+**Significant work, originating with a design agent.** The intent arrives in a Design Room
+conversation, runs all five stages, and goes through the full merge gate. For the other entry
+path — one sentence typed at an implementation agent, classified and built without any of this
+— see `SIMPLE_CHANGE.example.md`, which also shows the case where that classification turns out
+to be wrong.
 
 A fictional product, taken end to end. The product is **Harbour**, an invoicing tool for
 freelancers. Harbour sends invoices, tracks whether they are paid, and chases overdue ones
@@ -22,7 +28,7 @@ Contents:
 2. [Design Room — Explore](#2-design-room--explore)
 3. [Design Room — Model](#3-design-room--model)
 4. [Design Room — Decide](#4-design-room--decide)
-5. [Build Card](#5-build-card)
+5. [Build Card, and the Owner Plan](#5-build-card)
 6. [Build Spec (selected portions)](#6-build-spec-selected-portions)
 7. [PR Handoff](#7-pr-handoff)
 8. [PROJECT_MODEL update](#8-project_model-update)
@@ -314,6 +320,46 @@ can be claimed once.
 client says they have paid, and tell the freelancer so they can confirm or keep chasing.
 ```
 
+### What the owner actually approved
+
+The card above is the durable behavior contract — it is what review measures the code against
+in section 10, and what the spec expands. It is also a two-minute read on a laptop, and the
+owner approved this on a Sunday evening on a phone.
+
+So what went in front of them was the **Owner Plan** derived from it:
+
+```markdown
+## Owner Plan
+
+**Goal:** Stop chasing clients who have already paid, without losing the ability to chase
+clients who haven't.
+
+**Scope:**
+- Every reminder email gets an "I've already paid this" link.
+- Clicking it pauses that invoice's reminders and tells you straight away.
+- You confirm the payment, or reject it and reminders resume.
+- No answer from you for 7 days: reminders resume on their own.
+- One claim per invoice — a second attempt just points them at your contact details.
+
+**Not changing:** Nothing marks an invoice paid except you. No bank connection, no partial
+payments, no client logins, and the reminder schedule itself is untouched.
+
+**Risk:** Low — a client acting in bad faith buys at most one 7-day pause, and you are told
+about it immediately.
+
+**Owner decisions needed:** None. The four questions from Thursday are settled and written
+into the card.
+
+**Recommendation:** Proceed.
+```
+
+Roughly 170 words, and it contains no state machine, no file, and no `OD-n`. The owner replied
+"go" from a train.
+
+That approval authorizes the Build Spec below **only for as long as the spec faithfully expands
+it**. Nothing owner-visible may appear downstream that this plan did not carry — and in section
+10 the review finds something that did, which is the point of checking.
+
 ---
 
 ## 6. Build Spec (selected portions)
@@ -498,20 +544,20 @@ WS-011 — Client payment claims. BUILDING → REVIEW. Completes the workstream 
 - Index on `(state, claimed_at)` before volume grows (deferred: not needed yet)
 - Freelancer-facing claim history UI (deferred: not in the Build Card)
 
-## Owner Summary
-Clients can now tell you they've paid, straight from a reminder email. Doing so stops
-reminders for that invoice and notifies you right away, so you can confirm it as paid or
-say you're still waiting. If you don't respond, reminders start again after a week. Each
-invoice can only be claimed once, so nobody can use it to stall. Nothing marks an invoice
-paid except you. No deviations from what we agreed. One thing worth knowing: the weekly
-timer is checked once a day, so in practice the pause runs seven to eight days.
+## Owner Result
+Awaiting independent review. Nothing needed from you yet.
 ```
+
+**No `SHIP` here, and no marker.** The code is written and the tests are green, which feels
+like finished — but nothing has been verified by anyone other than the agent that wrote it, and
+`SHIP` may not be written without an independent verdict. A result appears when review clears,
+in section 10. Until then the owner has nothing to do, and the honest way to say that is to say
+it.
 
 Claude's entire chat response:
 
 ```text
-PR #341 opened. Implementation complete. 1,847 tests passed. No spec deviations.
-Full handoff is in GitHub.
+PR #341 opened, awaiting review. 1,847 tests passed. Handoff is in GitHub.
 ```
 
 ---
@@ -781,6 +827,54 @@ Note what did *not* happen: the workstream's mental model was not copied into
 never determine financial state — while the workstream kept its design-time picture. Three
 files, three jobs.
 
+### The owner result
+
+Only now — approved at a named head, finalization pushed and verified, nothing outstanding —
+does the owner hear about it again:
+
+```markdown
+Build OS owner result: SHIP
+
+**What changed:** Clients can tell you they've paid, straight from a reminder email. That
+pauses reminders for that invoice and notifies you immediately, so you can confirm it or keep
+chasing. No answer for a week and reminders resume. One claim per invoice.
+**Intent:** All six done-conditions from the card are met.
+**Verification:** 1,865 tests green. Independently reviewed; one should-fix (a blank status in
+the CSV export) found and corrected on this PR, then re-reviewed and approved with follow-ups.
+**Deviations:** The 7-day pause is checked once daily, so it runs 7–8 days in practice. I
+reported this as a risk when it was a difference from what you approved; the reviewer caught
+that. Accepted as-is.
+**Residual risk:** The daily expiry check scans every claimed invoice. Fine now; needs an index
+well before volume grows, and that is filed.
+**Next action:** Merge PR #341 at f4b7c2e0…
+```
+
+138 words. The owner reads that and merges, and every claim in it is one some artifact above
+already carries.
+
+Three things about it are worth pointing at.
+
+**It was not written at first push.** Section 7 said "awaiting independent review" and left the
+owner alone, because at that moment the only evidence was the implementing agent's own account.
+
+**It discloses the deviation the handoff missed** — and says the reviewer is why. Compression
+took this from four sections of review summary to two sentences; it did not take out the part
+the owner would have wanted. That is the whole compression contract in one field: brevity is a
+constraint on the writing, never a licence about the content.
+
+**`Next action` names the verified head.** Not "merge PR #341" — the finalization commit moved
+the head past the fully-reviewed one, and only the reviewer's approval on the PR establishes
+which SHA is safe to merge. A `SHIP` written before that verification would have said
+"Reviewer verifies the final head on PR #341, then merge that SHA" instead. The state would
+still have been `SHIP`; the next action is what carries the difference.
+
+In chat, in full:
+
+```text
+SHIP — PR #341. Payment claims work as approved, review approved the final head. Result is
+in the PR.
+```
+
 ### What this demonstrates
 
 The handoff said `Spec Deviations: None`. It was wrong twice — a missed acceptance criterion
@@ -790,8 +884,13 @@ work, and both were found by reading code and tests rather than the handoff.
 
 That is the entire argument for item 8 of the review protocol.
 
-It also shows the v0.5 shape end to end: the owner's raw input captured before anything was
+It also shows the shape end to end: the owner's raw input captured before anything was
 done with it; one PR from spec to merge; a verdict tied to a specific commit, invalidated
 when that commit was superseded; and the durable record made true on the PR rather than
 promised for later — with the final head recorded by the reviewer on the PR, because the
 commit that produces it cannot name it.
+
+And it shows what the owner actually did across three weeks of this: answered four questions on
+a Thursday, approved a 170-word plan from a train, and merged on the strength of a 138-word
+result. They never read the Build Spec, the handoff, or the review summary. All three exist,
+all three are durable, and all three were read — by the people they were written for.

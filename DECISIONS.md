@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.8**
+**Build OS v0.9**
 
 ---
 
@@ -1254,3 +1254,73 @@ different.
 - A project can now under-declare `solo` to avoid review. Nothing prevents that, and nothing in
   a document could. What the protocol can do, and does, is make the choice explicit, recorded,
   and visible in every verdict it produces afterwards.
+
+---
+
+### DEC-022 — Skills are a second surface, and the framework document stays canonical
+
+**Date:** 2026-08-30
+**Status:** Accepted
+
+**Context**
+Build OS had one audience for its protocol: a person reading a document and following it. That
+works while the person remembers the document exists. Increasingly the party that should be
+following a procedure is an agent, mid-task, at the moment it applies — and asking the owner to
+remember that the framework says so is exactly the dependency the framework was built to remove.
+
+#17 introduced `skills/` with the first one, and flagged the structural choice rather than
+presenting it as settled: a new top-level artifact class in a repository whose `VERSION.md` says
+*Contains code: No*.
+
+**Decision**
+`skills/` is a supported surface for **agent-invokable procedures**. A skill is markdown with
+frontmatter, so *Contains code: No* still holds.
+
+The boundary: **if the owner needs to read it to make a decision it is a `framework/` document;
+if an agent needs to act on it mid-task it is a skill.** Where both are true, the framework
+document is **canonical** and the skill points at it. The protocol never carries two statements
+of one rule.
+
+**Skills are versionless and adopted by copy.** They are the one part of Build OS exempt from
+the compatibility check: a project takes the copy it wants and is not obliged to track later
+changes here.
+
+**Rationale**
+The boundary is the whole decision; the directory is bookkeeping. Without it a skill is simply a
+second place to write protocol, and a second place to write protocol is a guaranteed
+divergence — the failure `PROJECT_MEMORY.md` already names for the three memory layers, arriving
+by a new route.
+
+It was not a hypothetical risk. The first skill restated the owner-facing decision contract
+without referencing `OWNER_INTERFACE.md`, which already specifies one terminal result per piece
+of work in a machine-readable form. Two descriptions of the same thing, from the first commit.
+Enforcing the boundary on arrival is what this decision is for, and it is worth noticing that
+the skill's own README stated the rule correctly and the skill beside it broke it anyway. A rule
+in a README does not enforce itself.
+
+Versionlessness cuts the other way from most of Build OS, deliberately. The compatibility check
+exists because a *protocol* that drifts silently corrupts in-flight work. A skill is a procedure
+a project has chosen and made its own; changing it underneath them mid-thread would be the
+corruption, not the cure.
+
+**Alternatives considered**
+- **Fold skills into `framework/`.** Rejected: it loses the property that makes them useful. A
+  framework document is loaded because someone remembered it; a skill is loaded because its
+  description matched. That difference is the entire value.
+- **Keep skills out of Build OS and let projects hold their own.** Rejected: the first one
+  generalised cleanly out of the project it came from, which is the test this repository applies
+  to everything else it holds.
+- **Let skills restate framework rules for convenience, and reconcile periodically.** Rejected —
+  "reconcile periodically" is how every drifting-documents problem starts, and this repository
+  already has a rule against duplicating one fact across surfaces.
+- **Version skills like the protocol.** Rejected: it would make a project's own copy of a
+  procedure into something it must chase, for no benefit it asked for.
+
+**Consequences**
+- Build OS has an agent-facing surface, and a stated rule for what belongs there.
+- Every future skill has one review question that outranks the others: *does this restate
+  something `framework/` already says?*
+- A skill can still drift from its framework document without anything detecting it. Nothing
+  here prevents that; the boundary makes it a reviewable error rather than an ambiguity.
+- One rule travelled from the skill into the framework — *where stopping is a real option, list
+  it* — which is the traffic working in the direction it should.

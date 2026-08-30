@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.8 — protocol contract**
+**Build OS v0.9 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -443,6 +443,19 @@ treated as such.
 **Decision IDs are stable and never renumbered**, so a consumer may safely use `DEC-###` as a
 durable key. A newly *accepted* decision is a meaningful event; a status change from `Accepted`
 to `Superseded by …` is also meaningful. Editing prose in an existing entry is not.
+
+---
+
+## `skills/` — outside the parse surface
+
+Skills are instructions for an agent, not project state, and a consumer parses **none** of them.
+They carry no phase, no verdict, no workstream, and nothing a tool should report on. A skill
+that produced durable state would be writing a Build OS artifact, and the rule that agents write
+state while tools read it is unchanged.
+
+A skill may *tell* an agent to produce an artifact this contract does read — a `DECISION` owner
+result, say. What is parsed is that artifact, in its own form, exactly as if no skill had been
+involved.
 
 ---
 

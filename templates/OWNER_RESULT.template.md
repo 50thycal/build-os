@@ -22,7 +22,7 @@
 
      A short summary may omit detail. It may not omit material truth. -->
 
-**Workstream:** WS-### · **PR:** #<n> · **Date:** YYYY-MM-DD · **Build OS v0.8**
+**Workstream:** WS-### · **PR:** #<n> · **Date:** YYYY-MM-DD · **Build OS v0.9**
 
 ---
 

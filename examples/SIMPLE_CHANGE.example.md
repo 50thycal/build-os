@@ -1,6 +1,6 @@
 # Worked Example — intent straight to the implementation agent
 
-**Build OS v0.8**
+**Build OS v0.9**
 
 Fictional. The project is **Harbour**, the invoicing tool from
 `FEATURE_LIFECYCLE.example.md`. That example shows a significant change originating in a

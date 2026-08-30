@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.8** — a reusable development framework for building software with a human
+**Build OS v0.9** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -268,6 +268,7 @@ and *implementer* on the same change, which is the one separation the protocol w
 | `framework/AGENT_SESSION_CHECKPOINT.md` | Protocol contract: how agents publish session state — never transcripts |
 | `framework/BUILD_OS_PARSE_CONTRACT.md` | Protocol contract: the subset of Build OS artifacts machine consumers may rely on |
 | `contracts/` | Machine-readable schemas for the contracts above |
+| `skills/` | Agent-invokable procedures — the same protocol aimed at an agent mid-task rather than an owner reading a document |
 | `templates/` | Fill-in templates for each artifact — Owner Plan, Owner Result, Build Card, Build Spec, PR handoff, review summary, project model, decisions, workstream, active work, ChatGPT Project instructions |
 | `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish: significant work, design-agent origin |
 | `examples/SIMPLE_CHANGE.example.md` | A one-line intent handed straight to an implementation agent — and the one that turns out not to be simple |
@@ -322,8 +323,8 @@ whichever implementation agent the project uses; nothing below is specific to on
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.8
-- Last compatibility check: v0.8 on YYYY-MM-DD
+- Adopted version: v0.9
+- Last compatibility check: v0.9 on YYYY-MM-DD
 - Operating mode: reviewed
 
 Before substantial design or architectural work, compare the adopted version against
@@ -408,6 +409,13 @@ Copy `templates/BUILD_CARD.template.md`, `templates/OWNER_PLAN.template.md`,
 `.github/pull_request_template.md` is a good default — it makes the handoff structure the
 path of least resistance, and it carries the Owner Result the owner will actually read.
 
+**Skills are optional and taken by copy.** If any of `skills/` is useful, copy the directory
+into wherever the project keeps them — commonly `.claude/skills/<name>/`. Unlike the protocol,
+skills are **not versioned and not tracked**: a project takes the copy it wants and is not
+obliged to follow this repository's later changes to it. That is deliberate, and it is the one
+place Build OS does not ask for a compatibility check — a skill that changed under a project
+mid-thread would be a worse problem than a stale one.
+
 **5. Record the adoption.**
 
 Add the first entry to the project's `DECISIONS.md`:
@@ -443,4 +451,4 @@ pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.8** — see `VERSION.md`.
+**Current version: Build OS v0.9** — see `VERSION.md`.

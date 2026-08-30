@@ -8,7 +8,7 @@
 
 **Canonical repository: `<OWNER/REPOSITORY>`**
 
-This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.8**
+This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.9**
 (github.com/50thycal/build-os). Every conversation in this project is a session in that
 Design Room.
 

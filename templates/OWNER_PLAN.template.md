@@ -8,7 +8,7 @@
      A spec that introduces an owner-visible choice this plan did not carry goes back to
      the owner. See framework/OWNER_INTERFACE.md and framework/BUILD_SPEC.md. -->
 
-**Workstream:** WS-### · **Date:** YYYY-MM-DD · **Build OS v0.8**
+**Workstream:** WS-### · **Date:** YYYY-MM-DD · **Build OS v0.9**
 
 ---
 

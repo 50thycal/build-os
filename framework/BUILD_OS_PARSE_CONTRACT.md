@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.7 — protocol contract**
+**Build OS v0.8 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -136,8 +136,9 @@ prose:
 
 | Field | Rule |
 |---|---|
-| Verdict | One of `Not started`, `In review`, `Changes required`, `Approved`, `Approved with follow-ups`. Case-insensitive. Unrecognized → absent, plus a `REVIEW_VERDICT_MALFORMED` warning. |
+| Verdict | One of `Not started`, `In review`, `Changes required`, `Approved`, `Approved with follow-ups`, `Owner-accepted`. Case-insensitive. Unrecognized → absent, plus a `REVIEW_VERDICT_MALFORMED` warning. |
 | Reviewed head | A full 40-character hexadecimal commit SHA, or `—` for none. An abbreviated SHA is **not** accepted — a 7-character prefix cannot prove which commit was reviewed. Malformed → absent, plus `REVIEWED_HEAD_MALFORMED`. |
+| Accepted head | The head an `Owner-accepted` verdict names. Same format rules as `Reviewed head`, and a **separate field**: nothing was reviewed, so borrowing the reviewed field would erase the distinction this verdict exists to preserve. Malformed → absent, plus `ACCEPTED_HEAD_MALFORMED`. |
 | Reviewed PR | Optional. `#84`. Which PR this verdict is about. |
 | Finalization | Optional. `pushed` when the documentation-only merge-finalization commit is on the PR; `—`, `not pushed`, or absent otherwise. |
 
@@ -170,6 +171,34 @@ should name them explicitly, using the per-PR table:
 Either form may be used; the table wins if both are present. **A linked PR with no record is a
 PR this workstream makes no claim about** — which is what keeps a workstream's older,
 already-merged PRs quiet. Whether that silence is legitimate depends on the next rule.
+
+### Operating mode, and `Owner-accepted`
+
+From v0.8 a project declares an **operating mode** in its framework block, on the same line
+shape as the version fields:
+
+```markdown
+- Operating mode: reviewed
+```
+
+`reviewed` (the default, and what an absent line means) or `solo`. A `solo` project has
+declared that no independent actor exists, so acceptance comes from the owner instead of a
+reviewer. The full rules are in `framework/REVIEW_PROTOCOL.md` → *Operating modes*.
+
+**A consumer must never treat `Owner-accepted` as an approval.** It records that the owner
+accepted a change **no independent party reviewed** — a true statement, and a much weaker one
+than `Approved`. Rendering them the same, ranking them the same, or letting one satisfy a check
+written for the other destroys the only distinction the verdict carries.
+
+| Rule | |
+|---|---|
+| Clears the gate | Only in a `solo` project, and only with a full-length `Accepted head` matching the PR's current head |
+| On a `reviewed` project | A contradiction: the mode says a reviewer was available. Report `OWNER_ACCEPTED_IN_REVIEWED_MODE` and treat the PR as unreviewed |
+| Written by an agent | Not detectable from the artifact alone, and not this contract's job to police. The protocol reserves it to the owner |
+| Retroactive upgrade | Never. A project that moves `solo` → `reviewed` does not convert its history into approvals |
+
+`Owner-accepted` is a **current position** like any other verdict, and an outstanding
+`Changes required` still closes the gate over it.
 
 ### Participation is declared, never inferred
 
@@ -372,6 +401,12 @@ gate's tail, not just its verdict. A `SHIP` is contradicted when, for its own PR
   below, and a `SHIP` sitting on top of it is the specific error this rule exists to catch:
   the reviewer's last step has not happened, so the package is not the owner's to merge yet.
 
+In a **`solo`** project the third and fifth conditions do not apply, because both name a
+reviewer who does not exist there: a `SHIP` is contradicted by a non-approving verdict, an
+outstanding `Changes required`, or unpushed finalization, but not by the absence of an approval
+or of a final-head verification. Finalization is the last step in that mode, so a `SHIP` after
+it is legitimate and a `SHIP` before it is not.
+
 Report `OWNER_RESULT_CONTRADICTED` in each case. The gate stays exactly as shut as it was.
 
 **A missing result is not a warning, and it is the normal case.** Most PRs at most moments have
@@ -438,7 +473,8 @@ winner. Cases worth reporting:
 | `Verdict: Approved`* with no reviewed head | Report `APPROVED_WITHOUT_REVIEWED_HEAD`: an approval that names no commit proves nothing. Treat the record as unreviewed. |
 | A record's reviewed head differs from **its own** PR's current head, finalization not declared | Report `REVIEW_STALE`: the approval is against an older commit. |
 | A record declares `Finalization: pushed` and no approving GitHub review names the PR's current head | Report `FINAL_HEAD_UNVERIFIED`: the divergence is expected, the verification is not there. |
-| A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. |
+| A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. In a `solo` project, `Owner-accepted` at the merged head satisfies this instead; its **absence** still reports, because declaring `solo` replaces the reviewer, not the record. |
+| `Owner-accepted` on a project whose declared mode is `reviewed` | Report `OWNER_ACCEPTED_IN_REVIEWED_MODE`; treat the PR as unreviewed. The mode says a reviewer was available, so their absence is a missing review. |
 | A **gated** workstream links a PR with no review record | Report `REVIEW_RECORD_MISSING` while open, `MERGED_WITHOUT_APPROVAL` once merged. Exempt: no v0.5-or-later version, no Build Card yet, or pre-adoption work under an inherited pin (above). |
 | A record declares finalization while its verdict is not approving | Report `WORKSTREAM_PR_STATE_MISMATCH`: finalization comes after approval, not before. |
 | A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |

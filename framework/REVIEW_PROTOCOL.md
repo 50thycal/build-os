@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -198,9 +198,77 @@ the reader to re-triage it.
 
 ---
 
+## Operating modes
+
+Build OS assumes a second actor exists. Most of the time one does, and everything below
+assumes it.
+
+Sometimes one does not. A project run by one person with one GitHub account and one agent has
+nowhere to obtain an independent verdict — not because the reviewer is lazy or the process is
+inconvenient, but because there is no second party. `DEC-015` already met the shallow version
+of this problem, where GitHub refused a review on a self-authored PR, and answered it with the
+comment verdict form. That made a verdict **possible**. It did not make one **available**:
+there was still nobody else to give it.
+
+A gate that cannot be satisfied is not strict. It is inert, and it trains everyone to merge
+past it — which is measurably what happened, in this repository, to the release that introduced
+it. **A permanently-violated rule is worse than an honestly-narrower one**, because the warning
+it generates is indistinguishable from noise and the first thing anyone does is stop reading it.
+
+So a project **declares** which mode it operates in, in its framework block:
+
+```markdown
+## Build OS
+- Canonical framework: 50thycal/build-os
+- Adopted version: v0.8
+- Last compatibility check: v0.8 on YYYY-MM-DD
+- Operating mode: reviewed
+```
+
+| Mode | Means | Acceptance comes from |
+|---|---|---|
+| `reviewed` | An independent actor is available. **The default, and what every other page of this protocol describes.** | An independent reviewer's verdict against the current head |
+| `solo` | No independent actor exists — one person, one identity, one agent | The **owner's own acceptance**, recorded, at merge |
+
+**The mode is declared, never inferred.** A project with no `Operating mode:` line is
+`reviewed`, and an absent reviewer is a missing review rather than a licence. Declaring `solo`
+is a decision, and it belongs in the adopting project's `DECISIONS.md` with the reason.
+
+**`solo` is a fallback, not a preference.** It is available when a second actor genuinely does
+not exist. The moment one does — a colleague, a second GitHub identity, a review agent under a
+separate account — the project moves to `reviewed`, and the stronger evidence is what the
+record should carry. A project that stays `solo` for convenience has swapped a check it could
+run for a note saying it did not.
+
+### What `solo` mode changes, and what it does not
+
+Exactly one thing changes: **who accepts.** In `solo` mode the owner accepts the change at
+merge, and that acceptance is recorded as itself — not as a review, and not as an approval.
+
+Everything else is unchanged, and this list matters more than the one above:
+
+- **The implementation agent still may not approve or merge its own work.** `solo` moves
+  acceptance to the *owner*, never to the agent. An agent that recorded its own acceptance
+  would have removed the last party standing between it and `main`.
+- **Validation is still required green**, and still actually run.
+- **The handoff is still complete**, and *Spec Deviations* still load-bearing. With no reviewer
+  to catch an undisclosed deviation, that section is the only thing that can, which makes it
+  more important here rather than less.
+- **The agent still does everything review would have asked of it** short of the verdict: names
+  its own risks, names where it would look first, and says plainly what it could not verify.
+- **Durable memory, workstreams, finalization, and the reviewed-head discipline** all stand.
+- **`Changes required` still closes the gate**, from any source, including the agent itself.
+
+What `solo` does **not** buy is a claim of independence. It records that the owner accepted a
+change nobody else read, which is a true and much weaker statement than `Approved`, and the
+record keeps them distinguishable forever. That is the entire point: not to lower the bar, but
+to stop describing a bar nobody clears.
+
+---
+
 ## The merge gate
 
-A **significant** PR does not merge until all four of these hold:
+A **significant** PR in a `reviewed` project does not merge until all four of these hold:
 
 1. An **independent reviewer** has recorded `Approved` or `Approved with follow-ups`.
 2. The verdict names a **reviewed head**, and that head is the PR's **current head**.
@@ -217,13 +285,39 @@ This gate is a protocol rule, not a piece of automation. Build OS requires no br
 protection, no GitHub App, and no CI job to enforce it. A project may add those; a project
 that has not is still bound by the gate.
 
+In a `solo` project, condition 1 has no available satisfier and conditions 2–4 stand. It is
+replaced by **owner acceptance**, below; nothing else about this section changes.
+
+### The solo gate
+
+A significant PR in a `solo` project does not merge until all four of these hold:
+
+1. The **owner** has recorded `Owner-accepted` against a named **accepted head**, and that head
+   is the PR's current head.
+2. No `Blocking` or `Should fix` finding is unresolved — including ones the implementation
+   agent raised against itself.
+3. The project's own required validation is green.
+4. The handoff discloses deviations, risks, and what could not be verified.
+
+The shape is deliberately the same. Only the first line differs, and it differs by naming the
+owner rather than pretending an independent reviewer was there.
+
+**The owner's acceptance is an act, not a formality**, and it is worth being blunt about what it
+is: a person deciding to take responsibility for a change that no second party examined. That is
+a legitimate thing to do on your own project. It is not the same as review, it should not feel
+the same, and the record must never let the two be confused.
+
 ### Who may do what
 
 | Role | May |
 |---|---|
-| Implementation agent | Prepare the PR, respond to findings, push corrections, write the finalization commit, request review |
+| Implementation agent | Prepare the PR, respond to findings, push corrections, write the finalization commit, request review. **Never** approve, accept, or merge its own significant PR |
 | Independent reviewer | Record `Approved`, `Approved with follow-ups`, or `Changes required` against a named head |
-| Owner, or a merger they authorize | Merge |
+| Owner | Merge. In a `solo` project, also record `Owner-accepted` against the head they merge |
+| A merger the owner authorizes | Merge |
+
+`Owner-accepted` is the owner's alone. An implementation agent that wrote it would be approving
+its own work through a differently-spelled field, and no mode makes that acceptable.
 
 **An implementation agent may not approve or merge its own significant PR.** Not "should
 not" — may not. The one exception is explicit owner direction to merge, *and* an independent
@@ -243,13 +337,29 @@ Every review summary and every workstream `Review State` records two fields:
 **Reviewed head:** 0123456789abcdef0123456789abcdef01234567
 ```
 
-| Verdict | Means |
-|---|---|
-| `Not started` | No review yet |
-| `In review` | A reviewer has the PR; no verdict yet |
-| `Changes required` | At least one unresolved Blocking or Should fix finding |
-| `Approved` | Clears the gate |
-| `Approved with follow-ups` | Clears the gate; named non-blocking work is filed to happen later |
+| Verdict | Means | Mode |
+|---|---|---|
+| `Not started` | No review yet | both |
+| `In review` | A reviewer has the PR; no verdict yet | `reviewed` |
+| `Changes required` | At least one unresolved Blocking or Should fix finding | both |
+| `Approved` | Clears the gate | `reviewed` |
+| `Approved with follow-ups` | Clears the gate; named non-blocking work is filed to happen later | `reviewed` |
+| `Owner-accepted` | The owner accepted a change **no independent party reviewed**. Clears the solo gate only | `solo` |
+
+`Owner-accepted` records its head in **`Accepted head`**, not `Reviewed head`, and the field
+names are different on purpose: nothing was reviewed, and a record that borrowed the reviewed
+field would make the two indistinguishable to anyone reading later — which is the one thing this
+verdict must never do.
+
+```markdown
+**Verdict:** Owner-accepted
+**Accepted head:** 0123456789abcdef0123456789abcdef01234567
+```
+
+It is **not** an approval and must never be counted as one. A `solo` project that later gains a
+second actor does not retroactively upgrade its history: those changes were accepted, not
+reviewed, and they stay that way. Equally, `Owner-accepted` on a `reviewed` project is a
+contradiction — the mode says a reviewer was available, so their absence is a missing review.
 
 `Reviewed head` is the **full 40-character commit SHA** the verdict was reached against, or
 `—` when there is none. An abbreviation is not accepted: a seven-character prefix cannot
@@ -297,7 +407,8 @@ reported; it can never be what excuses the report.
 
 **An approval with no reviewed head does not clear the gate.** Treat it as `In review`. This
 is not pedantry — an approval that names no commit is a statement about a conversation, not
-about code.
+about code. The same holds for `Owner-accepted` with no accepted head: an acceptance that names
+no commit accepts nothing.
 
 Where a reviewer's finding is genuinely the owner's to settle, the verdict is
 `Changes required` and the summary's *Decisions requiring owner attention* section carries
@@ -348,6 +459,12 @@ somebody opens a second PR to clean up after the first.
 
 Build OS closes that with a **merge-finalization commit**: the last commit on the same PR,
 after approval and before merge, containing documentation only.
+
+**In a `solo` project the ordering differs, because acceptance happens at merge.** There is no
+approval to follow, so finalization is simply the last thing the agent does before handing over:
+implementation, validation, then a separate documentation-only commit, then `SHIP`. Keeping it a
+separate commit still earns its place — it makes the bookkeeping diff inspectable on its own,
+which is the property the owner needs most in the mode where nobody else is reading.
 
 It sets, to what becomes true when the PR lands:
 

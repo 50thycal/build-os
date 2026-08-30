@@ -1,6 +1,6 @@
 # Owner Interface
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 Build OS has always had two audiences and one reading path. The Build Card, the Build Spec,
 the PR handoff, the review summary and the workstream are all written for someone — and by
@@ -226,8 +226,8 @@ or an authorized merger merges.
 to keep, and it is what `SHIP` means: the package is finished, and the only thing left is the
 owner's merge.
 
-For **significant** work, `SHIP` requires **all six** of these, and may not be written while
-any one is missing:
+For **significant** work in a `reviewed` project, `SHIP` requires **all six** of these, and may
+not be written while any one is missing:
 
 1. required validation is **green**, and was actually run;
 2. **no** unresolved `Blocking` or `Should fix` finding;
@@ -245,6 +245,28 @@ precisely the situation in which a `SHIP` would hand the owner a package that is
 **Finalization and the final-head verification are agent and reviewer work.** Work the owner
 cannot do, has no way to check, and should never be asked to wait through after being told the
 thing is ready.
+
+In a **`solo`** project — one declaring that no independent actor exists, per
+`framework/REVIEW_PROTOCOL.md` → *Operating modes* — conditions 3 and 5 have no available
+satisfier, because both name a reviewer. They are not waived; they are **absent**, and the
+result must say so. `SHIP` then requires 1, 2, 4 and 6, plus a seventh that only applies here:
+
+7. the `Verification` line states plainly that **no independent review occurred**.
+
+```markdown
+**Verification:** Full suite green, 14 new tests. Bookkeeping commit pushed. **No independent
+review — this project runs in solo mode, so accepting this is your call.**
+```
+
+That sentence is the whole of what `solo` mode costs, and it is not decoration. The owner is
+being handed a change no second party examined, and the one thing they must not be allowed to
+do is mistake it for one that was. `Next action` is still the merge — and in `solo` mode the
+merge *is* the acceptance, recorded as `Owner-accepted` against the head they take.
+
+The principle is unchanged in both modes: **no terminal result while agents still have work to
+do.** What differs is only how much work there is. In `reviewed`, the reviewer's final-head
+verification is the last step. In `solo`, the finalization commit is — and after it the agent
+genuinely has nothing left, which is what makes `SHIP` honest there rather than premature.
 
 Before condition 5 holds, there is **no terminal result** — not a `SHIP` with a caveat, not a
 `SHIP` whose `Next action` names the outstanding step. The work is mid-flight and says so; see
@@ -287,7 +309,7 @@ That covers more than first push. Every one of these is a no-result state:
 | Pushed, awaiting review | Nothing is verified but the agent's own account of it |
 | In the correction loop — findings being fixed, re-reviewed | The loop is working; the owner is not in it |
 | Approved, finalization not yet pushed | A documentation commit is still owed, by an agent |
-| Finalization pushed, final head not yet verified | The reviewer still has to verify what that commit produced |
+| Finalization pushed, final head not yet verified | The reviewer still has to verify what that commit produced (`reviewed` mode only — in `solo` there is nobody to do it, and the finalization commit is the last step) |
 
 The handoff's Owner Result section says so, and carries **no marker**:
 

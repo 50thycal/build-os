@@ -1,6 +1,6 @@
 # Build Spec
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 The Build Spec is the standard implementation packet handed to Claude or another coding
 agent. It is produced by the design agent in stage E of the Design Room, after the Build

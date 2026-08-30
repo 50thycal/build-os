@@ -1,6 +1,6 @@
 # Framework Sync
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 Adopted repositories **pin** a Build OS version. Pinning keeps work reproducible and stops a
 framework change from silently redefining an effort that is already in flight.
@@ -100,14 +100,18 @@ An adopted repository records its framework state in its existing agent-instruct
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.5
-- Last compatibility check: v0.5 on 2026-08-24
+- Adopted version: v0.8
+- Last compatibility check: v0.8 on 2026-08-30
+- Operating mode: reviewed
 ```
 
-Three fields, and each earns its place:
+Four fields, and each earns its place:
 
 - **Canonical framework** — where to check. Explicit, so an agent never has to infer it.
 - **Adopted version** — what this project's protocol actually is. The pin.
+- **Operating mode** — `reviewed` or `solo`: whether an independent actor exists to review
+  significant work. Absent means `reviewed`, and an absent reviewer in a `reviewed` project is a
+  missing review rather than a licence. See `framework/REVIEW_PROTOCOL.md` → *Operating modes*.
 - **Last compatibility check** — which canonical version was last compared against, and when.
   This is what distinguishes *checked and unchanged* from *never checked*, which the adopted
   version alone cannot express.

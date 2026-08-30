@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -100,8 +100,18 @@ For a significant PR that means: **you may not approve it, and you may not merge
 single exception is explicit owner direction to merge *and* an existing independent approved
 verdict naming the current head. Owner direction replaces the merger, never the reviewer.
 
+**In a `solo` project** — one whose framework block declares `Operating mode: solo` because no
+independent actor exists — acceptance comes from the owner instead, recorded as
+`Owner-accepted` against the head they merge. That changes who accepts. It does not change
+anything about you: you still may not approve, accept, or merge your own work, and writing
+`Owner-accepted` yourself would be approving your own PR through a differently-spelled field.
+What it does change is your obligation to disclose — with no reviewer to catch an undisclosed
+deviation, *Spec Deviations* and *Known Risks* are the only things that can. See
+`framework/REVIEW_PROTOCOL.md` → *Operating modes*.
+
 Report the state of the gate honestly in the handoff — `Review gate: Pending independent
-review` until a reviewer says otherwise. An implementation agent never writes its own
+review` until a reviewer says otherwise, or, in a `solo` project,
+`Review gate: Solo mode — pending owner acceptance`. An implementation agent never writes its own
 approval into the workstream's `Review State`.
 
 The full gate, the verdict values, the staleness rules, and the merge-finalization commit
@@ -329,8 +339,11 @@ undisclosed material deviation.
 approval a documentation-only commit is still owed, and after that commit the reviewer still
 has to verify the head it produced. Writing `SHIP` at either point hands the owner a package
 that is not finished — so at either point there is **no result yet**, and the section says so.
-`Next action` on a `SHIP` is the merge and nothing else, naming the verified SHA. Full rules:
-`framework/OWNER_INTERFACE.md`.
+`Next action` on a `SHIP` is the merge and nothing else, naming the verified SHA.
+
+**In a `solo` project**, conditions 3 and 5 name a reviewer who does not exist: they are absent
+rather than waived, the finalization commit becomes the last step, and `Verification` must state
+plainly that no independent review occurred. Full rules: `framework/OWNER_INTERFACE.md`.
 
 An unresolved owner decision is not a caveat inside a `SHIP`. It is a `DECISION`.
 

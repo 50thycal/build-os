@@ -1,6 +1,6 @@
 # Worked Example — a feature through the full lifecycle
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 **Significant work, originating with a design agent.** The intent arrives in a Design Room
 conversation, runs all five stages, and goes through the full merge gate. For the other entry

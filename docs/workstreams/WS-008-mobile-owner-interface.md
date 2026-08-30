@@ -1,12 +1,12 @@
 # WS-008 — Mobile-first owner interface
 
-**Phase:** BUILDING
-**Status:** Active
-**Updated:** 2026-08-29
+**Phase:** COMPLETE
+**Status:** Complete
+**Updated:** 2026-08-30
 **Build OS:** v0.5
-**Implementation State:** v0.6 merged in #13; retrospective review returned `Changes required`; correction on PR #15 releases v0.7.
-**Related PRs:** #13, #14, #15
-**Next Step:** Independent review of PR #15, which narrows `SHIP` to the point where only the owner's merge remains.
+**Implementation State:** Merged in #13, #14, #15 and #16. The owner interface shipped as v0.6, was corrected to v0.7, and v0.8 added the operating mode that lets this repository record acceptance honestly.
+**Related PRs:** #13, #14, #15, #16
+**Next Step:** None.
 
 ## Goal
 
@@ -80,11 +80,29 @@ Let an owner initiate software work from any supported AI surface, approve only 
 
 ## Review State
 
-| PR | Verdict | Reviewed head | Finalization |
-|---|---|---|---|
-| #13 | Changes required | `e215865b92af850504b70b454bb5e0a4cab217c7` | — |
-| #14 | Not started | — | — |
-| #15 | In review | — | — |
+| PR | Verdict | Reviewed head | Accepted head | Finalization |
+|---|---|---|---|---|
+| #13 | Changes required | `e215865b92af850504b70b454bb5e0a4cab217c7` | — | — |
+| #14 | Not started | — | — | — |
+| #15 | Not started | — | — | — |
+| #16 | Owner-accepted | — | recorded by the owner at merge | pushed |
+
+**Three of these four PRs merged with no verdict at all**, and the table says so rather than
+tidying it away. #13's row carries a verdict because it was reviewed retrospectively, after the
+merge; #14 and #15 were never reviewed by anyone, and `Not started` is the accurate record.
+
+**No acceptance is retrofitted onto them.** Under v0.8 this repository operates in `solo` mode
+and the owner accepts significant work at merge — but that mode did not exist when #13, #14 and
+#15 landed, and writing `Owner-accepted` onto them now would record a decision nobody made at
+the time. The `MERGED_WITHOUT_APPROVAL` reports against those three are accurate and stay.
+
+#16 is the first PR here recorded under `solo` mode, and the first to carry `Owner-accepted`.
+It is not the first to clear the gate at all — #10 did that under `DEC-015`, with a comment
+verdict — which is precisely why v0.8 was needed: the form worked once, and then three
+consecutive releases went through with nothing, because a form cannot supply a second reader.
+#16's `Accepted head` is recorded by the owner on the PR at merge, for the same reason a
+finalization commit cannot name its own SHA.
+
 
 ### #13 — retrospective review, `Changes required`
 
@@ -129,10 +147,28 @@ branch, and the last head the implementation actually produced.
 honoured.** The record should not blur them, so this note stays in the file after the review
 lands, and the verdict that follows will say it was retrospective.
 
-The workstream is `BUILDING`, not `COMPLETE`: recovery step 3 returns it there with the findings
-in `Next Step`, and recovery step 5 forbids calling it complete while a correction is
-outstanding. Completion also owes `PROJECT_MODEL.md` and `DECISIONS.md` — the latter carries
-DEC-016 through DEC-020.
+The recovery is closed. Recovery step 5 forbade completion while a correction was outstanding;
+the correction was #15, and #16 resolves the condition that made three merges ungatable in the
+first place. Completion's memory obligations are met by `DECISIONS.md` (DEC-016 through DEC-021)
+and by `README.md`, which is this repository's architecture document — Build OS has no
+`PROJECT_MODEL.md` because the framework is the system it describes.
+
+## Outcome
+
+The owner interface shipped, and then had to survive its own protocol twice:
+
+- **v0.6** — the owner layer: Intent Intake, entry-point neutrality, the Owner Plan,
+  `SHIP | DECISION | BLOCKED`, proportionality, the closed reviewer→implementer loop.
+- **v0.7** — `SHIP` narrowed to the single point where only the owner's merge remains, after a
+  retrospective review found it could be emitted while agents still had work to do.
+- **v0.8** — operating modes, because three consecutive releases proved this repository could
+  not satisfy the gate it was asserting.
+
+The third of those was not in the Build Card and is the most useful thing the workstream
+produced. The owner interface was built to stop the framework wasting the owner's attention;
+what it exposed on the way is that the framework had also been asserting a check it never
+performed. Both are the same failure — a record describing something other than what happens —
+and Build OS's own premise is that such records are worse than none.
 
 Four implementation decisions are the ones most worth a reviewer's attention, because each
 resolved a gap or a tension in the issued spec rather than merely expanding it:

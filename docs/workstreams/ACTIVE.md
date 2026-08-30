@@ -2,7 +2,7 @@
 
 <!-- Build OS's own active-work control board. Protocol work only. -->
 
-**Updated:** 2026-08-29 · **Build OS v0.8**
+**Updated:** 2026-08-30 · **Build OS v0.8**
 
 The Project Intelligence Companion program moved to
 [`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,
@@ -14,7 +14,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| WS-008 | Mobile-first owner interface | BUILDING | Active | Review PR #15, correcting the SHIP-timing finding from #13's retrospective review | #13, #14, #15 |
+| — | — | — | — | — | — |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned
@@ -24,5 +24,6 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Completed | Outcome |
 |---|---|---|---|
+| WS-008 | Mobile-first owner interface | 2026-08-30 | Owner layer shipped as v0.6, corrected to v0.7, and v0.8 added operating modes |
 | WS-001 … WS-006 | Companion program | 2026-08-24 | Moved to `50thycal/build-os-companion` with the application (`DEC-011`) |
 | WS-007 | Closed-loop feedback, review, and merge delivery | 2026-08-24 | Build OS v0.5 released in #7 (`DEC-012`, `DEC-013`, `DEC-014`), finalized in #9. Both merged without an approved verdict on their final heads — recorded in the workstream, not reversed. `DEC-015` (#10) makes the gate satisfiable where GitHub allows no review, and #10 is the first PR here to clear it. |

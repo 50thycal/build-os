@@ -8,14 +8,21 @@
      one some durable artifact already supports.
 
      There is often no result at all, and that is correct. The three states are terminal, not
-     a running status: work awaiting review has reached none of them. Say so plainly and carry
-     no marker —
+     a running status, and everything before the gate's last step is mid-flight: awaiting
+     review, in the correction loop, approved with finalization unpushed, or finalized with the
+     final head unverified. Say so plainly and carry no marker —
 
          Awaiting independent review. Nothing needed from you yet.
 
+         Approved and finalized; awaiting the reviewer's verification of the final head.
+         Nothing needed from you yet.
+
+     DECISION and BLOCKED are not held back this way — they are reachable at any point,
+     because they are the cases where the owner does have something to do.
+
      A short summary may omit detail. It may not omit material truth. -->
 
-**Workstream:** WS-### · **PR:** #<n> · **Date:** YYYY-MM-DD · **Build OS v0.6**
+**Workstream:** WS-### · **PR:** #<n> · **Date:** YYYY-MM-DD · **Build OS v0.7**
 
 ---
 
@@ -28,29 +35,33 @@ Build OS owner result: SHIP
 **Verification:** <validation + independent review status, in plain language>
 **Deviations:** None | <material deviations only>
 **Residual risk:** None | <material remaining risk only>
-**Next action:** Merge PR #<n> | <the exact next action>
+**Next action:** Merge PR #<n> at <verified SHA>
 
 <!-- ~150 words maximum.
 
-     SHIP reports the merge gate. It does not replace it, and writing one approves and
-     merges nothing: the agent that wrote the code neither approves nor merges it.
+     SHIP means every agent and reviewer step is finished and only the owner's merge remains.
+     It reports the merge gate; it does not replace it, and writing one approves and merges
+     nothing: the agent that wrote the code neither approves nor merges it.
 
-     For SIGNIFICANT work, SHIP may not be written while any of these is true:
-       - required validation is red, or was not run
-       - a Blocking or Should fix finding is unresolved
-       - there is no independent verdict of Approved / Approved with follow-ups
-       - that verdict is stale — the PR moved since the reviewed head, other than by the
-         merge-finalization commit
-       - a material deviation from approved behavior is undisclosed
+     For SIGNIFICANT work, SHIP requires ALL SIX:
+       1. required validation green, and actually run
+       2. no unresolved Blocking or Should fix finding
+       3. an independent verdict of Approved / Approved with follow-ups
+       4. the merge-finalization commit pushed
+       5. the final head independently verified by the reviewer, on the PR
+       6. no undisclosed material deviation from approved behavior
 
-     Next action is load-bearing, because the gate terminates in three steps:
-       - approved at current head, finalization not pushed  → "Finalize and merge PR #<n>"
-       - finalization pushed, final head not yet verified   → "Reviewer verifies the final
-                                                               head on PR #<n>, then merge
-                                                               that SHA"
-       - final head verified on the PR                      → "Merge PR #<n> at <SHA>"
+     4 and 5 are the ones this list exists for. After approval a documentation-only commit is
+     still owed, and after that commit the reviewer still has to verify the head it produced —
+     both agent-and-reviewer work the owner cannot do. Before 5 holds there is NO terminal
+     result: not a SHIP with a caveat, not a SHIP whose Next action names the outstanding step.
+     Write the no-result form instead.
 
-     For SIMPLE work, Verification names the classification as well as the validation:
+     Next action on a significant-work SHIP is the merge and nothing else, naming the verified
+     SHA — the commit the reviewer verified and the one the merge must target.
+
+     For SIMPLE work there is no finalization or review to wait on; conditions 3–5 do not
+     apply. Verification names the classification as well as the validation:
        "Simple change — full test suite green. No independent review required under
         proportionality."
      That sentence is what makes a misclassification visible to the owner. -->

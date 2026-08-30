@@ -1,10 +1,10 @@
 # Build OS Version
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 | Field | Value |
 |---|---|
-| Version | 0.6 |
+| Version | 0.7 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts |
 | Contains code | No |
@@ -42,6 +42,97 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.6 → v0.7 — `SHIP` means only the merge is left
+
+**Type:** Minor. **Date:** 2026-08-29.
+
+**What changed**
+
+One rule, narrowed. v0.6 defined `SHIP` as a report of the merge gate but permitted it at three
+points, two of which came *before* the gate had finished:
+
+- approved at the current head, merge-finalization commit not yet pushed;
+- finalization pushed, final head not yet verified by the reviewer;
+- final head verified.
+
+At the first two, work is still owed — a documentation-only commit by the implementation agent,
+and a verification by the reviewer. v0.6 tried to hold this together by making `Next action`
+carry the outstanding step ("Finalize and merge…", "Reviewer verifies the final head, then
+merge…"), which meant the owner could be handed a terminal result that was really a request for
+someone else to finish. **A result that hands work back to an agent is not terminal**, and the
+owner has no way to check the difference.
+
+**The design principle, stated once: no terminal result while agents still have work to do.**
+
+So `SHIP` for significant work now requires **all six**:
+
+1. required validation green, and actually run;
+2. no unresolved `Blocking` or `Should fix` finding;
+3. an independent verdict of `Approved` or `Approved with follow-ups`;
+4. the **merge-finalization commit pushed**;
+5. the **final head independently verified** by the reviewer, on the PR;
+6. no undisclosed material deviation from approved behavior.
+
+Conditions 4 and 5 are new. `Next action` on a significant-work `SHIP` is now **the merge and
+nothing else**, naming the exact verified SHA where useful — that is the commit the reviewer
+verified and the one the merge must target.
+
+The two removed moments become **no-result** states, joining first push and the correction loop.
+The absence-of-result form now covers the whole mid-flight span, and gained a second wording for
+the later gap:
+
+```markdown
+Approved and finalized; awaiting the reviewer's verification of the final head. Nothing needed
+from you yet.
+```
+
+`DECISION` and `BLOCKED` are **not** narrowed. They remain reachable at any point, because they
+are exactly the cases where the owner does have something to do.
+
+**Nothing else moved.** Entry-point neutrality, Intent Intake, the Owner Plan, proportionality
+and its one-way promotion, the closed reviewer→implementer loop, the merge gate, independence,
+staleness, reviewed-head and finalization mechanics are all as v0.6 left them. Simple-change
+behavior is unchanged: simple work has no finalization or independent review to wait on, so
+conditions 3–5 do not apply to it, and its `SHIP` still names the classification in
+`Verification`.
+
+**Why this is minor rather than a patch.** It removes behavior an agent was permitted, so an
+adopting project must change what its agents do. That it also resolves an internal contradiction
+in v0.6 — whose own headline called `SHIP` "done and verified" while the operative rules allowed
+it earlier — makes it a correction, not an evolution, but the migration obligation is the same
+either way and under-classifying it would hide that.
+
+Files: `framework/OWNER_INTERFACE.md`, `framework/CLAUDE_HANDOFF.md`,
+`framework/REVIEW_PROTOCOL.md`, `framework/BUILD_OS_PARSE_CONTRACT.md`, `README.md`,
+`templates/OWNER_RESULT.template.md`, `templates/PR_HANDOFF.template.md`,
+`templates/CHATGPT_PROJECT_INSTRUCTIONS.template.md`,
+`examples/FEATURE_LIFECYCLE.example.md`, and `DEC-020`.
+
+**What an adopting project must do**
+
+1. **Read this entry and update the Build OS block** to adopted v0.7, last-checked v0.7 with
+   today's date.
+2. **Stop emitting `SHIP` before finalization and final-head verification.** If the project's
+   agent instructions or PR template carry v0.6's three-point `Next action` guidance, replace it:
+   a significant-work `SHIP` names the merge, and the two earlier points are no-result states.
+3. **Refresh local copies** of the PR handoff and Owner Result templates, and the Design Room /
+   agent instruction text, where the project keeps copies.
+4. **Nothing about the merge gate changes**, and no workstream, verdict, or review record needs
+   editing. An open PR carrying a v0.6-style `SHIP` should have it replaced with the no-result
+   form until the gate's tail is actually complete — that is the only in-flight correction this
+   migration asks for.
+5. **If the project consumes Build OS artifacts with tooling**, `OWNER_RESULT_CONTRADICTED` now
+   also fires on a `SHIP` whose record does not declare `Finalization: pushed`, or whose final
+   head is unverified.
+6. **If the project cannot adopt now, record an explicit deferral** — a `DEC-n` naming the reason
+   and what would trigger a revisit — keep the prior adopted version, and update last-checked to
+   v0.7.
+
+No project architecture, product decision, completed workstream, or open review is rewritten by
+this migration, and nothing here requires automation, CI, or any deployed service.
+
+---
 
 ### v0.5 → v0.6 — The owner interface
 

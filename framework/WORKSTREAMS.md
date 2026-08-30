@@ -1,6 +1,6 @@
 # Workstreams
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 A **workstream** is one meaningful design/build thread — procurement redesign, an
 authentication rewrite, a scoring rebalance, a new simulation system. Several may proceed

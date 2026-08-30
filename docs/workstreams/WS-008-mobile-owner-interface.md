@@ -1,12 +1,12 @@
 # WS-008 — Mobile-first owner interface
 
-**Phase:** REVIEW
+**Phase:** BUILDING
 **Status:** Active
 **Updated:** 2026-08-29
 **Build OS:** v0.5
-**Implementation State:** Merged in #13. Build OS v0.6 is released; the workstream is not complete, because the merge preceded independent review.
-**Related PRs:** #13
-**Next Step:** Retrospective independent review of the merged change at `e215865b92af850504b70b454bb5e0a4cab217c7`, by an actor that did not implement it.
+**Implementation State:** v0.6 merged in #13; retrospective review returned `Changes required`; correction on PR #15 releases v0.7.
+**Related PRs:** #13, #14, #15
+**Next Step:** Independent review of PR #15, which narrows `SHIP` to the point where only the owner's merge remains.
 
 ## Goal
 
@@ -80,16 +80,44 @@ Let an owner initiate software work from any supported AI surface, approve only 
 
 ## Review State
 
-**Verdict:** Not started
-**Reviewed head:** —
-**Reviewed PR:** #13
-**Finalization:** —
+| PR | Verdict | Reviewed head | Finalization |
+|---|---|---|---|
+| #13 | Changes required | `e215865b92af850504b70b454bb5e0a4cab217c7` | — |
+| #14 | Not started | — | — |
+| #15 | In review | — | — |
+
+### #13 — retrospective review, `Changes required`
+
+Reviewed retrospectively, after the merge. **One finding, and it is the reason PR #15 exists.**
+
+> `SHIP` is described as a terminal owner state, but v0.6 allowed it to be emitted before the
+> merge-finalization commit and before the reviewer had verified the final head. The owner could
+> therefore receive `SHIP` while the implementation agent and the reviewer both still had work
+> to do.
+
+Severity: **Blocking** — it is the defining property of the release's central state, and v0.6
+contradicted itself about it: the README called `SHIP` "done and verified" while the operative
+rules in `OWNER_INTERFACE.md` permitted it twice before that was true.
+
+Corrected in **PR #15**, which releases **v0.7**: `SHIP` for significant work now requires all
+six of green validation, no unresolved `Blocking`/`Should fix`, independent approval,
+finalization pushed, final head verified, and no undisclosed deviation. The two earlier moments
+become no-result states. `DECISION` and `BLOCKED` are unnarrowed. See `DEC-020`.
+
+The rest of the v0.6 design was approved: entry-point neutrality, Intent Intake, the Owner Plan,
+proportionality, the closed reviewer→implementer loop, and the untouched v0.5 merge mechanics
+all stand.
+
+### #13 — how it merged
 
 **PR #13 merged without an independent approved verdict, and without a merge-finalization
 commit.** No reviewer held it and none was recorded — `MERGED_WITHOUT_APPROVAL` in the terms of
 `framework/BUILD_OS_PARSE_CONTRACT.md`, on a workstream that declares `Build OS: v0.5` and is
-therefore gated. The verdict above reads `Not started` rather than `In review` because nobody
-ever had it; an earlier commit on the PR said `In review`, which overstated what had happened.
+therefore gated. Nothing was recorded against it at merge time; an earlier commit on the PR said
+`In review`, which overstated what had happened, and #14 corrected that to `Not started`. The
+table now reads `Changes required`, which is the retrospective review's actual verdict — the
+review happened after the merge rather than before it, and that is what the rest of this section
+records.
 
 This record is the recovery in `framework/REVIEW_PROTOCOL.md` → *Recovery: merged before
 review*, at its first step. The merged code is not being treated as settled because it is on
@@ -101,9 +129,10 @@ branch, and the last head the implementation actually produced.
 honoured.** The record should not blur them, so this note stays in the file after the review
 lands, and the verdict that follows will say it was retrospective.
 
-The workstream stays `REVIEW` and is **not** `COMPLETE`: a merged PR is not a finished
-workstream, and this is exactly the case where the two come apart. Completion also owes
-`PROJECT_MODEL.md` and `DECISIONS.md` — the latter already carries DEC-016 through DEC-019.
+The workstream is `BUILDING`, not `COMPLETE`: recovery step 3 returns it there with the findings
+in `Next Step`, and recovery step 5 forbids calling it complete while a correction is
+outstanding. Completion also owes `PROJECT_MODEL.md` and `DECISIONS.md` — the latter carries
+DEC-016 through DEC-020.
 
 Four implementation decisions are the ones most worth a reviewer's attention, because each
 resolved a gap or a tension in the issued spec rather than merely expanding it:

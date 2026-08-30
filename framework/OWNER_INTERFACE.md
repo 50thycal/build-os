@@ -1,6 +1,6 @@
 # Owner Interface
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 Build OS has always had two audiences and one reading path. The Build Card, the Build Spec,
 the PR handoff, the review summary and the workstream are all written for someone — and by
@@ -192,7 +192,7 @@ path, and for most changes it is the only part of Build OS they read.
 
 | State | Means | Owner does |
 |---|---|---|
-| `SHIP` | The work is done and the gate is satisfied to the limit of what agents may do | Merges, or authorizes a merge |
+| `SHIP` | Every agent and reviewer step is finished; only the merge is left | Merges, or authorizes a merge |
 | `DECISION` | A choice genuinely requires owner judgment | Chooses |
 | `BLOCKED` | Work cannot responsibly continue | Unblocks, or accepts that it stops |
 
@@ -212,7 +212,7 @@ Build OS owner result: SHIP
 **Verification:** <validation + independent review status, in plain language>
 **Deviations:** None | <material deviations only>
 **Residual risk:** None | <material remaining risk only>
-**Next action:** Merge PR #<n> | <the exact next action>
+**Next action:** Merge PR #<n> at <verified SHA>
 ```
 
 Target 150 words or fewer.
@@ -222,33 +222,47 @@ not approving or merging anything.** The rules in `framework/REVIEW_PROTOCOL.md`
 by this document: the agent that wrote the code neither approves nor merges it, and the owner
 or an authorized merger merges.
 
-For **significant** work, `SHIP` may not be written while any of these is true:
+**No terminal result while agents still have work to do.** That is the rule the state exists
+to keep, and it is what `SHIP` means: the package is finished, and the only thing left is the
+owner's merge.
 
-- required validation is red, or was not run;
-- a `Blocking` or `Should fix` finding is unresolved;
-- there is no independent verdict of `Approved` or `Approved with follow-ups`;
-- that verdict is **stale** — the PR has moved since the reviewed head, other than by the
-  merge-finalization commit;
-- a material deviation from approved behavior is undisclosed.
+For **significant** work, `SHIP` requires **all six** of these, and may not be written while
+any one is missing:
 
-That list is the load-bearing sentence of the whole owner layer, which is why it is a
-prohibition rather than an aspiration. A `SHIP` that can be written over red validation is
-worth nothing, and everyone learns that within a week.
+1. required validation is **green**, and was actually run;
+2. **no** unresolved `Blocking` or `Should fix` finding;
+3. an independent verdict of `Approved` or `Approved with follow-ups`;
+4. the **merge-finalization commit is pushed** — the documentation-only commit that makes the
+   workstream and the board true before the PR lands;
+5. the **final head is independently verified** — the reviewer has read the diff since the
+   approved head, confirmed it touches only the finalization surfaces, and recorded that
+   verification on the PR;
+6. **no undisclosed material deviation** from approved behavior.
 
-**Two moments are legitimately `SHIP`, and they have different next actions.** The distinction
-exists because of how the v0.5 gate actually terminates:
+Conditions 4 and 5 are the ones this list exists for. Everything up to condition 3 can be true
+while a documentation commit and a reviewer's verification are still owed, and that is
+precisely the situation in which a `SHIP` would hand the owner a package that is not finished.
+**Finalization and the final-head verification are agent and reviewer work.** Work the owner
+cannot do, has no way to check, and should never be asked to wait through after being told the
+thing is ready.
 
-| Situation | `Next action` says |
-|---|---|
-| Approved at the current head, finalization not yet pushed | `Finalize and merge PR #<n>` — the documentation-only commit comes first |
-| Finalization pushed; the reviewer has not yet verified the head it produced | `Reviewer verifies the final head on PR #<n>, then merge that SHA` |
-| Final head verified on the PR | `Merge PR #<n> at <SHA>` |
+Before condition 5 holds, there is **no terminal result** — not a `SHIP` with a caveat, not a
+`SHIP` whose `Next action` names the outstanding step. The work is mid-flight and says so; see
+*Before there is a result* below. The exception is the obvious one: work that has genuinely
+reached `DECISION` or `BLOCKED` reports that, at any point, because those are states the owner
+must act on.
 
-A finalization commit cannot name its own SHA, so between pushing it and the reviewer's
-verification there is a real, expected gap where the PR head is ahead of the reviewed head.
-`SHIP` is truthful across that gap **only because `Next action` names what is still
-outstanding.** A `SHIP` reading "Merge PR #13" when the final head is unverified is a false
-report of the gate, not a rounding error.
+So a significant-work `Next action` is the merge, and nothing else:
+
+```markdown
+**Next action:** Merge PR #341 at f4b7c2e0a91d4477e35b0c5c1f0be9a4d7233810
+```
+
+Naming the exact verified SHA is the useful form, because that is the commit the reviewer
+verified and the one the merge must target — a merge that takes whatever is at the branch tip
+at click time is a merge of something nobody named. Where the project's merge mechanics make
+the SHA redundant, `Merge PR #<n>` is enough; what is never enough is a `Next action` that
+asks for anything other than the merge.
 
 For **simple** work, `Verification` states the classification and the validation that ran:
 
@@ -263,11 +277,19 @@ misclassification is visible to them rather than invisible.
 ### Before there is a result
 
 **Most of the time there is no owner result, and that is correct.** The three states are
-terminal: they are what the work reaches, not a running status. A PR pushed and awaiting
-review has not reached one — the implementation is done, but nothing about it has been
-verified, and the owner has nothing to do.
+terminal: they are what the work reaches, not a running status. Everything before the last
+step of the gate is mid-flight, and mid-flight has no result.
 
-So the handoff's Owner Result section says so, and carries **no marker**:
+That covers more than first push. Every one of these is a no-result state:
+
+| Where the work is | Why there is no result |
+|---|---|
+| Pushed, awaiting review | Nothing is verified but the agent's own account of it |
+| In the correction loop — findings being fixed, re-reviewed | The loop is working; the owner is not in it |
+| Approved, finalization not yet pushed | A documentation commit is still owed, by an agent |
+| Finalization pushed, final head not yet verified | The reviewer still has to verify what that commit produced |
+
+The handoff's Owner Result section says so, and carries **no marker**:
 
 ```markdown
 ## Owner Result
@@ -275,15 +297,26 @@ So the handoff's Owner Result section says so, and carries **no marker**:
 Awaiting independent review. Nothing needed from you yet.
 ```
 
+```markdown
+## Owner Result
+
+Approved and finalized; awaiting the reviewer's verification of the final head. Nothing needed
+from you yet.
+```
+
 This is not a fourth state and it is not a placeholder for a missing one. It is the honest
 report of a PR mid-flight, and it is what keeps the owner out of the loop while the loop is
 working. A consumer reads no result here, which is exactly right: absence is absence, and
 `SHIP` is never what silence means.
 
-The temptation is to write `SHIP` at first push because the *work* feels finished. It is the
+The temptation is to write `SHIP` early, because at each of those points the *work* feels
+finished — the code is written, or the review passed, or the last commit is pushed. It is the
 same temptation as marking a workstream `COMPLETE` at merge, and it is wrong for the same
-reason: the claim outruns the evidence. `SHIP` is written when review clears, not when coding
-stops.
+reason: the claim outruns the evidence. **`SHIP` is written when the last agent and reviewer
+step is done, not when the interesting part is.**
+
+`DECISION` and `BLOCKED` are not held back this way. They are reachable at any point, because
+they are exactly the cases where the owner *does* have something to do.
 
 ### `DECISION`
 
@@ -375,8 +408,8 @@ is the first word anyway.
 second copy of it.
 
 ```text
-SHIP — PR #341. Reminder suppression works as approved, tests green, review approved the
-current head. Full result in the PR.
+SHIP — PR #341. Reminder suppression works as approved, tests green, reviewer verified the
+final head. Ready to merge. Full result in the PR.
 ```
 
 This is the rule the owner interface most depends on and the one most easily broken, because
@@ -396,7 +429,7 @@ Implementation agent
 Validation / CI
   ↓
 Independent reviewer
-  ├─ Approved ──────────────────► finalization ──► SHIP
+  ├─ Approved ──► finalization commit ──► reviewer verifies final head ──► SHIP
   ├─ Fixable findings ──────────► implementation agent ──► validation ──► reviewer
   ├─ Owner choice required ─────► DECISION
   └─ Cannot proceed safely ─────► BLOCKED
@@ -441,7 +474,8 @@ Owner Result never restates the handoff, and the handoff never restates the spec
 | Anti-pattern | What it looks like | Why it hurts |
 |---|---|---|
 | Compressed lie | A 90-word `SHIP` that omits a known deviation | Brevity was a constraint on writing, not a licence about content; the owner approved something that did not happen |
-| Premature `SHIP` | `SHIP` written while CI is red or review is stale | The state stops meaning anything, and the gate it reports becomes decorative |
+| Premature `SHIP` | `SHIP` written while CI is red, review is stale, finalization is unpushed, or the final head is unverified | The owner is told to merge a package that is not finished, and the state stops meaning anything |
+| Caveated `SHIP` | `SHIP` whose `Next action` asks for something other than the merge | A result that hands work back is not terminal; that is a no-result state wearing the wrong name |
 | Ceremonial `DECISION` | Asking the owner which library to use | The scarce channel fills with noise and the real decisions stop being read |
 | Difficulty as `BLOCKED` | `BLOCKED` because the tests are hard to fix | Hands the owner a problem they cannot act on and the agent could have solved |
 | Self-demotion | A change reclassified from significant to simple once review looks expensive | The gate becomes opt-out, chosen by the party it constrains |

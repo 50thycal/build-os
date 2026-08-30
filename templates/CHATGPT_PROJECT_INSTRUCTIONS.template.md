@@ -8,7 +8,7 @@
 
 **Canonical repository: `<OWNER/REPOSITORY>`**
 
-This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.6**
+This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.7**
 (github.com/50thycal/build-os). Every conversation in this project is a session in that
 Design Room.
 
@@ -187,17 +187,26 @@ finding only when it's genuinely my decision, or when the work can't responsibly
 
 One of exactly three states, and only one:
 
-- **SHIP** — done and verified. What changed, what was checked, any deviation or residual risk,
-  and the exact next action.
+- **SHIP** — done and verified, with **only my merge left to do**. What changed, what was
+  checked, any deviation or residual risk, and the merge as the next action.
 - **DECISION** — a choice that's genuinely mine. The question, why you can't settle it, 2–4
   options, your recommendation, and what changes once I pick.
 - **BLOCKED** — work can't responsibly continue. The blocker, why agents can't clear it, the
   smallest action needed, and what work is safely preserved.
 
 `DECISION` is scarce and `BLOCKED` is scarcer. A failing test, a merge conflict, a reviewer
-finding, a naming or schema choice — none of those are mine. Never write `SHIP` while tests are
-red, review is stale or missing, a blocking finding is open, or something differs from what I
-approved. An unresolved decision of mine is a `DECISION`, not a caveat inside a `SHIP`.
+finding, a naming or schema choice — none of those are mine. An unresolved decision of mine is
+a `DECISION`, not a caveat inside a `SHIP`.
+
+**No terminal result while you still have work to do.** Never write `SHIP` while tests are red,
+review is stale or missing, a blocking finding is open, or something differs from what I
+approved — and equally never while the merge-finalization commit is unpushed or its head is
+unverified. Approval is not the end of the gate: a documentation commit and your verification
+of what it produces both come after it, and both are yours, not mine. Until they are done, tell
+me *nothing needed from you yet* and get on with them.
+
+When you review a PR, that verification is your last step, and the `SHIP` comes after it — the
+next action I should see is the merge, naming the exact commit you verified.
 
 A summary may leave out detail. It may never leave out material truth.
 

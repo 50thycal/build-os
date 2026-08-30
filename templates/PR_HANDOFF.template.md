@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.6**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.7**
 
 ## Goal
 
@@ -135,13 +135,17 @@ work.>
      of the three below — delete the other two. Plain language, no file or function names,
      nothing restated from the sections above.
 
-     AT FIRST PUSH, delete all three and write this instead:
+     FOR MOST OF A PR'S LIFE, delete all three and write the no-result form instead:
 
          Awaiting independent review. Nothing needed from you yet.
 
-     The three states are terminal, not a running status. A PR that has just been opened has
-     reached none of them and carries no marker — SHIP is written when review clears, not when
-     coding stops.
+         Approved and finalized; awaiting the reviewer's verification of the final head.
+         Nothing needed from you yet.
+
+     The three states are terminal, not a running status. First push, the correction loop,
+     approved-but-unfinalized, and finalized-but-unverified all still owe work by an agent or
+     a reviewer, so none of them has a result. SHIP is written when that work is done — not
+     when coding stops, and not when review passes.
 
      This is the handoff's only owner-facing section. Do not keep an Owner Summary beside it.
 
@@ -156,22 +160,25 @@ Build OS owner result: SHIP
 **Verification:** <validation + independent review status, in plain language>
 **Deviations:** None | <material deviations only>
 **Residual risk:** None | <material remaining risk only>
-**Next action:** Merge PR #<n> | <the exact next action>
+**Next action:** Merge PR #<n> at <verified SHA>
 
 <!-- ~150 words max.
 
-     SHIP reports the merge gate; it does not replace it, and writing one approves and merges
-     nothing. For SIGNIFICANT work it may not be written while validation is red, a Blocking
-     or Should fix finding is unresolved, there is no independent approved verdict, that
-     verdict is stale, or a material deviation is undisclosed.
+     SHIP means every agent and reviewer step is finished and only the owner's merge remains.
+     It reports the merge gate; it does not replace it, and writing one approves and merges
+     nothing.
 
-     Next action names what is actually outstanding:
-       approved, not finalized     → "Finalize and merge PR #<n>"
-       finalized, head unverified  → "Reviewer verifies the final head on PR #<n>, then merge
-                                      that SHA"
-       final head verified         → "Merge PR #<n> at <SHA>"
+     For SIGNIFICANT work it requires ALL SIX: green validation actually run; no unresolved
+     Blocking or Should fix finding; an independent approved verdict; the merge-finalization
+     commit pushed; the final head independently verified on the PR; and no undisclosed
+     material deviation.
 
-     For SIMPLE work, Verification names the classification too:
+     The last two are yours and the reviewer's. Before they are done there is NO result —
+     delete all three blocks and write the no-result form above. A SHIP whose Next action asks
+     for anything but the merge is a no-result state wearing the wrong name.
+
+     For SIMPLE work there is no finalization or review to wait on, and Verification names the
+     classification too:
        "Simple change — full test suite green. No independent review required under
         proportionality." -->
 

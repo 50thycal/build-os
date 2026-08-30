@@ -1,6 +1,6 @@
 # Worked Example — a feature through the full lifecycle
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 **Significant work, originating with a design agent.** The intent arrives in a Design Room
 conversation, runs all five stages, and goes through the full merge gate. For the other entry
@@ -841,6 +841,7 @@ chasing. No answer for a week and reminders resume. One claim per invoice.
 **Intent:** All six done-conditions from the card are met.
 **Verification:** 1,865 tests green. Independently reviewed; one should-fix (a blank status in
 the CSV export) found and corrected on this PR, then re-reviewed and approved with follow-ups.
+Bookkeeping commit pushed and its head verified by the reviewer.
 **Deviations:** The 7-day pause is checked once daily, so it runs 7–8 days in practice. I
 reported this as a risk when it was a difference from what you approved; the reviewer caught
 that. Accepted as-is.
@@ -854,25 +855,30 @@ already carries.
 
 Three things about it are worth pointing at.
 
-**It was not written at first push.** Section 7 said "awaiting independent review" and left the
-owner alone, because at that moment the only evidence was the implementing agent's own account.
+**It was not written until the last agent-and-reviewer step was done.** Section 7 said
+"awaiting independent review" and left the owner alone. So did the correction round. So did the
+gap after `Approved with follow-ups`, while the finalization commit was still owed — and so did
+the gap after that commit was pushed, while the reviewer had yet to verify `f4b7c2e0…`. Four
+moments where the work *felt* finished, and the owner heard nothing at any of them, because at
+each one somebody other than the owner still had something to do.
 
 **It discloses the deviation the handoff missed** — and says the reviewer is why. Compression
 took this from four sections of review summary to two sentences; it did not take out the part
 the owner would have wanted. That is the whole compression contract in one field: brevity is a
 constraint on the writing, never a licence about the content.
 
-**`Next action` names the verified head.** Not "merge PR #341" — the finalization commit moved
-the head past the fully-reviewed one, and only the reviewer's approval on the PR establishes
-which SHA is safe to merge. A `SHIP` written before that verification would have said
-"Reviewer verifies the final head on PR #341, then merge that SHA" instead. The state would
-still have been `SHIP`; the next action is what carries the difference.
+**`Next action` is the merge, and it names the verified head.** Not "merge PR #341" — the
+finalization commit moved the head past the fully-reviewed one, and only the reviewer's
+approval on the PR establishes which SHA is safe to merge. And not "reviewer verifies the final
+head, then merge", because a result that hands work back to an agent is not a result at all.
+That is the whole point of the state: when the owner sees `SHIP`, the next thing that happens
+is their merge.
 
 In chat, in full:
 
 ```text
-SHIP — PR #341. Payment claims work as approved, review approved the final head. Result is
-in the PR.
+SHIP — PR #341. Payment claims work as approved, reviewer verified the final head. Ready to
+merge. Result is in the PR.
 ```
 
 ### What this demonstrates

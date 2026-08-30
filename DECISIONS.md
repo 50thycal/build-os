@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 ---
 
@@ -1153,3 +1153,104 @@ v0.6 two of the three variants were distinguishable only by reading English pros
 - Simple work is untouched. It has no finalization or independent review to wait on, so three of
   the six conditions do not apply, and its `SHIP` still names the classification that let it
   skip them.
+
+---
+
+### DEC-021 — A project declares whether a reviewer exists, and a solo project says so
+
+**Date:** 2026-08-30
+**Status:** Accepted
+
+**Context**
+`DEC-013` made a significant merge conditional on an independent verdict naming the current
+head. `DEC-015` then met the first obstacle to it: GitHub refuses a review on a pull request the
+account authored, so a single-account repository could not produce the artifact at all. The
+answer was the comment verdict form.
+
+That fixed the *venue*. It did not fix the *shortage*. There was still one person, one identity,
+and one agent, and no amount of form design produces a second party. The evidence is this
+repository's own record: **v0.6, its recovery PR, and v0.7 all merged with no verdict of any
+kind**, minutes after being opened, each correctly reported as `MERGED_WITHOUT_APPROVAL` by a
+gate with no reachable satisfying state. Three consecutive releases of a framework whose central
+claim is that nothing significant merges unreviewed.
+
+That is not a discipline problem to be solved by trying harder. `DEC-015` already named the
+principle and then under-applied it: *a gate that cannot be satisfied is not strict — it trains
+everyone to merge past it.* Applied fully, the same reasoning reaches further than the comment
+form did.
+
+**Decision**
+A project **declares an operating mode** in its framework block: `reviewed` (default, and what
+an absent line means) or `solo`.
+
+In `solo` mode — declared only where no independent actor genuinely exists — acceptance comes
+from the **owner**, recorded as `Owner-accepted` against an `Accepted head`, at merge. The
+verdict and its head field are deliberately distinct from `Approved` and `Reviewed head`,
+because they record a materially weaker thing: that the owner accepted a change **no independent
+party examined**. A consumer must never let one satisfy a check written for the other, and a
+project that later gains a reviewer does not convert its history into approvals.
+
+**Exactly one thing changes: who accepts.** In particular the implementation agent still may not
+approve, accept, or merge its own work — `solo` moves acceptance to the owner, and an agent
+writing `Owner-accepted` would be approving its own PR through a differently-spelled field.
+Validation, the complete handoff, deviation disclosure, durable memory, finalization, and
+`Changes required` closing the gate from any source all stand unchanged. Disclosure becomes
+*more* load-bearing, not less: with no reviewer, *Spec Deviations* is the only thing that can
+catch an undisclosed deviation.
+
+`solo` is a fallback, not a preference, and the protocol says so: the moment a second actor
+exists, the project moves to `reviewed`.
+
+**Rationale**
+The choice was between a rule that is aspirational and permanently violated, and a rule that is
+narrower and actually true. Build OS's entire premise is that the durable record must describe
+reality — `PROJECT_MODEL.md` must not describe the intended design, a workstream must not claim
+a state that ended at merge, a verdict must name the commit it saw. A gate asserting a review
+that never happens is the same failure, at the level of the protocol itself, and it is the one
+place the framework was not applying its own standard.
+
+Making the mode **declared rather than inferred** is what keeps this from becoming an escape
+hatch. If a missing reviewer implied `solo`, the gate would be opt-out by neglect, and every
+project that simply forgot to get a review would be reclassified as one that could not. A
+project must state that it has no second party, and record why.
+
+Keeping `Owner-accepted` in separate fields, rather than letting a solo project write
+`Approved`, is the other half. The record's job is to stay honest twenty commits later, when
+nobody remembers which mode was in force. Two verdicts that mean different things must look
+different.
+
+**Alternatives considered**
+- **Keep the gate and try harder to get reviews.** Rejected on evidence: three releases, zero
+  reviews, and no mechanism that would have changed it. Restating a rule that is already being
+  ignored is not enforcement.
+- **Drop independent review from the protocol.** Rejected outright. It is correct and valuable
+  wherever a second actor exists, which is most projects. The problem was never the requirement,
+  it was asserting it where it cannot be met.
+- **Let a solo project record `Approved` and note the mode elsewhere.** Rejected: it makes the
+  strongest field in the record ambiguous, and the ambiguity is invisible at exactly the moment
+  it matters — someone reading history later.
+- **Let the implementation agent accept in solo mode.** Rejected, firmly. It is self-approval
+  with extra steps, and it removes the last party between an agent and `main`. The owner is a
+  real second party to the *agent*, which is the separation that survives here even when
+  independence does not.
+- **Infer `solo` from the absence of a reviewer.** Rejected: it makes the gate opt-out by
+  neglect, which is the failure mode the declaration exists to prevent.
+- **Treat a fresh agent session as the independent reviewer.** Rejected as a general answer,
+  though `DEC-013` already permits it where a project genuinely runs one. It does not describe a
+  project where the same session does everything, and pretending otherwise would reintroduce the
+  false claim this decision removes.
+
+**Consequences**
+- The gate becomes satisfiable in every project, which means a violation of it means something
+  again.
+- `MERGED_WITHOUT_APPROVAL` stops firing permanently on solo projects that record acceptance —
+  and still fires where they do not, because the mode replaces the reviewer, not the record.
+- The record now carries two grades of acceptance, and consumers must keep them apart. That is
+  new surface area, accepted deliberately: the alternative is one grade that lies.
+- This repository moves to `solo` and can close WS-008 honestly for the first time. Its three
+  unreviewed merges are **not** retrofitted with acceptances — they happened without one, the
+  reports about them were accurate, and rewriting that would repeat the error this decision
+  exists to end.
+- A project can now under-declare `solo` to avoid review. Nothing prevents that, and nothing in
+  a document could. What the protocol can do, and does, is make the choice explicit, recorded,
+  and visible in every verdict it produces afterwards.

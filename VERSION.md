@@ -1,16 +1,24 @@
 # Build OS Version
 
-**Build OS v0.7**
+**Build OS v0.8**
 
 | Field | Value |
 |---|---|
-| Version | 0.7 |
+| Version | 0.8 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts |
 | Contains code | No |
+| Operating mode | `solo` — see `DEC-021` |
 
 This file is canonical. An adopted repository's framework compatibility check reads the
 version above and the migration notes below. See `framework/FRAMEWORK_SYNC.md`.
+
+**This repository operates in `solo` mode**, declared under `DEC-021` and recorded here because
+Build OS has no separate agent-instructions file to carry a framework block. One person, one
+GitHub identity, one agent: there is no independent actor available, and v0.6, its recovery PR,
+and v0.7 all merged unreviewed for that reason. Significant work here is accepted by the owner
+at merge, recorded as `Owner-accepted`, and never described as reviewed. Adopting projects
+should assume `reviewed` — the default — unless they are genuinely in the same position.
 
 **"Contains code: No" is true again as of 2026-08-24.** It briefly was not: the Project
 Intelligence Companion was staged here as a self-contained `companion/` package under `DEC-008`,
@@ -42,6 +50,94 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.7 → v0.8 — Operating modes, and an honest path for solo projects
+
+**Type:** Minor. **Date:** 2026-08-30.
+
+**What changed**
+
+Build OS asserted a merge gate its own repository had never once satisfied. Three releases —
+v0.6, the recovery for it, and v0.7 — merged with no verdict of any kind, because there was
+nobody to give one: one person, one GitHub account, one agent.
+
+`DEC-015` had already met the shallow version of this. GitHub refuses a review on a
+self-authored PR, so v0.5 added the comment verdict form. That made a verdict **possible**. It
+did not make one **available**, and the distinction is the whole of this release: the missing
+ingredient was never a place to write the verdict, it was a second party to hold it.
+
+A gate that cannot be satisfied is not strict. It is inert, and it trains everyone to merge
+past it — which is exactly and measurably what happened here, to the release that introduced it.
+
+**A project now declares an operating mode** in its framework block:
+
+```markdown
+- Operating mode: reviewed
+```
+
+| Mode | Means | Acceptance comes from |
+|---|---|---|
+| `reviewed` | An independent actor is available. **The default, and what the rest of the protocol describes.** | An independent reviewer's verdict against the current head |
+| `solo` | No independent actor exists | The **owner's own acceptance**, recorded, at merge |
+
+**The mode is declared, never inferred.** No line means `reviewed`, and an absent reviewer there
+is a missing review rather than a licence.
+
+- **New verdict `Owner-accepted`**, with its head in a **separate `Accepted head` field**. It
+  records that the owner accepted a change *no independent party reviewed* — true, and much
+  weaker than `Approved`. The fields differ so the two can never be confused by anyone reading
+  later, and a consumer must never let one satisfy a check written for the other.
+- **`SHIP` in `solo` mode** drops conditions 3 and 5 of v0.7's six, because both name a reviewer
+  who does not exist there. They are **absent, not waived**, and a seventh condition replaces
+  them: `Verification` must state plainly that no independent review occurred. The finalization
+  commit becomes the last agent step, which is what keeps `SHIP` honest rather than premature —
+  v0.7's principle, *no terminal result while agents still have work to do*, is unchanged.
+- **`MERGED_WITHOUT_APPROVAL`** is satisfied in a `solo` project by `Owner-accepted` at the
+  merged head. Its **absence still reports**: declaring `solo` replaces the reviewer, not the
+  record.
+- **New warning `OWNER_ACCEPTED_IN_REVIEWED_MODE`** — the verdict on a project that declared a
+  reviewer was available is a contradiction, and the PR is treated as unreviewed.
+
+**What `solo` does not change, which matters more than what it does:**
+
+- **An implementation agent still may not approve, accept, or merge its own work.** `solo` moves
+  acceptance to the *owner*. An agent writing `Owner-accepted` would be approving its own PR
+  through a differently-spelled field, and no mode makes that acceptable.
+- Validation still required green. The handoff still complete, with *Spec Deviations*
+  load-bearing — **more** so, since with no reviewer it is the only thing that can catch an
+  undisclosed one.
+- Durable memory, workstreams, finalization, the reviewed-head discipline, `Changes required`
+  closing the gate from any source: all unchanged.
+- **No history is upgraded.** A project moving `solo` → `reviewed` does not convert past
+  acceptances into approvals.
+
+**`solo` is a fallback, not a preference.** The moment a second actor exists — a colleague, a
+second GitHub identity, a review agent under a separate account — the project moves to
+`reviewed`. A project that stays `solo` for convenience has swapped a check it could run for a
+note saying it did not.
+
+**What an adopting project must do**
+
+1. **Read this entry, then update the framework block** to adopted v0.8, last-checked v0.8 with
+   today's date, and **add an `Operating mode:` line**.
+2. **Choose the mode honestly.** `reviewed` if anyone other than the implementer can look at a
+   significant change — that is most projects, and the answer does not change. `solo` only if
+   nobody can. Record the choice in the project's `DECISIONS.md` with the reason.
+3. **If `reviewed`: nothing else changes.** No workstream, verdict, review record, or open PR
+   needs editing, and every rule that governed you yesterday governs you today.
+4. **If `solo`: start recording `Owner-accepted` with an `Accepted head`** on significant PRs at
+   merge, and have agents state the absence of independent review in the `SHIP` result. **Do not
+   retrofit acceptances onto merged history** — an acceptance written after the fact records a
+   decision nobody made at the time. Existing `MERGED_WITHOUT_APPROVAL` reports on that history
+   are accurate and should stay.
+5. **If the project consumes Build OS artifacts with tooling**, teach it the new verdict, the
+   `Accepted head` field, the mode, and the two rules above — and never rank `Owner-accepted`
+   with `Approved`.
+
+No project architecture, product decision, completed workstream, or open review is rewritten by
+this migration, and nothing here requires automation, CI, or any deployed service.
+
+---
 
 ### v0.6 → v0.7 — `SHIP` means only the merge is left
 

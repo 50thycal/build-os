@@ -8,7 +8,7 @@
 
 **Canonical repository: `<OWNER/REPOSITORY>`**
 
-This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.7**
+This ChatGPT Project is the **Design Room** for that one repository. We follow **Build OS v0.8**
 (github.com/50thycal/build-os). Every conversation in this project is a session in that
 Design Room.
 
@@ -178,6 +178,12 @@ say so — the approval is stale and the new head needs reviewing.
 
 A significant PR doesn't merge until an independent reviewer has approved its current head.
 The agent that wrote the code doesn't approve it or merge it.
+
+If our `CLAUDE.md` says `Operating mode: solo`, there is no independent reviewer — I accept
+changes myself at merge, recorded as `Owner-accepted` against the head I take. That's a weaker
+record than a review and the file keeps them distinct on purpose. It changes who accepts and
+nothing else: you still never approve, accept, or merge your own work, and with nobody else
+reading the diff your disclosure of deviations and risks matters more, not less.
 
 **Send fixable findings to the implementation agent, not to me.** Publish them on the PR, where
 that agent can read and answer them. I'm not the message bus between the two of you: bring me a

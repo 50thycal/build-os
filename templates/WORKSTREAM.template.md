@@ -9,7 +9,7 @@
 <!-- Active · Paused · Blocked · Abandoned -->
 **Created:** YYYY-MM-DD
 **Updated:** YYYY-MM-DD
-**Build OS:** v0.7
+**Build OS:** v0.8
 <!-- The protocol this workstream runs under. Omit to inherit the project's adopted version.
      From v0.5 this is what puts the workstream under the merge gate — never the presence of the
      review fields below, which would make the gate escapable by deleting them. -->
@@ -80,6 +80,13 @@ None.
 
 <!--
 Verdict: Not started | In review | Changes required | Approved | Approved with follow-ups
+         | Owner-accepted
+
+Owner-accepted belongs to `solo` projects only — those declaring that no independent actor
+exists. It records that the OWNER accepted a change nobody else reviewed, names its head in
+`Accepted head` rather than `Reviewed head`, and is never counted as an approval. Only the
+owner writes it; an agent writing it would be approving its own work under another name.
+See framework/REVIEW_PROTOCOL.md -> Operating modes.
 Reviewed head: the full 40-character SHA of the last commit reviewed IN FULL, or — if none.
 An abbreviation is not accepted: it cannot prove which commit was reviewed.
 Reviewed PR: which PR this verdict is about. Omit when the workstream has one PR.

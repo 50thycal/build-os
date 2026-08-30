@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.7** — a reusable development framework for building software with a human
+**Build OS v0.8** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -322,8 +322,9 @@ whichever implementation agent the project uses; nothing below is specific to on
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.6
-- Last compatibility check: v0.6 on YYYY-MM-DD
+- Adopted version: v0.8
+- Last compatibility check: v0.8 on YYYY-MM-DD
+- Operating mode: reviewed
 
 Before substantial design or architectural work, compare the adopted version against
 `VERSION.md` in the canonical repository and act on the delta — see
@@ -349,7 +350,9 @@ Before substantial design or architectural work, compare the adopted version aga
   draft design handoff PR already exists for the work, continue that one — one build, one PR.
 - A significant PR merges only after an independent reviewer records `Approved` or
   `Approved with follow-ups` naming its current head as a full 40-character SHA. Do not
-  approve or merge your own significant PR.
+  approve or merge your own significant PR. In a `solo` project I accept instead, recorded as
+  `Owner-accepted` against the head I merge — that still is not you, and you still never
+  approve, accept, or merge your own work.
 - Before merge, push the documentation-only merge-finalization commit to the same PR, setting
   the workstream, `ACTIVE.md`, and `Review State` to what becomes true when it lands.
 - Reviewer findings come to you, not to me. Fix fixable `Blocking` and `Should fix` findings
@@ -370,9 +373,17 @@ Before substantial design or architectural work, compare the adopted version aga
   in chat is the failure the protocol exists to prevent, not thoroughness.
 ```
 
-The three framework fields are the whole mechanism: where canonical lives, which version this
-project follows, and which version was last compared against. No extra config file, no
-tooling.
+The four framework fields are the whole mechanism: where canonical lives, which version this
+project follows, which version was last compared against, and whether an independent reviewer
+is available. No extra config file, no tooling.
+
+**On `Operating mode`:** `reviewed` is the default and means an independent actor exists to
+review significant work. Set it to `solo` only when one genuinely does not — one person, one
+identity, one agent — in which case the owner accepts changes at merge, recorded as such, and
+the protocol stops asserting a review nobody can perform. `solo` relaxes who accepts and nothing
+else: validation, disclosure, durable memory, and the rule that an agent never approves or
+merges its own work all stand. Declaring it is a decision and belongs in the project's
+`DECISIONS.md`. See `framework/REVIEW_PROTOCOL.md` → *Operating modes*.
 
 **3. Set up the Design Room.**
 
@@ -432,4 +443,4 @@ pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.7** — see `VERSION.md`.
+**Current version: Build OS v0.8** — see `VERSION.md`.

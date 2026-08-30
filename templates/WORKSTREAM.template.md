@@ -9,7 +9,7 @@
 <!-- Active · Paused · Blocked · Abandoned -->
 **Created:** YYYY-MM-DD
 **Updated:** YYYY-MM-DD
-**Build OS:** v0.6
+**Build OS:** v0.7
 <!-- The protocol this workstream runs under. Omit to inherit the project's adopted version.
      From v0.5 this is what puts the workstream under the merge gate — never the presence of the
      review fields below, which would make the gate escapable by deleting them. -->

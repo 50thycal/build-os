@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.6 — protocol contract**
+**Build OS v0.7 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -358,17 +358,28 @@ workstream record + PR review evidence   >   Owner Result
 Where they disagree, the durable record wins and the disagreement is **reported**. It is not
 repaired, and the result is not upgraded, downgraded, or quietly ignored.
 
-A `SHIP` is contradicted when, for its own PR:
+**`SHIP` asserts that only the owner's merge remains**, so a consumer checks the whole of the
+gate's tail, not just its verdict. A `SHIP` is contradicted when, for its own PR:
 
 - the review record's verdict is not `Approved` or `Approved with follow-ups`; or
 - the record is approving but **stale** — its reviewed head is not the PR's current head and
   `Finalization: pushed` is not declared; or
-- any reviewer has an outstanding `Changes required`.
+- any reviewer has an outstanding `Changes required`; or
+- the record does **not** declare `Finalization: pushed` — the documentation-only commit is
+  still owed, by an agent; or
+- finalization is declared but the final head is **unverified** — no approving review or
+  comment verdict names the PR's current head. This is the `FINAL_HEAD_UNVERIFIED` condition
+  below, and a `SHIP` sitting on top of it is the specific error this rule exists to catch:
+  the reviewer's last step has not happened, so the package is not the owner's to merge yet.
 
 Report `OWNER_RESULT_CONTRADICTED` in each case. The gate stays exactly as shut as it was.
 
-**A missing result is not a warning.** Most PRs at most moments have no owner result — work in
-flight has not reached one, and `SHIP` is never the default for silence. Absence is absence.
+**A missing result is not a warning, and it is the normal case.** Most PRs at most moments have
+no owner result: awaiting review, in the correction loop, approved with finalization unpushed,
+finalized with the final head unverified. Every one of those still owes work by an agent or a
+reviewer, and none of them is terminal. `SHIP` is never the default for silence, and a consumer
+that inferred one from an approving verdict would be reintroducing exactly the claim this
+narrowing removed. Absence is absence.
 
 The same three states appear as `owner_result` in
 [`contracts/agent-session-checkpoint.v1.schema.json`](../contracts/agent-session-checkpoint.v1.schema.json),
@@ -434,7 +445,7 @@ winner. Cases worth reporting:
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |
 | A comment verdict was edited after posting, or the PR body now names a different implementation actor than the verdict recorded | Report `REVIEW_EVIDENCE_MUTATED` and refuse it as gate-clearing. Evidence that moved after it was given is not evidence; an objection still closes the gate. |
-| An owner result says `SHIP` while its PR's record is non-approving, stale, or carries an outstanding `Changes required` | Report `OWNER_RESULT_CONTRADICTED`. The result is a report of the gate, never a way through it. |
+| An owner result says `SHIP` while its PR's record is non-approving, stale, carries an outstanding `Changes required`, does not declare `Finalization: pushed`, or has an unverified final head | Report `OWNER_RESULT_CONTRADICTED`. `SHIP` asserts that only the owner's merge remains; the result is a report of the gate, never a way through it. |
 | Two owner-result markers in one body or comment | Report `OWNER_RESULT_AMBIGUOUS`; read neither. A result that is two states is a writing error, not a state to guess at. |
 | An owner-result state that is not one of the three | Report `OWNER_RESULT_MALFORMED`; the field is absent, the rest parses. |
 

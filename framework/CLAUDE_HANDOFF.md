@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -270,8 +270,8 @@ scale." Do not use this section to park unfinished in-scope work.
 ### Owner Result
 
 **The last section, and usually the only one the owner reads.** Exactly one of `SHIP`,
-`DECISION`, or `BLOCKED`, in the form defined by `framework/OWNER_INTERFACE.md` — or, at first
-push, none of them:
+`DECISION`, or `BLOCKED`, in the form defined by `framework/OWNER_INTERFACE.md` — or, for most
+of a PR's life, none of them:
 
 ```markdown
 ## Owner Result
@@ -279,10 +279,21 @@ push, none of them:
 Awaiting independent review. Nothing needed from you yet.
 ```
 
-**That is the correct content for a PR that has just been opened**, and it carries no marker.
-The three states are terminal, not a running status: the code being written is not the same as
-the work being verified, and `SHIP` may not be written without an independent verdict. Write
-the result when review clears.
+```markdown
+## Owner Result
+
+Approved and finalized; awaiting the reviewer's verification of the final head. Nothing needed
+from you yet.
+```
+
+**That is the correct content at every point before the gate's last step**, and it carries no
+marker: first push, the correction loop, after approval while finalization is unpushed, and
+after finalization while the final head is unverified. The three states are terminal, not a
+running status, and none of those points is terminal — each still owes work by an agent or a
+reviewer.
+
+Write the result when that work is done. `DECISION` and `BLOCKED` are the exceptions: they are
+reachable at any point, because they are the cases where the owner does have something to do.
 
 This is the handoff's owner-facing section — **one surface, not two.** Before v0.6 this slot
 held an *Owner Summary*, which described what changed but not what to do about it, and left
@@ -300,19 +311,25 @@ Build OS owner result: SHIP
 **What changed:** Subscriptions on annual plans can now be paused for up to 90 days. Billing
 stops while paused and the seats return to the pool, so resuming needs seats to be available.
 **Intent:** All four approved behaviors are in place.
-**Verification:** Full billing suite green, 18 new tests. Independent review approved the
-current head.
+**Verification:** Full billing suite green, 18 new tests. Independently reviewed and approved;
+finalization commit verified on the PR.
 **Deviations:** None.
 **Residual risk:** The expiry job scans all paused subscriptions — fine now, needs an index
 well before 100k.
-**Next action:** Finalize and merge PR #267.
+**Next action:** Merge PR #267 at 7f3a1c94e02b8d5610ca4e1fd9b7e04c8236a5b1
 ```
 
 `SHIP` is a **report** of the merge gate, not a substitute for it, and writing one approves
-and merges nothing. It may not be written for significant work while validation is red, a
-`Blocking` or `Should fix` finding is unresolved, there is no independent approved verdict,
-that verdict is stale, or a material deviation is undisclosed. The full rules, including what
-`Next action` must say at each of the three points where the gate terminates, are in
+and merges nothing. For significant work it requires **all six**: green validation, no
+unresolved `Blocking` or `Should fix` finding, an independent approved verdict, the
+merge-finalization commit pushed, the final head independently verified on the PR, and no
+undisclosed material deviation.
+
+**The last two are the ones to watch, because they are your work and the reviewer's.** After
+approval a documentation-only commit is still owed, and after that commit the reviewer still
+has to verify the head it produced. Writing `SHIP` at either point hands the owner a package
+that is not finished — so at either point there is **no result yet**, and the section says so.
+`Next action` on a `SHIP` is the merge and nothing else, naming the verified SHA. Full rules:
 `framework/OWNER_INTERFACE.md`.
 
 An unresolved owner decision is not a caveat inside a `SHIP`. It is a `DECISION`.
@@ -335,8 +352,8 @@ starts diverging from the PR.
 **Lead with the owner result state, then point at it.** One or two lines:
 
 ```text
-SHIP — PR #267. Pause/resume works as approved, 94 tests green, review approved the current
-head. Full result in the PR.
+SHIP — PR #267. Pause/resume works as approved, 94 tests green, reviewer verified the final
+head. Ready to merge. Full result in the PR.
 ```
 
 ```text
@@ -378,8 +395,9 @@ Before considering the work complete:
 - [ ] Any repository-update block supplied by the design agent has been applied
 - [ ] Framework compatibility checked for significant work, and the `Framework:` field reflects what actually happened
 - [ ] The Owner Result is exactly one state — or, before review, says it is awaiting one and carries no marker — and no Owner Summary sits beside it
-- [ ] A `SHIP` is true against the gate — validation green, verdict present and not stale, no unresolved Blocking or Should fix, deviations disclosed
-- [ ] `Next action` names what is actually outstanding, including an unverified final head
+- [ ] A significant-work `SHIP` meets all six — validation green, no unresolved Blocking or Should fix, independent approval, finalization pushed, final head verified, deviations disclosed
+- [ ] A significant-work `SHIP` names the merge as its `Next action`, with the verified SHA — never a step still owed by an agent or reviewer
+- [ ] No result is written while finalization is unpushed or the final head is unverified
 - [ ] Simple-classified work says so in the result's `Verification`
 - [ ] The final chat response is one or two lines and leads with the state
 

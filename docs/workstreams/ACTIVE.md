@@ -2,7 +2,7 @@
 
 <!-- Build OS's own active-work control board. Protocol work only. -->
 
-**Updated:** 2026-08-29 · **Build OS v0.6**
+**Updated:** 2026-08-29 · **Build OS v0.7**
 
 The Project Intelligence Companion program moved to
 [`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,
@@ -14,7 +14,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| WS-008 | Mobile-first owner interface | REVIEW | Active | Retrospective review of #13, which merged without a verdict; head e215865 | #13 |
+| WS-008 | Mobile-first owner interface | BUILDING | Active | Review PR #15, correcting the SHIP-timing finding from #13's retrospective review | #13, #14, #15 |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned

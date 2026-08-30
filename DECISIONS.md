@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 ---
 
@@ -1057,3 +1057,99 @@ nobody can satisfy trains everyone to ignore it.
   different session can read it.
 - The gate, the independence rule, and the reviewed head are untouched: fixing three findings
   has never approved a PR and still does not.
+
+---
+
+### DEC-020 — A terminal result waits until no agent has work left
+
+**Date:** 2026-08-29
+**Status:** Accepted
+
+**Context**
+`DEC-016` established three terminal owner states and made `SHIP` a report of the merge gate
+rather than a route through it. It listed what `SHIP` may not be written over — red validation,
+an unresolved blocking finding, a missing or stale verdict, an undisclosed deviation — and that
+list stopped at the verdict.
+
+But the v0.5 gate does not stop at the verdict. Two steps follow it, and neither is the
+owner's: the implementation agent pushes a documentation-only **merge-finalization** commit, and
+the **reviewer verifies the head that commit produced**, on the PR, because a commit cannot name
+its own SHA. v0.6 permitted `SHIP` at both of those points and tried to carry the difference in
+`Next action` — "Finalize and merge PR #n", "Reviewer verifies the final head, then merge that
+SHA".
+
+That is a terminal state whose next action is somebody else's work. The owner, who cannot
+perform either step and has no way to tell the three variants apart, is told the thing is ready
+and then waits. v0.6's own README called `SHIP` "done and verified" while its operative rules
+allowed it twice before that was true — the contradiction was inside the release.
+
+Independent review of PR #13 raised it as `Changes required`, correctly.
+
+**Decision**
+**No terminal owner result while agents still have work to do.**
+
+For significant work, `SHIP` requires all six of: green validation actually run; no unresolved
+`Blocking` or `Should fix` finding; an independent approved verdict; the merge-finalization
+commit pushed; the final head independently verified by the reviewer on the PR; and no
+undisclosed material deviation. `Next action` is then **the merge and nothing else**, naming the
+exact verified SHA where useful.
+
+The two earlier moments become **no-result** states, alongside first push and the correction
+loop. The no-result form now spans the whole mid-flight period and says plainly that nothing is
+needed from the owner yet.
+
+`DECISION` and `BLOCKED` are deliberately **not** narrowed, and remain reachable at any point.
+The asymmetry is the substance: the rule is not "delay the owner", it is "do not summon the
+owner for work that is not theirs". A decision and a blocker *are* theirs, at whatever moment
+they appear.
+
+This narrows `DEC-016`'s timing clause. It does not supersede it: the projection model, the
+compression contract, the report-not-a-gate rule, and the three-state enum all stand exactly as
+recorded there. Per this repository's own rule against rewriting accepted entries, `DEC-016` is
+left as written and this entry carries the correction.
+
+**Rationale**
+A terminal state earns its name by being terminal. Once `SHIP` can mean "ready, except for two
+things somebody else must do", the owner has to read `Next action` closely enough to work out
+which of three situations they are in — which is the reading burden the owner layer exists to
+remove, reintroduced at the last field.
+
+The narrowing also costs nothing real. The owner was never going to act during those two steps;
+all v0.6 bought them was an earlier notification of something they could not use. Trading that
+for a state that always means the same thing is a good trade at any exchange rate.
+
+There is a second-order benefit worth recording: `SHIP` is now checkable end to end. A consumer
+holding the workstream record and the PR's review evidence can decide whether a `SHIP` is
+warranted, because every one of the six conditions is written down somewhere durable. Under
+v0.6 two of the three variants were distinguishable only by reading English prose in
+`Next action`.
+
+**Alternatives considered**
+- **Keep the three moments and rely on `Next action`.** Rejected — this is what review found.
+  The distinction is invisible to the owner precisely because they cannot perform either step,
+  and a state that means three things means none of them.
+- **Add a fourth state for "ready but for bookkeeping".** Rejected: it is a status, not a
+  result, and `DEC-016` already rejected adding statuses to a terminal enum. The absence of a
+  result says it better and costs no vocabulary.
+- **Drop the finalization and final-head steps so approval is the end of the gate.** Rejected
+  outright: `DEC-014` and the v0.5 gate exist for good reasons, and weakening review mechanics
+  to make a summary field easier to write is exactly backwards.
+- **Let the implementation agent verify the final head itself.** Rejected: it is review work on
+  its own PR, and the one separation the protocol will not bend.
+- **Narrow `DECISION` and `BLOCKED` the same way for symmetry.** Rejected: it would delay the
+  two results the owner actually needs early. Symmetry is not the goal; not wasting the owner's
+  attention is.
+
+**Consequences**
+- `SHIP` always means the same thing, and the owner's next action after reading one is always
+  the merge.
+- Two more points in a PR's life are no-result states, which makes the no-result form the
+  normal content of the Owner Result section rather than a first-push special case.
+- The reviewer's final-head verification becomes load-bearing in a way it was not: it is now the
+  event that produces the owner's result. A reviewer who approves and walks away leaves the PR
+  without one.
+- Projects on v0.6 must change agent behavior, which is why this is a minor version rather than
+  a patch.
+- Simple work is untouched. It has no finalization or independent review to wait on, so three of
+  the six conditions do not apply, and its `SHIP` still names the classification that let it
+  skip them.

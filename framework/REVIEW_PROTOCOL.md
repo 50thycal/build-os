@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.6**
+**Build OS v0.7**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -569,7 +569,8 @@ What a verdict does to the workstream. Phases are the standard ones in
 | Reviewer records `Approved with follow-ups` | stays `REVIEW` | Follow-ups filed as named work — a new workstream, an open decision, or an issue — never as a sentence in a review nobody reads again |
 | Reviewer records `Changes required`, PR open | `REVIEW` → `BUILDING` | Findings persisted on the workstream; corrections stay **on the same PR** |
 | Corrections pushed, ready again | `BUILDING` → `REVIEW` | New head awaiting review; verdict back to `In review` |
-| Finalization commit pushed | stays `REVIEW` | Only permitted surfaces changed; `Finalization: pushed` on the record; reviewer verifies the head that commit produced and records it **on the PR** |
+| Finalization commit pushed | stays `REVIEW` | Only permitted surfaces changed; `Finalization: pushed` on the record; reviewer verifies the head that commit produced and records it **on the PR**. No owner result yet — the verification is still owed |
+| Final head verified on the PR | stays `REVIEW` | The last agent-and-reviewer step. Owner result becomes `SHIP`, naming that SHA as the merge target |
 | Exact reviewed head merged, workstream done | `REVIEW` → `COMPLETE` | Completion sequence already in the merged commit |
 | Exact reviewed head merged, workstream continues | `REVIEW` → whatever is next | Finalization named the real next phase, not `COMPLETE` |
 | Finding is the owner's to settle | `REVIEW` → `BLOCKED` | The question, verbatim, in Next Step; gate stays closed |
@@ -591,7 +592,7 @@ Implementation agent
 Validation / CI
   ↓
 Independent reviewer
-  ├─ Approved ──────────────────► finalization ──► owner result: SHIP
+  ├─ Approved ──► finalization ──► reviewer verifies final head ──► owner result: SHIP
   ├─ Fixable findings ──────────► implementation agent ──► validation ──► reviewer
   ├─ Owner choice required ─────► owner result: DECISION
   └─ Cannot proceed safely ─────► owner result: BLOCKED
@@ -777,6 +778,13 @@ assessment. `Approved` plus "fix the blocking items" is a contradiction the owne
 have to resolve. Where the next action is the owner's own — a decision to make, a blocker to
 clear — say which, and the implementation agent's result carries it as `DECISION` or
 `BLOCKED` rather than as a `SHIP` with a caveat.
+
+**An approval is not yet a `SHIP`, and the reviewer's own next action is usually why.** After
+`Approved` the PR still owes a merge-finalization commit and the verification of the head that
+commit produces — the second of which is the reviewer's. Until both are done the work has no
+terminal result, so a recommended next action of "finalize and merge" is addressed to the
+implementation agent, not to the owner, and the owner hears nothing yet. Only once the final
+head is verified does the next action become the merge, and only then is there a `SHIP`.
 
 Template: `templates/REVIEW_SUMMARY.template.md`
 

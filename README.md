@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.6** — a reusable development framework for building software with a human
+**Build OS v0.7** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -60,7 +60,7 @@ something fixable, it goes straight back to the implementation agent on the same
 
 | | Means | You |
 |---|---|---|
-| **SHIP** | Done, verified, and the merge gate is satisfied as far as agents are permitted to take it | Merge, or authorize a merge |
+| **SHIP** | Done and verified. Every agent and reviewer step is finished; the only thing left is your merge | Merge, or authorize a merge |
 | **DECISION** | Something genuinely needs your judgment | Choose — options and a recommendation are given |
 | **BLOCKED** | Work cannot responsibly continue | Unblock it, or accept that it stops |
 
@@ -72,6 +72,13 @@ never material truth. `SHIP` cannot be written over red tests, a stale approval,
 blocking finding, or an undisclosed deviation from what you approved. It is a *report* of the
 merge gate, never a way around it — and the agent that wrote the code still neither approves
 nor merges it.
+
+**And no terminal result arrives while agents still have work to do.** `SHIP` is not "the code
+is written" or even "review passed" — both of those still leave a bookkeeping commit and a
+final verification owed by an agent and a reviewer. Until those are done the work is
+mid-flight, and mid-flight says *nothing needed from you yet* rather than handing you a package
+that is not finished. `DECISION` and `BLOCKED` are the exceptions, because those are the cases
+where you genuinely do have something to do.
 
 Full rules: `framework/OWNER_INTERFACE.md`.
 
@@ -425,4 +432,4 @@ pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.6** — see `VERSION.md`.
+**Current version: Build OS v0.7** — see `VERSION.md`.

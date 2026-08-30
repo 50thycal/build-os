@@ -27,6 +27,36 @@ It is *not* the right move for a thread that is simply in progress and going fin
 brief that says "still working, no decisions needed" wastes the owner's attention and
 trains them to skim the next one.
 
+## On a Build OS project, the brief is not the deliverable
+
+Where this runs on a project following Build OS, the owner-facing surface is already defined:
+`framework/OWNER_INTERFACE.md` specifies exactly one terminal result per piece of work —
+`SHIP`, `DECISION` or `BLOCKED` — in a fixed form, opened by a `Build OS owner result:` line
+that machine consumers read.
+
+**That document is canonical and this skill points at it**, per the boundary in
+`skills/README.md`: where a rule exists in both places, the framework document wins and the
+skill must not carry a competing statement of it. So:
+
+| What the brief surfaces | What you deliver |
+|---|---|
+| A choice only the owner can make | A `DECISION` result, in the protocol's form |
+| Work that cannot responsibly continue | A `BLOCKED` result, in the protocol's form |
+| Neither — the thread is fine and running | No result. Say so briefly; do not write a brief |
+
+**The brief is the working material behind that result, not a replacement for it.** Sections 3
+and 4 below are how you *arrive* at a well-formed `DECISION`; the `Decision / Why now / Options
+/ Recommendation / Impact` fields are how you *state* it. Sections 1, 2 and 5 are the analysis
+that makes those fields honest, and they belong in the PR handoff or the workstream — the
+durable record — not inside the owner's result, which stays short.
+
+Two rules from the framework govern the result regardless of what this skill says: a summary may
+omit detail but never material truth, and **no terminal result while agents still have work to
+do.** A brief that concludes "still investigating" is not a `DECISION`; it is a thread with no
+result yet, which is a legitimate and common state.
+
+Off a Build OS project, ignore this section — the five parts below stand on their own.
+
 ## The shape
 
 Five parts, in this order. The order matters: it front-loads the honest headline so an
@@ -68,6 +98,10 @@ should be genuinely different in kind, not three speeds of the same thing.
 **Always include the option to stop.** An owner who does not see "stop" as a listed,
 respectable choice will infer that you have already assumed the work continues, and
 will find it socially harder to kill something they should kill.
+
+This one is not local to this skill: it is now a rule of the `DECISION` result itself, in
+`framework/OWNER_INTERFACE.md`. Stated here too because this is where it is most often needed
+and most easily forgotten.
 
 ### 4. The recommendation
 

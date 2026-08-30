@@ -1,12 +1,12 @@
 # Build OS Version
 
-**Build OS v0.8**
+**Build OS v0.9**
 
 | Field | Value |
 |---|---|
-| Version | 0.8 |
+| Version | 0.9 |
 | Status | Draft |
-| Scope | Documentation, protocol, reusable templates, contracts |
+| Scope | Documentation, protocol, reusable templates, contracts, agent skills |
 | Contains code | No |
 | Operating mode | `solo` — see `DEC-021` |
 
@@ -50,6 +50,60 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.8 → v0.9 — `skills/`, an agent-facing surface
+
+**Type:** Minor. **Date:** 2026-08-30.
+
+**What changed**
+
+A new top-level surface, `skills/`, holding **agent-invokable procedures**: a `SKILL.md` with
+YAML frontmatter plus instructions, loaded by a coding agent when its description matches what
+the user is doing. It arrived in #17 with the first one, `research-decision-brief`.
+
+The line between the two surfaces, stated in `skills/README.md`: **if the owner needs to read it
+to make a decision it is a `framework/` document; if an agent needs to act on it mid-task it is
+a skill.** Where both are true the framework document is canonical and the skill points at it,
+so the protocol never carries two competing statements of one rule.
+
+That rule needed enforcing on arrival, which is the substance of this entry rather than the
+directory itself. `research-decision-brief` restated the owner-facing decision contract —
+options, costs, a recommendation — without referencing `framework/OWNER_INTERFACE.md`, which
+already defines exactly one terminal result per piece of work in a fixed, machine-readable form.
+Two statements of one rule, drifting from the day they were written. The skill now delivers a
+`DECISION` or `BLOCKED` result in the protocol's form and treats the brief as the working
+material behind it.
+
+One genuinely new rule came back the other way, and is now part of the `DECISION` result rather
+than living only in the skill: **where stopping is a real option, list it.** An owner who does
+not see it listed infers the agents have assumed the work continues.
+
+Supporting changes: `README.md` registers the surface and how to adopt one; `VERSION.md` scope
+includes agent skills; `framework/BUILD_OS_PARSE_CONTRACT.md` states that skills are outside the
+parse surface entirely.
+
+**Skills are versionless and taken by copy.** This is the one part of Build OS with no
+compatibility check: a project copies the skill it wants and is not obliged to track later
+changes, because a skill that changed under a project mid-thread would be a worse problem than a
+stale one.
+
+**What an adopting project must do**
+
+1. **Read this entry and update the framework block** to adopted v0.9, last-checked v0.9 with
+   today's date.
+2. **Nothing else, for most projects.** `skills/` is optional. A project that wants none takes
+   none, and no protocol artifact changes.
+3. **If you copy a skill**, put it where your agent tooling expects (commonly
+   `.claude/skills/<name>/`) and treat the copy as yours. Do not wire it to track this
+   repository.
+4. **If you write your own skills**, apply the boundary above: a skill that restates a rule your
+   `framework/` documents already carry will drift from them, and the framework document is the
+   one that stays canonical.
+
+No project architecture, product decision, completed workstream, or open review is rewritten by
+this migration.
+
+---
 
 ### v0.7 → v0.8 — Operating modes, and an honest path for solo projects
 

@@ -1,6 +1,6 @@
 # Owner Interface
 
-**Build OS v0.8**
+**Build OS v0.9**
 
 Build OS has always had two audiences and one reading path. The Build Card, the Build Spec,
 the PR handoff, the review summary and the workstream are all written for someone — and by
@@ -363,6 +363,17 @@ already says so.
 
 Do not bundle unrelated choices into one `DECISION` unless they are genuinely coupled. Two
 questions the owner could answer independently are two results, or one result and a deferral.
+
+**Where stopping is a real option, list it.** Not as a courtesy — because an owner who does not
+see it listed will reasonably infer the agents have already assumed the work continues, and
+killing something then costs them a small social act on top of the decision itself. `Options`
+that all presume the work goes on is a menu with the most valuable answer left off.
+
+This applies most sharply to a `DECISION` that asks for more of the owner's money, time or
+attention on an investigation that has not yet paid. `skills/research-decision-brief/` is the
+procedure for reaching one of those honestly, including how to grade what has actually been
+learned; it produces a `DECISION` or `BLOCKED` in the form above rather than a surface of its
+own.
 
 ### `BLOCKED`
 

@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.10**
+**Build OS v0.11**
 
 ---
 
@@ -1403,3 +1403,84 @@ believed.
   followed is the failure mode Build OS exists to prevent — but a *current* row asserting an
   acceptance nobody gave is not history, it is a live false claim, and leaving it there while
   shipping the rule against it would be the same error a third time.
+
+---
+
+### DEC-024 — An agent may relay an owner's acceptance, and must name the channel
+
+**Date:** 2026-09-02
+**Status:** Accepted
+
+**Context**
+`DEC-021` reserved `Owner-accepted` to the owner, on the sound grounds that an implementation
+agent writing it would be approving its own work through a differently-spelled field. `DEC-023`
+then stopped finalization commits pre-writing it. Both were right, and between them they left the
+common case unhandled.
+
+**Owners accept in conversation.** They say "I accept 16 and 18" in the session where the work
+happened. Requiring them to then open GitHub and type four lines is the sort of ceremony that
+gets a protocol skipped rather than followed — and this repository had two acceptances sitting
+ungiven for two days, through five silent check-ins, for exactly that reason.
+
+The two available outcomes were both bad: the acceptance never reaches the durable record, or an
+agent writes it as though the owner had posted it.
+
+**Decision**
+An agent may **transcribe** an acceptance the owner actually gave, and **must name the channel it
+came through**.
+
+This is not the self-approval `DEC-021` forbids. The decision is the owner's; the agent is
+transport — the same distinction `DEC-015` drew when it said the GitHub login is transport rather
+than identity, applied one layer out. `DEC-015` also already required that an owner decision
+relayed through an agent "name its channel rather than pass as something stronger", so this is
+that rule made concrete for one artifact.
+
+A relayed acceptance is **weaker evidence** and the record says so. An owner-posted verdict is
+authenticated by GitHub; a relayed one rests on an agent's report of a conversation nobody else
+can inspect.
+
+Two limits, which are what keep the relay from swallowing the rule:
+
+- **A relay states an acceptance that was given.** An agent inferring one from silence, from
+  approval of something adjacent, or from a merge has issued a verdict, not relayed one.
+- **The owner's own verdict displaces a relay**, being stronger.
+
+**Rationale**
+The alternative was tested by accident and failed: reserve the field absolutely, and the record
+simply goes empty while the acceptance exists only in a chat window. That is the failure this
+whole framework is against — a decision that exists only in a transcript does not exist — and
+enforcing a rule so strictly that it produces that outcome is not rigor.
+
+Naming the channel is what makes the weaker evidence *usable* rather than misleading. A reader
+three months on can tell an authenticated verdict from a reported one, and weigh them
+accordingly. That is the same move `DEC-015` made with `Review actor`: not verification, but
+making the record *state* what it rests on so it can be checked at all.
+
+The two limits matter more than the permission. Without them "relay" becomes a licence for an
+agent to conclude that the owner probably would have accepted — which is issuing a verdict with
+extra steps.
+
+**Alternatives considered**
+- **Keep the field absolutely reserved.** Rejected on evidence: it produced two rows with no
+  acceptance and two days of polling, and the acceptance existed the whole time in a place the
+  record could not see.
+- **Let the agent post it without disclosure.** Rejected: it makes an agent's report
+  indistinguishable from an authenticated owner verdict, which is precisely the flattening
+  `DEC-015` exists to prevent.
+- **Have the agent ask the owner to post it, and wait.** Rejected — that *was* the behaviour, and
+  it is what generated the problem. The owner had already decided; the protocol was making them
+  perform the decision a second time in a specific format.
+- **A separate verdict value, `Owner-accepted-relayed`.** Rejected: it multiplies the enum for
+  something prose carries better, and every consumer would have to learn a value that means the
+  same thing with a different provenance. Provenance belongs beside the verdict, not inside it.
+
+**Consequences**
+- Spoken acceptances reach the durable record, which is where this framework insists decisions
+  must live.
+- The record now carries two grades of acceptance evidence, and consumers must not flatten them.
+  That is the second time this repository has taken on that obligation deliberately — `DEC-021`
+  was the first — and both times the alternative was one grade that lies.
+- An agent can fabricate a relay. Nothing in a document prevents that, and this decision does not
+  pretend to. What it does is make the claim explicit and attributable, so a false one is a
+  visible lie rather than an invisible assumption.
+- #16 and #18 are recorded as relayed acceptances, and read that way permanently.

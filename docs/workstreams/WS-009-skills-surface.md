@@ -4,7 +4,7 @@
 **Status:** Complete
 **Created:** 2026-08-30
 **Updated:** 2026-08-30
-**Build OS:** v0.10
+**Build OS:** v0.11
 **Implementation State:** Merged in #17 (the surface and the first skill) and #18 (integration, boundary enforcement, v0.9).
 **Related PRs:** #17, #18
 **Next Step:** None.
@@ -56,7 +56,7 @@ agent acts mid-task    ────►  skills/
 | PR | Verdict | Reviewed head | Accepted head | Finalization |
 |---|---|---|---|---|
 | #17 | Not started | — | — | — |
-| #18 | Not started | — | — | pushed |
+| #18 | Owner-accepted | — | `05e0ad8e7cd2474cee7aa6e3b658925c65736084` | pushed |
 
 **#17 merged with no verdict and no workstream.** Recorded as it happened, not retrofitted: v0.8
 `solo` mode was on `main` by then and an `Owner-accepted` record was available, but none was
@@ -65,9 +65,13 @@ made, so `Not started` is the accurate value and `MERGED_WITHOUT_APPROVAL` again
 **#18 was finalized with `Owner-accepted` pre-written, and that was wrong.** The `Accepted head`
 cell hedged to `pending`, but the verdict cell did not, and the verdict cell is the claim — so
 `main` asserted an acceptance nobody had given, for the second time in a day, in the file that
-criticised WS-008 for doing it. Corrected to `Not started`, which is what is true until the owner
-records one. `DEC-023` makes the general rule explicit: a finalization commit never writes a
-verdict it does not yet have.
+criticised WS-008 for doing it. Corrected to `Not started` in #19, and `DEC-023` makes the
+general rule explicit: a finalization commit never writes a verdict it does not yet have.
+
+**The acceptance was given on 2026-09-02 and the row is now true.** It is
+[recorded on #18](https://github.com/50thycal/build-os/pull/18#issuecomment-5506887818) as a
+**relay** — stated by the owner in session, transcribed by the agent, with the channel named.
+See `DEC-024`.
 
 ## Findings carried into this workstream
 

@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.10**
+**Build OS v0.11**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -608,6 +608,42 @@ Everything else holds unchanged: the full 40-character SHA, the marker beginning
 quoting and fencing rules, an edited comment never clearing the gate, and corrections posted as
 new comments rather than edits. It clears the **solo** gate only, and on a project declaring
 `reviewed` it is a contradiction rather than an acceptance.
+
+##### When the owner accepts somewhere other than the pull request
+
+Owners accept in conversation. They say "yes, ship it" in the session where the work happened,
+and expecting them to then go and type four lines into GitHub is the kind of ceremony that makes
+a protocol get skipped rather than followed.
+
+An agent may therefore **transcribe** an acceptance the owner actually gave, and doing so is not
+the self-approval `DEC-021` forbids: the decision is the owner's, the agent is transport.
+`DEC-015` already draws this line for owner decisions generally — such a relay **must name its
+channel rather than pass as something stronger.**
+
+So a relayed acceptance carries the ordinary four lines plus a statement of how it arrived:
+
+```markdown
+Build OS review verdict: Owner-accepted
+Accepted head: <full 40-character SHA>
+Review actor: <the owner>
+Implementation actor reviewed: <the implementing actor>
+
+**Relayed, not posted by the owner directly.** The owner stated <what they said> in <where>
+on <date>; this comment transcribes that decision rather than originating it.
+```
+
+**It is weaker evidence, and the record must let a later reader see that.** An owner-posted
+verdict is authenticated by GitHub. A relayed one rests on the agent's report of a conversation
+nobody else can inspect — which is worth having, and is not the same thing.
+
+Two limits, and they are what keep the relay from swallowing the rule:
+
+- **A relay states an acceptance that was given.** An agent inferring one from silence, from
+  approval of something adjacent, or from a merge, has not relayed anything — it has issued a
+  verdict, which is precisely what it may not do.
+- **The owner can always override it**, by posting their own verdict. Theirs is the stronger
+  record and displaces the relay, as any later position by the same actor displaces an earlier
+  one.
 
 #### `Review actor` — who spoke, as distinct from what carried it
 

@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.9** — a reusable development framework for building software with a human
+**Build OS v0.10** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -323,8 +323,8 @@ whichever implementation agent the project uses; nothing below is specific to on
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.9
-- Last compatibility check: v0.9 on YYYY-MM-DD
+- Adopted version: v0.10
+- Last compatibility check: v0.10 on YYYY-MM-DD
 - Operating mode: reviewed
 
 Before substantial design or architectural work, compare the adopted version against
@@ -451,4 +451,4 @@ pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.9** — see `VERSION.md`.
+**Current version: Build OS v0.10** — see `VERSION.md`.

@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.9 — protocol contract**
+**Build OS v0.10 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -267,6 +267,20 @@ Review actor: <stable actor identifier>
 Implementation actor reviewed: <the actor this verdict understood it was reviewing>
 ```
 
+**`Owner-accepted` uses the same form with `Accepted head:` in place of `Reviewed head:`**, and
+a consumer keys on that field name to tell an acceptance from an approval — the substitution is
+the whole point and must never be normalised away:
+
+```markdown
+Build OS review verdict: Owner-accepted
+Accepted head: <full 40-character SHA>
+Review actor: <the owner>
+Implementation actor reviewed: <the actor this verdict understood it was reviewing>
+```
+
+It clears the **solo** gate only. On a project declaring `reviewed` it is
+`OWNER_ACCEPTED_IN_REVIEWED_MODE`, and the PR is treated as unreviewed.
+
 **A consumer recognises a verdict on the marker plus a full-length `Reviewed head:`** — an
 abbreviated SHA is refused here exactly as it is in the file, and a verdict naming no head is
 not a verdict. **All four lines are required for that verdict to be gate-clearing.** A verdict
@@ -489,7 +503,8 @@ winner. Cases worth reporting:
 | A PR merged at a head its own record never approved, or with a non-approving verdict | Report `MERGED_WITHOUT_APPROVAL`. In a `solo` project, `Owner-accepted` at the merged head satisfies this instead; its **absence** still reports, because declaring `solo` replaces the reviewer, not the record. |
 | `Owner-accepted` on a project whose declared mode is `reviewed` | Report `OWNER_ACCEPTED_IN_REVIEWED_MODE`; treat the PR as unreviewed. The mode says a reviewer was available, so their absence is a missing review. |
 | A **gated** workstream links a PR with no review record | Report `REVIEW_RECORD_MISSING` while open, `MERGED_WITHOUT_APPROVAL` once merged. Exempt: no v0.5-or-later version, no Build Card yet, or pre-adoption work under an inherited pin (above). |
-| A record declares finalization while its verdict is not approving | Report `WORKSTREAM_PR_STATE_MISMATCH`: finalization comes after approval, not before. |
+| A record declares finalization while its verdict is not approving | Report `WORKSTREAM_PR_STATE_MISMATCH`: finalization comes after approval, not before. **Not applicable in `solo` mode**, where acceptance happens at merge and finalization legitimately precedes it. |
+| A record's verdict is `Approved`, `Approved with follow-ups` or `Owner-accepted` but no review, comment verdict, or acceptance on the PR corresponds to it | Report `VERDICT_UNSUPPORTED`: the file claims a verdict nothing outside it records. The common cause is a finalization commit that pre-wrote the value it expected, which the protocol forbids. |
 | A record is approving while a reviewer has an outstanding `Changes required` on GitHub | Report `WORKSTREAM_PR_STATE_MISMATCH`. The gate stays closed. |
 | Workstream text says draft/in-review while the PR is merged or closed, or vice versa | Report `WORKSTREAM_PR_STATE_MISMATCH`. |
 | Verdict or reviewed head present but malformed | Report `REVIEW_VERDICT_MALFORMED` / `REVIEWED_HEAD_MALFORMED`; the field is absent, the rest parses. |

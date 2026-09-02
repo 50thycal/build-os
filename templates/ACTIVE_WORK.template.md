@@ -4,7 +4,7 @@
      where is each effort? Keep it short — one line per workstream, next step in a dozen
      words. Anything needing a paragraph belongs in the workstream file. -->
 
-**Updated:** YYYY-MM-DD · **Build OS v0.9**
+**Updated:** YYYY-MM-DD · **Build OS v0.10**
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|

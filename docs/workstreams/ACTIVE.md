@@ -2,7 +2,7 @@
 
 <!-- Build OS's own active-work control board. Protocol work only. -->
 
-**Updated:** 2026-08-30 · **Build OS v0.9**
+**Updated:** 2026-08-30 · **Build OS v0.10**
 
 The Project Intelligence Companion program moved to
 [`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,

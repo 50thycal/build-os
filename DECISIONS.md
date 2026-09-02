@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.9**
+**Build OS v0.10**
 
 ---
 
@@ -1324,3 +1324,82 @@ corruption, not the cure.
   here prevents that; the boundary makes it a reviewable error rather than an ambiguity.
 - One rule travelled from the skill into the framework — *where stopping is a real option, list
   it* — which is the traffic working in the direction it should.
+
+---
+
+### DEC-023 — Evidence is written by the party that produces it, never anticipated
+
+**Date:** 2026-08-31
+**Status:** Accepted
+
+**Context**
+`DEC-014` established the merge-finalization commit and worked out carefully that it cannot
+contain its own SHA: writing the SHA changes the commit, so the number is wrong before it is
+pushed. The reasoning was about a mechanical impossibility, and it stopped there.
+
+The same commit was still free to write the **verdict** — a value that is not mechanically
+impossible to write early, merely false. And a false verdict is worse than a stale SHA, because
+a stale SHA looks obviously wrong to a reader while `Verdict: Owner-accepted` looks like
+ordinary bookkeeping.
+
+This repository demonstrated it twice within a day. WS-008 and WS-009 both reached `main`
+asserting `Owner-accepted` for a PR nobody had accepted, written by finalization commits
+anticipating an acceptance that never came. The second was authored while explicitly criticising
+the first, which is the clearest evidence available that the rule needed to be written down
+rather than left to care.
+
+**Decision**
+**A finalization commit never writes a verdict it does not yet have.**
+
+The verdict belongs to the party that produces it, recorded after the fact: a reviewer in
+`reviewed` mode, the owner at merge in `solo` mode. Either way the commit precedes the act, so it
+leaves `Verdict` at whatever was true when it was authored — exactly as it leaves `Reviewed head`
+at the last head reviewed in full.
+
+Generalised, and this is the form worth keeping: **a record may state what has happened and what
+is expected, but only ever in fields that distinguish the two.** `Finalization: pushed` is a fact
+about a commit that exists. `Verdict` is a claim about somebody else's act. The first belongs in
+a finalization commit and the second does not.
+
+New warning `VERDICT_UNSUPPORTED` reports a file claiming a verdict that nothing outside it
+records.
+
+Separately, `Owner-accepted` gains the PR-comment form v0.8 omitted, using `Accepted head:` in
+place of `Reviewed head:` so the two can never be confused by a reader or a parser.
+
+**Rationale**
+The distinction that matters is not *early versus late* but *who is entitled to say it*. A
+finalization commit is authored by the implementation agent, and a verdict is precisely the thing
+an implementation agent may not issue about its own work. Pre-writing it is therefore not a
+timing shortcut but a small act of self-approval, and it is invisible because the value it writes
+is the value that was going to be true anyway.
+
+"A row briefly behind is a much smaller problem than a row confidently wrong" is the trade being
+made, and it is not close. A behind row is corrected by anyone who notices. A wrong row is
+believed.
+
+**Alternatives considered**
+- **Allow a pre-written verdict with a `(pending)` marker.** Rejected: it was tried informally
+  here — WS-009 wrote `pending` into the *head* cell while leaving `Owner-accepted` in the
+  verdict cell — and the qualifier did not travel with the claim. The field a consumer keys on
+  was still wrong.
+- **Have the finalization commit omit the review table entirely.** Rejected: the table's other
+  rows are true and useful, and removing them to prevent one error loses more than it saves.
+- **Rely on reviewers to catch pre-written verdicts.** Rejected on evidence: in `solo` mode there
+  is no reviewer, which is exactly where this failed.
+- **Treat it as covered by DEC-014.** Rejected: it plainly was not. DEC-014 reasoned about a
+  mechanical impossibility and did not generalise to claims that are merely false, and two
+  violations in one day are the argument against assuming the general case was implied.
+
+**Consequences**
+- A workstream row can legitimately lag its PR for a short window. That is the intended cost.
+- `VERDICT_UNSUPPORTED` gives consumers a way to spot the failure rather than inheriting it.
+- `solo` projects can finally record acceptance on a PR in a specified form.
+- `WORKSTREAM_PR_STATE_MISMATCH` had to stop firing on finalization-before-verdict in `solo`
+  mode, where that ordering is correct rather than an error.
+- The two rows this decision came from are **corrected to the truth**, not left standing. Those
+  are two different things and the distinction is worth stating: the *commits* that wrote them
+  stay exactly as they are, because rewriting history to look as though the rule had always been
+  followed is the failure mode Build OS exists to prevent — but a *current* row asserting an
+  acceptance nobody gave is not history, it is a live false claim, and leaving it there while
+  shipping the rule against it would be the same error a third time.

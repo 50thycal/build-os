@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.9**
+**Build OS v0.10**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**

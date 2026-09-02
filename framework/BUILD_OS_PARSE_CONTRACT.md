@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.10 — protocol contract**
+**Build OS v0.11 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -280,6 +280,12 @@ Implementation actor reviewed: <the actor this verdict understood it was reviewi
 
 It clears the **solo** gate only. On a project declaring `reviewed` it is
 `OWNER_ACCEPTED_IN_REVIEWED_MODE`, and the PR is treated as unreviewed.
+
+An acceptance may be **relayed** — transcribed by an agent from a decision the owner gave
+elsewhere — in which case the comment says so in prose beneath the four lines. A consumer parses
+it identically: the fields are the fields. What it must **not** do is normalise the prose away
+when surfacing the verdict to a human, because the difference between an owner-posted acceptance
+and an agent's report of one is exactly the thing that prose carries.
 
 **A consumer recognises a verdict on the marker plus a full-length `Reviewed head:`** — an
 abbreviated SHA is refused here exactly as it is in the file, and a verdict naming no head is

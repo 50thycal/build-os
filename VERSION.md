@@ -1,10 +1,10 @@
 # Build OS Version
 
-**Build OS v0.10**
+**Build OS v0.11**
 
 | Field | Value |
 |---|---|
-| Version | 0.10 |
+| Version | 0.11 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts, agent skills |
 | Contains code | No |
@@ -50,6 +50,52 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.10 → v0.11 — A relayed acceptance names its channel
+
+**Type:** Minor. **Date:** 2026-09-02.
+
+**What changed**
+
+v0.8 gave `solo` projects `Owner-accepted` and `DEC-021` reserved it to the owner: an agent
+writing it would be self-approving under another name. v0.10 gave it a comment form. Neither
+addressed the case that actually happens — **the owner accepts in conversation**, in the session
+where the work was done, and does not then go and type four lines into GitHub.
+
+Left unaddressed, that has exactly two outcomes, and both are bad. Either the acceptance never
+reaches the durable record, or an agent writes it as though the owner had posted it.
+
+So: **an agent may transcribe an acceptance the owner actually gave, and must name the channel it
+came through.** That is not the self-approval `DEC-021` forbids — the decision is the owner's and
+the agent is transport — and it is the line `DEC-015` already drew for owner decisions generally.
+
+A relayed acceptance carries the ordinary four lines plus a statement of how it arrived. It is
+**weaker evidence** than an owner-posted verdict, which GitHub authenticates, and the record must
+let a later reader see that rather than flattening the two together.
+
+Two limits keep the relay from swallowing the rule it serves:
+
+- **A relay states an acceptance that was given.** Inferring one from silence, from approval of
+  something adjacent, or from a merge is not relaying — it is issuing a verdict, which an agent
+  may not do.
+- **The owner's own verdict always displaces a relay**, being the stronger record.
+
+A consumer parses a relayed acceptance identically — the fields are the fields — but must not
+normalise the prose away when showing it to a human, since that prose is the whole difference.
+
+**What an adopting project must do**
+
+1. **Read this entry and update the framework block** to adopted v0.11, last-checked v0.11 with
+   today's date.
+2. **Nothing else, unless you run `solo` mode.** `reviewed` projects are untouched.
+3. **If you run `solo`**, agents may now record your spoken acceptances, and must say so in the
+   comment. If you would rather they never did, say so in your project instructions — this is a
+   permission, not an obligation.
+
+No project architecture, product decision, completed workstream, or open review is rewritten by
+this migration.
+
+---
 
 ### v0.9 → v0.10 — A finalization commit never writes a verdict it does not have
 

@@ -85,7 +85,7 @@ Let an owner initiate software work from any supported AI surface, approve only 
 | #13 | Changes required | `e215865b92af850504b70b454bb5e0a4cab217c7` | — | — |
 | #14 | Not started | — | — | — |
 | #15 | Not started | — | — | — |
-| #16 | Not started | — | — | pushed |
+| #16 | Owner-accepted | — | `d4477174fcfa51a0e09ab07b44091e780d40d6d8` | pushed |
 
 **Three of these four PRs merged with no verdict at all**, and the table says so rather than
 tidying it away. #13's row carries a verdict because it was reviewed retrospectively, after the
@@ -96,15 +96,20 @@ and the owner accepts significant work at merge — but that mode did not exist 
 #15 landed, and writing `Owner-accepted` onto them now would record a decision nobody made at
 the time. The `MERGED_WITHOUT_APPROVAL` reports against those three are accurate and stay.
 
-**#16 was finalized with `Owner-accepted` pre-written, and no acceptance was ever recorded.**
-Corrected here to `Not started`, which is what is true. The row claimed a verdict the
-finalization commit had no standing to write — the owner records acceptance at merge, after the
-commit exists — and `DEC-023` now states that rule explicitly, for the same reason a finalization
-commit cannot name its own SHA.
+**#16 was finalized with `Owner-accepted` pre-written, and the row was corrected to
+`Not started` in #19** before any acceptance existed. The finalization commit had no standing to
+write that verdict — the owner records acceptance at merge, after the commit exists — and
+`DEC-023` states the rule, for the same reason such a commit cannot name its own SHA.
 
-#16 was to have been the first PR here recorded under `solo` mode. It is still available to be:
-the owner can record `Owner-accepted` against `d4477174fcfa51a0e09ab07b44091e780d40d6d8` at any
-time and this row becomes true. What could not happen was the record asserting it in advance.
+**The acceptance was given on 2026-09-02 and the row is now true.** It is
+[recorded on #16](https://github.com/50thycal/build-os/pull/16#issuecomment-5506887151) as a
+**relay**: the owner stated it in the implementation session and the agent transcribed it,
+naming that channel rather than letting it pass as an owner-posted verdict. Weaker evidence than
+the owner posting directly, and the record says so where a later reader will see it. See
+`DEC-024`.
+
+So #16 is the first PR here recorded under `solo` mode — arrived at the slow way, which is the
+part worth keeping.
 
 Worth noting it would not have been the first to clear the gate at all — #10 did that under
 `DEC-015`, with a comment verdict — which is precisely why v0.8 was needed: the form worked once,

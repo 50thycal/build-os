@@ -1,6 +1,6 @@
 # Framework Sync
 
-**Build OS v0.9**
+**Build OS v0.10**
 
 Adopted repositories **pin** a Build OS version. Pinning keeps work reproducible and stops a
 framework change from silently redefining an effort that is already in flight.

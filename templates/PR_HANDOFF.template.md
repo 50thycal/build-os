@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.9**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.10**
 
 ## Goal
 
@@ -110,7 +110,9 @@ Any executable, test, dependency, config, or behavior-documentation change in th
 reopens full review.
 
 That commit cannot contain its own SHA, so it does not try to: `Reviewed head` keeps naming the
-last fully-reviewed commit and gains `Finalization: pushed`. Say here that it is pushed; the
+last fully-reviewed commit and gains `Finalization: pushed`. It cannot write the **verdict**
+either — the reviewer records that afterwards, or in `solo` mode the owner records it at merge,
+so leave the verdict at whatever is true when the commit is authored. Say here that it is pushed; the
 reviewer then verifies the head it produced and approves on the PR, and the merge targets that
 exact SHA.
 

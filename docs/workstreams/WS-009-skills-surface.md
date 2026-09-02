@@ -4,7 +4,7 @@
 **Status:** Complete
 **Created:** 2026-08-30
 **Updated:** 2026-08-30
-**Build OS:** v0.9
+**Build OS:** v0.10
 **Implementation State:** Merged in #17 (the surface and the first skill) and #18 (integration, boundary enforcement, v0.9).
 **Related PRs:** #17, #18
 **Next Step:** None.
@@ -56,17 +56,18 @@ agent acts mid-task    ────►  skills/
 | PR | Verdict | Reviewed head | Accepted head | Finalization |
 |---|---|---|---|---|
 | #17 | Not started | — | — | — |
-| #18 | Owner-accepted | — | pending — recorded by the owner at merge | pushed |
+| #18 | Not started | — | — | pushed |
 
 **#17 merged with no verdict and no workstream.** Recorded as it happened, not retrofitted: v0.8
 `solo` mode was on `main` by then and an `Owner-accepted` record was available, but none was
 made, so `Not started` is the accurate value and `MERGED_WITHOUT_APPROVAL` against it is correct.
 
-**#18's row is a forward claim until the owner records the acceptance.** `Accepted head` reads
-`pending` rather than naming a SHA, because the head this finalization commit produces does not
-exist yet and an acceptance nobody has given cannot be written in advance. That distinction is
-not pedantry here — WS-008's table pre-wrote exactly such a claim for #16 and made `main` assert
-an acceptance that never happened.
+**#18 was finalized with `Owner-accepted` pre-written, and that was wrong.** The `Accepted head`
+cell hedged to `pending`, but the verdict cell did not, and the verdict cell is the claim — so
+`main` asserted an acceptance nobody had given, for the second time in a day, in the file that
+criticised WS-008 for doing it. Corrected to `Not started`, which is what is true until the owner
+records one. `DEC-023` makes the general rule explicit: a finalization commit never writes a
+verdict it does not yet have.
 
 ## Findings carried into this workstream
 

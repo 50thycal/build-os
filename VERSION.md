@@ -1,10 +1,10 @@
 # Build OS Version
 
-**Build OS v0.9**
+**Build OS v0.10**
 
 | Field | Value |
 |---|---|
-| Version | 0.9 |
+| Version | 0.10 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts, agent skills |
 | Contains code | No |
@@ -50,6 +50,69 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.9 → v0.10 — A finalization commit never writes a verdict it does not have
+
+**Type:** Minor. **Date:** 2026-08-31.
+
+**What changed**
+
+Two related holes, both found by this repository walking into them.
+
+**1. A finalization commit was pre-writing verdicts.** v0.5 established that such a commit
+cannot contain its own SHA — the SHA is stale before it is pushed — and left the matching rule
+about the *verdict* unstated. It is the same problem and it is easier to break, because a
+pre-written verdict looks like ordinary bookkeeping while a self-referential SHA looks obviously
+wrong.
+
+The verdict is never the finalization commit's to write. In `reviewed` mode the reviewer records
+it after the commit exists; in `solo` mode the owner records it at merge — also after. So the
+commit sets phase, status, implementation state, related PRs, next step and `Finalization:
+pushed`, and **leaves the verdict at whatever was true when it was written.**
+
+This repository produced the demonstration twice in a day: WS-008 and WS-009 each landed on
+`main` asserting `Owner-accepted` for a PR nobody had accepted. **A row briefly behind is a much
+smaller problem than a row confidently wrong**, and only one of the two is detectable by reading
+it. New warning `VERDICT_UNSUPPORTED` reports a file claiming a verdict nothing outside it
+records.
+
+**2. `Owner-accepted` had no comment form.** v0.8 defined the verdict for the workstream file and
+never extended `DEC-015`'s PR-comment form to carry it, so a `solo` project had a verdict with no
+specified way to record it on a pull request. Now specified, same shape as the approval form with
+two differences that follow from the meaning:
+
+```markdown
+Build OS review verdict: Owner-accepted
+Accepted head: <full 40-character SHA>
+Review actor: <the owner>
+Implementation actor reviewed: <the implementing actor>
+```
+
+`Accepted head:` never `Reviewed head:` — nothing was reviewed, and a consumer keys on the field
+name to tell the two apart. `Review actor` is the owner, and the two actors must still differ,
+which is the separation `solo` mode keeps when independence is unavailable. Everything else is
+unchanged: full SHA, marker at line start, quoting and fencing rules, and an edited comment never
+clearing the gate.
+
+One correction alongside: `WORKSTREAM_PR_STATE_MISMATCH` no longer fires on finalization
+preceding a verdict in `solo` mode, where acceptance happens at merge and that ordering is
+correct.
+
+**What an adopting project must do**
+
+1. **Read this entry and update the framework block** to adopted v0.10, last-checked v0.10 with
+   today's date.
+2. **Stop pre-writing verdicts in finalization commits**, if you were. Most projects were not —
+   the rule was implicit and generally followed; it is now written down.
+3. **If you run `solo` mode**, use the comment form above to record acceptances. Nothing changes
+   for `reviewed` projects.
+4. **Do not retrofit.** A workstream row that pre-claimed a verdict is corrected going forward,
+   not rewritten to pretend the claim was never made.
+
+No project architecture, product decision, completed workstream, or open review is rewritten by
+this migration.
+
+---
 
 ### v0.8 → v0.9 — `skills/`, an agent-facing surface
 

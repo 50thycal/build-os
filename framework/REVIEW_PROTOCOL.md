@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.9**
+**Build OS v0.10**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -466,6 +466,37 @@ implementation, validation, then a separate documentation-only commit, then `SHI
 separate commit still earns its place — it makes the bookkeeping diff inspectable on its own,
 which is the property the owner needs most in the mode where nobody else is reading.
 
+### A finalization commit never writes a verdict it does not yet have
+
+The rule that a finalization commit cannot contain its own SHA has a twin, and the twin is
+easier to break because it looks like ordinary bookkeeping.
+
+**The verdict is not the finalization commit's to write.** In `reviewed` mode the reviewer
+records it, after the commit exists. In `solo` mode the owner records it at merge — also after.
+Either way the commit is authored *before* the act it would be describing, so it must leave
+`Verdict` at whatever was true when it was written, exactly as it leaves `Reviewed head` at the
+last head reviewed in full.
+
+Writing the expected verdict is not a harmless head start. It produces a durable record
+asserting that somebody approved or accepted a change when nobody has, and — because the value
+looks completely ordinary — nothing about it reads as provisional to the next person. It is the
+same failure as `Reviewed head` naming a commit that does not exist yet, minus the tell.
+
+So a finalization commit sets phase, status, implementation state, related PRs, next step, and
+`Finalization: pushed`. It leaves the verdict alone. Where the workstream wants to record that
+acceptance is expected, the honest form says so without claiming it:
+
+```markdown
+| PR | Verdict | Reviewed head | Accepted head | Finalization |
+|---|---|---|---|---|
+| #16 | Not started | — | — | pushed |
+```
+
+Then the reviewer or the owner records the real verdict afterwards, and a later commit — or the
+same person editing the file — brings the row up to date. **A row that is briefly behind is a
+much smaller problem than a row that is confidently wrong**, and only one of the two is
+detectable by reading it.
+
 It sets, to what becomes true when the PR lands:
 
 - the workstream's **Phase** and **Status**
@@ -546,12 +577,37 @@ earlier position by the same actor, and an actorless `Changes required` still cl
 It simply cannot open one. That asymmetry is the point: incomplete evidence should never read as
 approved, but it also should not silently discard someone's objection.
 
-- The verdict word is one of the five in this document. Emphasis (`**Reviewed head:**`) is fine.
+- The verdict word is one of the six in this document. Emphasis (`**Reviewed head:**`) is fine.
 - It is read only where it is **stated**, never where it is discussed. Text that is quoted
   (`>`), fenced, or inside an HTML comment carries no verdict — otherwise replying to an
   approval, or quoting the review table to argue with it, would issue one.
 - It is a position of the same standing as a review. This is not the `Commented` review state,
   which is a review deliberately withholding a verdict.
+
+#### `Owner-accepted` in comment form
+
+v0.8 introduced `Owner-accepted` for the workstream file and stopped there, which left a
+`solo` project with a verdict it had no specified way to record on a pull request. The form is
+the same shape, with two differences that both follow from what the verdict means:
+
+```markdown
+Build OS review verdict: Owner-accepted
+Accepted head: d4477174fcfa51a0e09ab07b44091e780d40d6d8
+Review actor: 50thycal (owner)
+Implementation actor reviewed: claude-implementation-session
+```
+
+- **`Accepted head:`, never `Reviewed head:`.** Nothing was reviewed. A record borrowing the
+  reviewed field would erase the distinction the verdict exists to carry, and it is the field a
+  consumer keys on to tell the two apart years later.
+- **`Review actor` is the owner**, and the two actors must still differ — which here means the
+  owner is not the implementing agent. That is the separation `solo` mode preserves when
+  independence is unavailable, and the pair inside the verdict is still what establishes it.
+
+Everything else holds unchanged: the full 40-character SHA, the marker beginning its line, the
+quoting and fencing rules, an edited comment never clearing the gate, and corrections posted as
+new comments rather than edits. It clears the **solo** gate only, and on a project declaring
+`reviewed` it is a contradiction rather than an acceptance.
 
 #### `Review actor` — who spoke, as distinct from what carried it
 

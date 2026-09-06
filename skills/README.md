@@ -4,6 +4,18 @@ Agent-invokable procedures. A skill is a `SKILL.md` with YAML frontmatter (`name
 `description`) plus markdown instructions, loaded by a coding agent when the
 description matches what the user is doing.
 
+## The registry
+
+| Skill | What it is for | Canonical framework document |
+|---|---|---|
+| [`finite-work-handoff`](finite-work-handoff/SKILL.md) | Carrying one approved mission across agent sessions until its acceptance checks reach `SHIP`, `DECISION`, `BLOCKED` or an explicit stop, without adjacent findings becoming new work | [`framework/FINITE_WORK.md`](../framework/FINITE_WORK.md) |
+| [`research-decision-brief`](research-decision-brief/SKILL.md) | Reaching an honest owner decision on an investigation that has not yet paid, including grading what has actually been learned | [`framework/OWNER_INTERFACE.md`](../framework/OWNER_INTERFACE.md) |
+
+Every row names a framework document, and that is a rule rather than a convenience: a skill
+with no canonical document behind it is protocol being written in the agent surface, where the
+owner will never read it and nothing keeps it consistent with the rest (`DEC-022`). If a skill
+needs a rule that does not exist yet, the rule goes in `framework/` first.
+
 ## Why they live here
 
 Build OS is a protocol: documents, roles and artifacts that govern how work moves from

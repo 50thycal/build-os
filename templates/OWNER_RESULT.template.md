@@ -20,9 +20,13 @@
      DECISION and BLOCKED are not held back this way — they are reachable at any point,
      because they are the cases where the owner does have something to do.
 
-     A short summary may omit detail. It may not omit material truth. -->
+     A short summary may omit detail. It may not omit material truth.
 
-**Workstream:** WS-### · **PR:** #<n> · **Date:** YYYY-MM-DD · **Build OS v0.11**
+     SHIP means no hidden tail. Optional follow-ups do not block it and do not travel inside
+     it: they are PARKed on the board, DISCARDed, or brought back as a real DECISION. See
+     framework/FINITE_WORK.md. -->
+
+**Workstream:** WS-### · **PR:** #<n> · **Date:** YYYY-MM-DD · **Build OS v0.12**
 
 ---
 
@@ -37,7 +41,13 @@ Build OS owner result: SHIP
 **Residual risk:** None | <material remaining risk only>
 **Next action:** Merge PR #<n> at <verified SHA>
 
-<!-- ~150 words maximum.
+<!-- 100 words or fewer by default; 150 is the ceiling, not the target.
+
+     Lead with the OUTCOME, not with what was attempted or the order it happened in. Plain
+     language, no file, branch or function names. Say whether the original ask is done.
+
+     The extra 50 words exist for one reason: a material deviation or residual risk that takes
+     a sentence to state properly. A deviation dropped to make the budget is a compressed lie.
 
      SHIP means every agent and reviewer step is finished and only the owner's merge remains.
      It reports the merge gate; it does not replace it, and writing one approves and merges
@@ -82,6 +92,11 @@ Build OS owner result: DECISION
 
 <!-- Scarce. For a choice that changes what someone using the system experiences, what the
      business commits to, what data is kept or lost, or what becomes hard to reverse.
+
+     Also where an OWNER DECISION disposition lands (framework/FINITE_WORK.md) — a finding an
+     agent may not settle alone. Same scarcity bar: routing a parkable finding through a
+     disposition table does not earn it the owner's attention. Where the work asks for more of
+     the owner's time, money or attention, list stopping as an option.
 
      NOT a DECISION: a failing test, a merge conflict, a reviewer finding the implementation
      agent can fix, naming, schema shape, library choice, an ordinary engineering trade-off.

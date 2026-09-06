@@ -1,6 +1,6 @@
 # Review Protocol
 
-**Build OS v0.11**
+**Build OS v0.12**
 
 Independent review happens after implementation and before the change is accepted. It is
 performed by someone — or something — other than the implementation agent: a human
@@ -158,6 +158,9 @@ Where the change belongs to a workstream, check the file was checkpointed:
 - Do `Implementation State` and `Related PRs` name this PR?
 - Were decisions made during implementation recorded — in `Decisions Made` if they were the
   owner's, in `DECISIONS.md` if they were consequential?
+- If the workstream is marked `COMPLETE`, is its `Next Step` exactly `None.`? An open-ended
+  next step on a finished record is a tail hiding inside a completion, and the deferral belongs
+  on the board's parking lot where somebody will see it (`framework/FINITE_WORK.md`).
 - If the workstream is marked `COMPLETE`, did steps 2 and 3 of the completion sequence
   actually happen (see `framework/WORKSTREAMS.md`)? A `COMPLETE` workstream whose outcome
   never reached `PROJECT_MODEL.md` is a false record, and the next agent will act on it.
@@ -343,8 +346,19 @@ Every review summary and every workstream `Review State` records two fields:
 | `In review` | A reviewer has the PR; no verdict yet | `reviewed` |
 | `Changes required` | At least one unresolved Blocking or Should fix finding | both |
 | `Approved` | Clears the gate | `reviewed` |
-| `Approved with follow-ups` | Clears the gate; named non-blocking work is filed to happen later | `reviewed` |
+| `Approved with follow-ups` | Clears the gate; named non-blocking work is **dispositioned**, not queued — see below | `reviewed` |
 | `Owner-accepted` | The owner accepted a change **no independent party reviewed**. Clears the solo gate only | `solo` |
+
+**A reviewer's follow-up is a finding, not an admission.** From v0.12 it takes a disposition
+like any other out-of-scope observation (`framework/FINITE_WORK.md`, `DEC-025`): parked on the
+board, discarded, or raised as an `OWNER DECISION`. A reviewer cannot promote work any more than
+an implementation agent can — being right about it is not the same as the owner having chosen it.
+
+That is not a weakening of review. It sharpens the verdict boundary instead: anything a reviewer
+believes the change genuinely cannot ship without is `Changes required`, and it is fixed on this
+PR. `Approved with follow-ups` is for what is real, non-blocking, and now visibly deferred rather
+than silently queued — and the old instruction to file it as "a new workstream, an open decision,
+or an issue" was the queue.
 
 `Owner-accepted` records its head in **`Accepted head`**, not `Reviewed head`, and the field
 names are different on purpose: nothing was reviewed, and a record that borrowed the reviewed
@@ -775,7 +789,7 @@ What a verdict does to the workstream. Phases are the standard ones in
 |---|---|---|
 | Implementation reported complete, PR ready | `BUILDING` → `REVIEW` | Verdict `In review`, reviewed head `—` |
 | Reviewer records `Approved` | stays `REVIEW` | Verdict + full reviewed head; then finalization |
-| Reviewer records `Approved with follow-ups` | stays `REVIEW` | Follow-ups filed as named work — a new workstream, an open decision, or an issue — never as a sentence in a review nobody reads again |
+| Reviewer records `Approved with follow-ups` | stays `REVIEW` | Every follow-up dispositioned per `FINITE_WORK.md` — `PARK`ed on the board, `DISCARD`ed, or raised as an `OWNER DECISION`. Never left as a sentence in a review nobody reads again, and never opened as work the owner did not admit |
 | Reviewer records `Changes required`, PR open | `REVIEW` → `BUILDING` | Findings persisted on the workstream; corrections stay **on the same PR** |
 | Corrections pushed, ready again | `BUILDING` → `REVIEW` | New head awaiting review; verdict back to `In review` |
 | Finalization commit pushed | stays `REVIEW` | Only permitted surfaces changed; `Finalization: pushed` on the record; reviewer verifies the head that commit produced and records it **on the PR**. No owner result yet — the verification is still owed |
@@ -973,7 +987,7 @@ implementation, something the agent escalated, something the reviewer thinks the
 would not want as built. Each with options and a recommendation.
 
 ### Recommended next action
-One clear instruction: finalize and merge; merge and file the follow-ups; fix the blocking
+One clear instruction: finalize and merge; merge, with the follow-ups parked; fix the blocking
 items and re-review; answer the decisions above first.
 
 Note that "merge" is never the reviewer's own next action. The reviewer approves; the owner

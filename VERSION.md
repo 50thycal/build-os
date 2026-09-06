@@ -1,10 +1,10 @@
 # Build OS Version
 
-**Build OS v0.11**
+**Build OS v0.12**
 
 | Field | Value |
 |---|---|
-| Version | 0.11 |
+| Version | 0.12 |
 | Status | Draft |
 | Scope | Documentation, protocol, reusable templates, contracts, agent skills |
 | Contains code | No |
@@ -50,6 +50,93 @@ check exists so that a pin is a decision rather than an accident.
 Each entry says what changed and what an adopting project must do to move to it. An agent
 performing a compatibility check reads every entry between the project's adopted version and
 the version above.
+
+### v0.11 → v0.12 — Discovery does not create work
+
+**Type:** Minor. **Date:** 2026-09-06.
+
+**What changed**
+
+Build OS had no rule about where work comes from, and an absent rule is still a policy: any
+observation by any agent was sufficient grounds to commit the owner's future attention. It
+produced boards that grew monotonically from the agent's side, new sessions that opened new
+workstreams because the chat window was new, and completed workstreams carrying a `Next Step` of
+"open a ticket for the caching work" — a deferral written into a record claiming to be finished,
+which nothing schedules and nobody reads.
+
+`framework/FINITE_WORK.md` is now canonical for the boundary (`DEC-025`). **Discovery does not
+create work. Only admission creates work.**
+
+Every finding outside the current mission takes exactly one disposition before anything happens
+to it:
+
+| Disposition | Use when | Action |
+|---|---|---|
+| `FIX NOW` | An acceptance check needs it, or it is an immediate material safety, security, data-loss or real-money risk | Fix it in the current workstream and PR |
+| `PARK` | Valuable, unrelated, safe to defer | One line in the parking lot. No ticket, branch, PR or session |
+| `DISCARD` | Speculative, cosmetic, duplicate, not worth its cost | Drop it |
+| `OWNER DECISION` | Genuine product, priority, budget or risk judgement | Return a `DECISION`. Do not open the work pre-emptively |
+
+`FIX NOW` is the one that carries the load. **If the original ask cannot honestly ship without
+it, it was never out of scope**, and deferring it would be a `SHIP` with a hole in it. The table
+lets an agent defer adjacent work; it does not let it defer its own defects.
+
+Around that rule, five concrete changes:
+
+- **A mission contract.** `Goal`, `Non-Goals` and a new `## Acceptance Checks` section state the
+  outcome, the exclusions, the material interrupt risks and what counts as finished — written at
+  the start, because a finish condition invented at the end describes where the work stopped.
+- **Continuation is the session-start default.** A new session resumes the mission on the board.
+  It does not become a new workstream by being a new chat, or because implementation revealed
+  something adjacent.
+- **A parking lot.** A `## Parked` list beneath the board in `ACTIVE.md`, mirrored in the
+  workstream. One line each, no ID, phase, owner or estimate, capped at three per completed
+  mission. Nothing schedules it and no agent starts anything in it; the owner promotes a
+  candidate or it stays there. It is deliberately impoverished — a parking lot pleasant to work
+  from is a backlog, and the backlog is what made the board unreadable.
+- **An active-work limit of three**, by default: one being built, one in review or verification,
+  one investigation or operational concern. A fourth requires completing, pausing or abandoning
+  one of the three. The transaction is the point: the cost of starting is paid visibly by the
+  owner at the moment they start.
+- **A completed workstream's `Next Step` is `None.`** Not "open a ticket", not "follow up later".
+
+The owner result changes with it: **100 words or fewer by default, leading with the outcome
+rather than the chronology.** 150 remains as a ceiling, and it exists for one reason — a
+material deviation or residual risk that takes a sentence to state properly. The compression
+contract is unchanged and binds harder than the budget: a deviation dropped to hit 100 words is
+a compressed lie.
+
+`skills/finite-work-handoff/` is the agent procedure for all of it, and points at the framework
+document rather than restating the rules (`DEC-022`). `skills/README.md` now carries a registry
+of both skills and the framework document behind each.
+
+**Parse-contract impact.** `## Acceptance Checks` and `## Parked` are **optional** sections in
+workstream files, and a `## Parked` list may follow the board table. Files written under earlier
+versions have neither, and their absence is not an integrity warning. One new obligation:
+**parked lines are never rendered as work** — not active, not queued, not planned. A consumer
+that surfaces them beside the board has rebuilt the backlog the parking lot exists instead of.
+A `COMPLETE` workstream whose `Next Step` is not `None` is a new integrity warning, reported and
+never repaired.
+
+**This does not weaken anything.** No lifecycle phase is added or removed, the review and merge
+gates are untouched, `SHIP` still requires everything it required in v0.11, and completed
+workstreams are not retroactively rewritten.
+
+**What an adopting project must do**
+
+1. **Read this entry and update the framework block** to adopted v0.12, last-checked v0.12 with
+   today's date.
+2. **Add a `## Parked` section** beneath the table in `docs/workstreams/ACTIVE.md`, with `- None.`
+   under it. That is the whole structural change.
+3. **Count the active board.** If more than three workstreams need owner attention, that is not
+   an error to fix silently — bring it to the owner as a `DECISION` about what pauses. Or declare
+   a different limit in the framework block, deliberately.
+4. **Check completed workstreams for open-ended next steps.** Do not rewrite history; a completed
+   file that reads "open a ticket" stays as it is. New completions use `None.`
+5. **Optionally copy `skills/finite-work-handoff/`** into wherever the project keeps skills. Like
+   every skill, it is taken by copy and not tracked.
+6. **Nothing else.** Existing workstream files need no `Acceptance Checks` section added
+   retroactively; write them on the next workstream you open.
 
 ### v0.10 → v0.11 — A relayed acceptance names its channel
 

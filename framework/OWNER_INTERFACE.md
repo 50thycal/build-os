@@ -1,6 +1,6 @@
 # Owner Interface
 
-**Build OS v0.11**
+**Build OS v0.12**
 
 Build OS has always had two audiences and one reading path. The Build Card, the Build Spec,
 the PR handoff, the review summary and the workstream are all written for someone — and by
@@ -38,6 +38,24 @@ That is the whole of the compression contract, and it is worth stating as a proh
 on the writing, never a licence about the content. A deviation, a red check, a stale approval,
 or an unresolved blocking finding is material by definition, and no word count excuses
 dropping one.
+
+---
+
+## Work that stays finite
+
+A result is only as meaningful as the boundary around the work it reports. If every adjacent
+thing an agent notices can become active work, `SHIP` stops meaning *this is finished* and
+starts meaning *this part is finished, and here are four new things* — which is not a terminal
+state, it is a queue.
+
+[`framework/FINITE_WORK.md`](FINITE_WORK.md) is canonical for that boundary (`DEC-025`). Two of
+its rules land directly on this document:
+
+- **Out-of-scope findings are dispositioned, not acted on.** `FIX NOW`, `PARK`, `DISCARD`, or
+  `OWNER DECISION`. Only the last of those reaches the owner, and only when the judgement is
+  genuinely theirs — which is the same scarcity bar `DECISION` has always had.
+- **`SHIP` means no hidden tail.** Optional follow-ups do not block it, and they do not travel
+  inside it either: they are parked, discarded, or brought back as a real `DECISION`.
 
 ---
 
@@ -215,7 +233,23 @@ Build OS owner result: SHIP
 **Next action:** Merge PR #<n> at <verified SHA>
 ```
 
-Target 150 words or fewer.
+### Length, and what leads
+
+**The default owner result is 100 words or fewer, and begins with the outcome.** Not with what
+was attempted, not with the order things happened in, and not with the names of files,
+branches or functions. The owner is reading to find out where the work stands; the first
+sentence should tell them, and everything after it should be why they can believe it.
+
+150 words is the **ceiling**, not the target, and it exists for the one honest reason to go
+long: a material deviation or a residual risk that takes a sentence to state properly. Spending
+it on chronology is what the budget is against.
+
+That ordering is not a style preference. A result that opens with process invites the owner to
+reconstruct the outcome from it, which is exactly the reading job the owner layer exists to
+remove. And the compression contract above still binds in both directions: **100 words is a
+constraint on the writing, never a licence about the content.** A deviation dropped to make the
+budget is a compressed lie, and the budget was the wrong thing to protect.
+
 
 **`SHIP` is a report of the merge gate. It is never a substitute for it, and writing one is
 not approving or merging anything.** The rules in `framework/REVIEW_PROTOCOL.md` are unchanged
@@ -363,6 +397,14 @@ already says so.
 
 Do not bundle unrelated choices into one `DECISION` unless they are genuinely coupled. Two
 questions the owner could answer independently are two results, or one result and a deferral.
+
+**`OWNER DECISION` in [`framework/FINITE_WORK.md`](FINITE_WORK.md) is this state, reached from
+the other direction.** There it is the disposition an agent gives a finding it may not settle
+alone; here it is the result that carries it. They are one channel, and the scarcity rule above
+governs both: a finding an agent could have parked or discarded does not earn the owner's
+attention by being routed through a disposition table. An agent asking the owner to admit new
+work states what stopping costs, because *not now* is one of the options and an owner who does
+not see it listed will assume the work is already presumed to continue.
 
 **Where stopping is a real option, list it.** Not as a courtesy — because an owner who does not
 see it listed will reasonably infer the agents have already assumed the work continues, and
@@ -515,3 +557,6 @@ Owner Result never restates the handoff, and the handoff never restates the spec
 | Two owner surfaces | An Owner Summary and an Owner Result on the same PR | They drift within a week and nobody knows which is current |
 | Chat as the result | The full result restated in the chat response | Recreates the transcript-as-memory failure the framework exists to prevent |
 | Plan-spec drift | A Build Spec introducing an owner-visible choice the approved plan never carried | The owner's approval silently covers something they never saw |
+| Chronology first | A result opening with what was attempted, in the order it happened | The owner has to reconstruct the outcome from process; that is the reading job this layer exists to remove |
+| Tail inside a `SHIP` | `SHIP` carrying a list of things still to be done "soon" | Terminal means terminal; a tail makes it a status report the owner cannot act on |
+| Discovery as admission | New work opened because an agent noticed it mid-task | The mission never ends, and the owner is committed to work they never chose (`DEC-025`) |

@@ -1,6 +1,6 @@
 # Build OS
 
-**Build OS v0.11** — a reusable development framework for building software with a human
+**Build OS v0.12** — a reusable development framework for building software with a human
 owner, a design agent, an implementation agent, and GitHub.
 
 Build OS is not an application. It is a protocol: a set of documents, roles, and
@@ -260,6 +260,7 @@ and *implementer* on the same change, which is the one separation the protocol w
 | `framework/OWNER_INTERFACE.md` | The owner layer: intent intake, proportionality, the Owner Plan, and the `SHIP` / `DECISION` / `BLOCKED` result |
 | `framework/DESIGN_ROOM.md` | The five-stage design process: Explore → Model → Decide → Build Card → Build Spec |
 | `framework/BUILD_SPEC.md` | The standard implementation packet, and the owner-decision / discretion / escalation split |
+| `framework/FINITE_WORK.md` | Finite work: how a discovery is dispositioned rather than admitted, the active-work limit, the parking lot, and what `SHIP` means when there is no hidden tail |
 | `framework/CLAUDE_HANDOFF.md` | What the implementation agent must do, and what the PR handoff must contain |
 | `framework/PROJECT_MEMORY.md` | The three durable memory layers and the rules for maintaining them |
 | `framework/WORKSTREAMS.md` | Parallel design threads: lifecycle, workstream files, the active-work board, checkpointing, and the GitHub capability boundary |
@@ -268,7 +269,7 @@ and *implementer* on the same change, which is the one separation the protocol w
 | `framework/AGENT_SESSION_CHECKPOINT.md` | Protocol contract: how agents publish session state — never transcripts |
 | `framework/BUILD_OS_PARSE_CONTRACT.md` | Protocol contract: the subset of Build OS artifacts machine consumers may rely on |
 | `contracts/` | Machine-readable schemas for the contracts above |
-| `skills/` | Agent-invokable procedures — the same protocol aimed at an agent mid-task rather than an owner reading a document |
+| `skills/` | Agent-invokable procedures — the same protocol aimed at an agent mid-task rather than an owner reading a document. `skills/README.md` is the registry |
 | `templates/` | Fill-in templates for each artifact — Owner Plan, Owner Result, Build Card, Build Spec, PR handoff, review summary, project model, decisions, workstream, active work, ChatGPT Project instructions |
 | `examples/FEATURE_LIFECYCLE.example.md` | One worked example, start to finish: significant work, design-agent origin |
 | `examples/SIMPLE_CHANGE.example.md` | A one-line intent handed straight to an implementation agent — and the one that turns out not to be simple |
@@ -323,8 +324,8 @@ whichever implementation agent the project uses; nothing below is specific to on
 ## Build OS
 
 - Canonical framework: 50thycal/build-os
-- Adopted version: v0.11
-- Last compatibility check: v0.11 on YYYY-MM-DD
+- Adopted version: v0.12
+- Last compatibility check: v0.12 on YYYY-MM-DD
 - Operating mode: reviewed
 
 Before substantial design or architectural work, compare the adopted version against
@@ -451,4 +452,4 @@ pinning alone does not prevent it — pinning plus the compatibility check does.
 If a project genuinely needs different behavior, that is either a project-specific
 addendum clearly marked as such, or evidence that Build OS itself should change.
 
-**Current version: Build OS v0.11** — see `VERSION.md`.
+**Current version: Build OS v0.12** — see `VERSION.md`.

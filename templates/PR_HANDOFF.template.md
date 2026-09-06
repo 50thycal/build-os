@@ -3,7 +3,7 @@
 <!-- This PR body is the authoritative handoff. Every section is required; sections with
      nothing to report say `None`. Keep it current if the PR changes. -->
 
-**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.11**
+**Workstream:** WS-### · **Build Card:** <link> · **Build Spec:** <link> · **Build OS v0.12**
 
 ## Goal
 
@@ -127,10 +127,14 @@ WS-### — <title>. <PHASE> → <PHASE>. <Completes / does not complete> the wor
 
 ## Follow-up Work
 
-<Intentional deferrals, each with the reason. Not a parking lot for unfinished in-scope
-work.>
+<Intentional deferrals, each carrying its disposition and reason. Every line is PARK or
+DISCARD. An in-scope defect is FIX NOW and belongs in the diff; an owner judgement is a
+DECISION result, not a bullet here. A PARK line claims a matching line exists on the board's
+parking lot, and that must be true when the PR is opened. `None` is a common, correct answer.
+See framework/FINITE_WORK.md.>
 
--
+- PARK — <one line>. Parked on the board.
+- DISCARD — <one line>, and why it is not worth doing.
 
 ## Owner Result
 

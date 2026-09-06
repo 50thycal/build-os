@@ -2,7 +2,7 @@
 
 <!-- Build OS's own active-work control board. Protocol work only. -->
 
-**Updated:** 2026-08-30 · **Build OS v0.11**
+**Updated:** 2026-09-06 · **Build OS v0.12**
 
 The Project Intelligence Companion program moved to
 [`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,
@@ -14,11 +14,23 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Phase | Status | Current Next Step | Related PR |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| WS-010 | Finite work admission and closure | REVIEW | Active | Owner accepts and merges the integration PR into #21 | #21 |
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned
-     Completed and abandoned workstreams leave this table; their files remain. -->
+     Completed and abandoned workstreams leave this table; their files remain.
+
+     ACTIVE-WORK LIMIT: three (the v0.12 default) — one being built, one being reviewed or
+     verified, one investigation or operational concern. A fourth requires completing, pausing
+     or abandoning one of the three. See framework/FINITE_WORK.md. -->
+
+## Parked
+
+<!-- Deferred candidates. One line each, no ID, no phase, no owner, no estimate. Nothing
+     schedules this and no agent starts anything here; the owner promotes a candidate, or it
+     stays. See framework/FINITE_WORK.md. -->
+
+- None.
 
 ## Recently completed
 

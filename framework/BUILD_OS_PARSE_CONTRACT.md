@@ -1,6 +1,6 @@
 # Build OS Parse Contract
 
-**Build OS v0.11 — protocol contract**
+**Build OS v0.12 — protocol contract**
 
 Build OS artifacts are written for humans and agents to read. This document defines the narrow
 subset that **machine consumers may rely on**, so tooling can extract project state without
@@ -73,6 +73,12 @@ IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING �
 A `## Recently completed` table may follow. It is informational; consumers should not treat its
 rows as active work.
 
+From v0.12 a `## Parked` list may also follow — deferred candidates, one line each. **Consumers
+must not treat parked lines as work of any kind**: not active, not queued, not planned. They
+have no ID, no phase and no owner, and a consumer that surfaces them beside the board has
+recreated the backlog the parking lot exists instead of. Render it only where a human is
+explicitly asking what has been deferred. See `framework/FINITE_WORK.md`.
+
 ---
 
 ## Workstream files — the detail
@@ -96,13 +102,18 @@ Stable surface:
 ## Open Decisions
 ## Assumptions
 ## Non-Goals
+## Acceptance Checks
 ## Build Card
 ## Implementation State
 ## Review State
 ## Related Decisions
 ## Related PRs
+## Parked
 ## Next Step
 ```
+
+`## Acceptance Checks` and `## Parked` arrived in v0.12 and are **optional**: a file written
+under an earlier version has neither, and their absence is not an integrity warning.
 
 Rules consumers may rely on:
 
@@ -116,6 +127,8 @@ Rules consumers may rely on:
 | Review State | Structured fields below, then free prose. `Not started` means not started. |
 | Related PRs | Zero or more `#\d+`; `None yet` / `—` means none. |
 | Related Decisions | Zero or more `DEC-\d{3,}`. |
+| Acceptance Checks | List items; empty or absent means none recorded. Optional from v0.12. |
+| Parked | List items; `None`, `None.`, empty or absent means none. Deferred candidates, never work. Optional from v0.12. |
 
 **Blocker.** Build OS records a blocker as `Status: Blocked` plus the reason in `Next Step`.
 Consumers should read it from there rather than expecting a dedicated section.
@@ -500,6 +513,7 @@ winner. Cases worth reporting:
 | `ACTIVE.md` row and workstream file disagree on phase or status | Prefer the workstream file for detail; report the mismatch. |
 | A workstream file exists with no `ACTIVE.md` row, and is not `COMPLETE`/`ABANDONED` | Report: work that is invisible on the board. |
 | An `ACTIVE.md` row with no workstream file | Report: a board entry with no detail behind it. |
+| A `COMPLETE` workstream whose `Next Step` is not `None` | Report: a completed record carrying a tail (`framework/FINITE_WORK.md`). Do not repair it. |
 | Filename ID and heading ID differ | Report; address by filename. |
 | A workstream marked `COMPLETE` still on the active board | Report: completion is supposed to remove the row. |
 | Duplicate `WS-###` across files | Report; do not merge. |

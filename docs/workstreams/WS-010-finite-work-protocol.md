@@ -1,13 +1,13 @@
 # WS-010 — Finite work admission and closure
 
-**Phase:** REVIEW
-**Status:** Active
+**Phase:** COMPLETE
+**Status:** Complete
 **Created:** 2026-09-06
 **Updated:** 2026-09-06
 **Build OS:** v0.12
-**Implementation State:** Protocol, skill and full adoption-surface integration are in #21. Released as v0.12.
-**Related PRs:** #21, this PR
-**Next Step:** Owner accepts and merges this PR into #21.
+**Implementation State:** Protocol, skill and full adoption-surface integration are in #21, the integration arriving through #22. Released as v0.12.
+**Related PRs:** #21, #22
+**Next Step:** None.
 
 ## Goal
 
@@ -102,7 +102,7 @@ None.
 
 | PR | Verdict | Reviewed head | Accepted head | Finalization |
 |---|---|---|---|---|
-| #21 | Not started | — | — | — |
+| #21 | Not started | — | — | pushed |
 
 This repository runs in `solo` mode (`DEC-021`), so conditions 3 and 5 of the `SHIP` gate — an
 independent verdict and a reviewer's verification of the final head — have no available
@@ -110,10 +110,11 @@ satisfier. They are absent, not waived, and the owner result says so. Acceptance
 the owner at merge, or relayed with its channel named (`DEC-024`). No verdict is pre-written
 here (`DEC-023`).
 
-**The work reaches #21 through a stacked PR.** #21 carried the protocol document, the skill and
-this workstream file; the integration PR carries the integration, v0.12, `DEC-025` and the
-finalization, and targets #21's branch rather than `main`. That is one change in two pushes — the
-acceptance checks above are met only when both land, and #21 is the PR that reaches `main`.
+**The work reaches #21 through #22.** #21 carried the protocol document, the skill and this
+workstream file; #22 carried the integration, v0.12, `DEC-025` and this finalization, and targets
+#21's branch rather than `main`. That is one change in two pushes — the acceptance checks above
+are met only when both land, and #21 is the PR that reaches `main`. If #21 is abandoned after
+this, the completion recorded here is false and must be undone rather than left standing.
 
 ## Related Decisions
 
@@ -122,4 +123,4 @@ surfaces apply), and `DEC-023` (a finalization commit never writes a verdict it 
 
 ## Related PRs
 
-#21, and the integration PR stacked on it.
+#21, #22.

@@ -9,7 +9,7 @@
 <!-- Active · Paused · Blocked · Abandoned -->
 **Created:** YYYY-MM-DD
 **Updated:** YYYY-MM-DD
-**Build OS:** v0.11
+**Build OS:** v0.12
 <!-- The protocol this workstream runs under. Omit to inherit the project's adopted version.
      From v0.5 this is what puts the workstream under the merge gate — never the presence of the
      review fields below, which would make the gate escapable by deleting them. -->
@@ -55,6 +55,18 @@
 ## Non-Goals
 
 <What this effort deliberately does not cover.>
+
+-
+
+## Acceptance Checks
+
+<!-- What must be true for this workstream to be finished, written so someone other than its
+     author could tell whether it holds. Together with Goal and Non-Goals this is the mission
+     contract (framework/FINITE_WORK.md): outcome, exclusions, material interrupt risks, and
+     the finish condition.
+
+     Write these when the workstream is established. Checks invented at the end describe where
+     the work stopped, not what it was for. -->
 
 -
 
@@ -129,9 +141,24 @@ None yet.
 
 None yet.
 
+## Parked
+
+<!-- Deferred candidates from this workstream, one line each — the PARK disposition. At most
+     three on a completed workstream. Mirrored on the board's parking lot in ACTIVE.md.
+
+     Not a backlog: nothing here is scheduled, and an agent may not start any of it. The owner
+     promotes a candidate, or it stays where it is. Anything an acceptance check depends on was
+     never parkable — it is FIX NOW, in this workstream. -->
+
+None.
+
 ## Next Step
 
 <!-- The single most useful next action. One action, not a plan. If it takes three
-     sentences, something unnamed is blocking this. -->
+     sentences, something unnamed is blocking this.
+
+     On a COMPLETE workstream this is `None.` and nothing else — never "open a ticket",
+     "start the next job" or "follow up later". A completed mission holds no tail; deferred
+     ideas live in Parked. See framework/FINITE_WORK.md. -->
 
 <next action>

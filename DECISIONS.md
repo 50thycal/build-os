@@ -3,7 +3,7 @@
 Consequential decisions about the framework itself, recorded in the format Build OS
 prescribes for projects. Build OS dogfoods its own protocol.
 
-**Build OS v0.11**
+**Build OS v0.12**
 
 ---
 
@@ -1484,3 +1484,114 @@ extra steps.
   pretend to. What it does is make the claim explicit and attributable, so a false one is a
   visible lie rather than an invisible assumption.
 - #16 and #18 are recorded as relayed acceptances, and read that way permanently.
+
+---
+
+### DEC-025 — Discovery does not create work; only admission does
+
+**Date:** 2026-09-06
+**Status:** Accepted
+
+**Context**
+Build OS was good at starting work and bad at ending it. Every mechanism it had pointed the same
+way: a workstream is cheap to open, an implementation agent that notices something adjacent is
+being diligent, and a completed workstream could carry a `Next Step` of "open a ticket for the
+caching work" and still read as finished. Nothing in the protocol asked the question that
+matters — *did the owner choose this?*
+
+The result is a board that grows monotonically, and it grows from the agent's side. Each
+addition is individually defensible; collectively they commit the owner to work they never
+selected, and the owner's own reading path degrades from *what do I do now?* to *which of these
+eleven things is real?*
+
+Two failure shapes did most of the damage. **A new session became a new workstream**, because a
+fresh chat window looks like a fresh mission and the acceptance checks of the old one were
+nowhere the new session had to read. And **a completed workstream held a tail**: a deferral
+written into a finished record, where nothing schedules it, nothing reports it, and the honest
+statement "this is done" was quietly false.
+
+**Decision**
+`framework/FINITE_WORK.md` is canonical. **Discovery does not create work. Only admission
+creates work.** Every finding outside the current mission gets exactly one disposition —
+`FIX NOW`, `PARK`, `DISCARD`, or `OWNER DECISION` — before anything happens to it, and only the
+owner promotes a parked candidate into active work.
+
+Four things follow, and they are the integration rather than the slogan:
+
+- **A mission has a contract.** Outcome, acceptance checks, non-goals, material interrupt risks,
+  finish condition — carried by `Goal`, `Non-Goals` and a new `Acceptance Checks` section, and
+  written at the start. A finish condition invented at the end describes where the work stopped.
+- **Continuation is the session-start default.** A new session resumes the mission on the board.
+  It does not open a workstream because the chat is new or because implementation revealed
+  something adjacent.
+- **Deferred ideas live in a parking lot**, a `## Parked` list under the board with no ID, phase,
+  owner or estimate, capped at three per completed mission. A completed workstream's `Next Step`
+  is `None.`
+- **An active-work limit of three**, by default: one building, one in review, one investigation.
+  A fourth requires completing, pausing or abandoning one of the three.
+
+The owner-facing result changes with it: **100 words by default, outcome first**, with 150 kept
+as a ceiling for a material deviation or residual risk that needs a sentence. `SHIP` means no
+hidden tail.
+
+**Rationale**
+The alternative Build OS had been running is not "no policy" — it is a policy that says any
+observation by any agent is sufficient grounds to commit the owner's future attention. Stated
+that way nobody would adopt it, and it is what an absent rule produces.
+
+Admission is the right place to put the gate because it is the only point where the cost is
+visible to the person paying it. A disposition costs an agent one line; a promoted workstream
+costs an owner weeks. Putting the boundary at the cheap end and letting the expensive end
+accumulate silently is exactly backwards, and the active-work limit makes the transaction
+explicit: something must stop for something to start.
+
+The parking lot is deliberately impoverished. It was tempting to give parked candidates IDs and
+owners so they could be tracked — and that is how it becomes a second board, immediately, with
+none of the first one's limits. A parking lot that is pleasant to work from is a backlog, and a
+backlog is the thing that made the original board unreadable.
+
+`FIX NOW` carries the load that stops this from becoming a shirking device. **If the original ask
+cannot honestly ship without it, it was never out of scope**, and deferring it would be a `SHIP`
+with a hole in it. The disposition table gives an agent a way to defer adjacent work, not a way
+to defer its own defects, and `CLAUDE_HANDOFF.md` says so in the same breath as it introduces
+the table.
+
+The 100-word default is the same argument applied to the owner's reading. A result that opens
+with chronology asks the owner to reconstruct the outcome from process, which is the reading job
+the owner layer exists to remove. The ceiling stays because the compression contract binds harder
+than the budget: a deviation dropped to hit 100 words is a compressed lie, and `OWNER_INTERFACE.md`
+already names that anti-pattern.
+
+**Alternatives considered**
+- **Rely on judgement.** Rejected on evidence: the judgement was already being exercised, in good
+  faith, and it produced the growth. A rule that says "be reasonable" resolves to whatever the
+  agent already wanted to do.
+- **Let follow-ups become tickets automatically.** Rejected. It moves the queue somewhere the
+  owner does not read and the board does not count, which converts an unreadable board into an
+  invisible one. Nothing about the total is improved.
+- **A hard numeric cap on workstreams, enforced.** The limit is the default and a project may
+  change it, because the right number depends on the owner and there is nothing to enforce it
+  with. Making it a declared default that must be consciously overridden is the strongest form a
+  document can actually take.
+- **Put the rule only in the skill.** Rejected under `DEC-022`: an agent-surface rule the owner
+  never reads is protocol with no canonical home, and the two surfaces drift. The framework
+  document is canonical and `skills/finite-work-handoff/` points at it.
+- **A fifth disposition for "ask later".** Rejected — that is `PARK` with a promise attached, and
+  the promise is the tail this decision exists to remove.
+
+**Consequences**
+- Boards stop growing from the agent side. That is the intended effect and also the risk: a
+  genuinely valuable observation can now be parked and never promoted. This is accepted
+  deliberately, because the owner can read the parking lot and cannot read an unbounded board.
+- `SHIP` becomes a stronger claim, and a slightly harder one to write honestly. Work that would
+  previously have shipped with three follow-ups now either finishes them or parks them where the
+  owner sees them.
+- Consumers gain two optional workstream sections and a `## Parked` board list, and take on an
+  obligation with them: **parked lines are never rendered as work**. `BUILD_OS_PARSE_CONTRACT.md`
+  states it, and a consumer that surfaces them beside the board has rebuilt the backlog.
+- Completed workstreams whose `Next Step` is not `None.` are now visible as defects rather than
+  as diligence. Existing ones are not rewritten — history stands, per the rule `DEC-024` restated
+  — but new ones are wrong.
+- WS-010 is the first workstream to run under its own rule, and the test is unflattering by
+  design: this PR found several integration surfaces mid-implementation and put every one of them
+  in this PR as `FIX NOW`, rather than into the tickets that would have been the old default.

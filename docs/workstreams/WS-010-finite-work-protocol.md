@@ -6,7 +6,7 @@
 **Updated:** 2026-09-06
 **Build OS:** v0.12
 **Implementation State:** Protocol and skill merged in #21; the adoption-surface integration and v0.12 land separately, after a merge-order accident stranded #22. See *Review State*.
-**Related PRs:** #21, #22, and the recovery PR carrying the integration to `main`
+**Related PRs:** #21, #22, #23
 **Next Step:** None.
 
 ## Goal
@@ -104,7 +104,7 @@ None.
 |---|---|---|---|---|
 | #21 | Not started | — | — | — |
 | #22 | Not started | — | — | pushed |
-| recovery | Not started | — | — | pushed |
+| #23 | Not started | — | — | pushed |
 
 This repository runs in `solo` mode (`DEC-021`), so conditions 3 and 5 of the `SHIP` gate — an
 independent verdict and a reviewer's verification of the final head — have no available
@@ -127,14 +127,14 @@ merge is where acceptance normally lands — but `DEC-024` is explicit that infe
 rows above stay at `Not started`: it is what the record can honestly say, and
 `MERGED_WITHOUT_APPROVAL` against both is correct until the owner records otherwise.
 
-The recovery PR carries #22's content to `main` unchanged — the same two commits, re-applied on the
+#23 carries #22's content to `main` unchanged — the same two commits, re-applied on the
 post-#21 base. It is not new work and it is not a second change; it is the second half of one
 change, arriving through a third door because the second one closed early.
 
 The lesson belongs in the record rather than in a rule: **a stacked PR is only as ordered as its
 merges are.** Nothing in Build OS enforced the sequence, and nothing here pretends it did.
 
-Until that recovery PR lands, this file's `COMPLETE` is true of the work and false of `main`.
+Until #23 lands, this file's `COMPLETE` is true of the work and false of `main`.
 That is stated rather than hidden, and it is why the finalization above names three rows.
 
 ## Related Decisions
@@ -144,4 +144,4 @@ surfaces apply), and `DEC-023` (a finalization commit never writes a verdict it 
 
 ## Related PRs
 
-#21, #22, and the recovery PR carrying the integration to `main`.
+#21, #22, #23.

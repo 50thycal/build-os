@@ -36,7 +36,7 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 | ID | Workstream | Completed | Outcome |
 |---|---|---|---|
-| WS-010 | Finite work admission and closure | 2026-09-06 | Discovery no longer creates work; only owner admission does (`DEC-025`). Boards gain an active-work limit of three and a parking lot; a completed workstream's next step is `None.` Protocol and skill in #21; the integration and v0.12 were stranded when #21 merged ahead of #22, and reached `main` through a recovery PR |
+| WS-010 | Finite work admission and closure | 2026-09-06 | Discovery no longer creates work; only owner admission does (`DEC-025`). Boards gain an active-work limit of three and a parking lot; a completed workstream's next step is `None.` Protocol and skill in #21; the integration and v0.12 were stranded when #21 merged ahead of #22, and reached `main` through #23 |
 | WS-009 | Agent-invokable skills surface | 2026-08-30 | `skills/` accepted in #17 and integrated in #18 as v0.9; framework stays canonical where both apply (`DEC-022`) |
 | WS-008 | Mobile-first owner interface | 2026-08-30 | Owner layer shipped as v0.6, corrected to v0.7, and v0.8 added operating modes |
 | WS-001 … WS-006 | Companion program | 2026-08-24 | Moved to `50thycal/build-os-companion` with the application (`DEC-011`) |

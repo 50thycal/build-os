@@ -5,8 +5,8 @@
 **Created:** 2026-09-06
 **Updated:** 2026-09-06
 **Build OS:** v0.12
-**Implementation State:** Protocol, skill and full adoption-surface integration are in #21, the integration arriving through #22. Released as v0.12.
-**Related PRs:** #21, #22
+**Implementation State:** Protocol and skill merged in #21; the adoption-surface integration and v0.12 land separately, after a merge-order accident stranded #22. See *Review State*.
+**Related PRs:** #21, #22, and the recovery PR carrying the integration to `main`
 **Next Step:** None.
 
 ## Goal
@@ -102,7 +102,9 @@ None.
 
 | PR | Verdict | Reviewed head | Accepted head | Finalization |
 |---|---|---|---|---|
-| #21 | Not started | — | — | pushed |
+| #21 | Not started | — | — | — |
+| #22 | Not started | — | — | pushed |
+| recovery | Not started | — | — | pushed |
 
 This repository runs in `solo` mode (`DEC-021`), so conditions 3 and 5 of the `SHIP` gate — an
 independent verdict and a reviewer's verification of the final head — have no available
@@ -110,11 +112,30 @@ satisfier. They are absent, not waived, and the owner result says so. Acceptance
 the owner at merge, or relayed with its channel named (`DEC-024`). No verdict is pre-written
 here (`DEC-023`).
 
-**The work reaches #21 through #22.** #21 carried the protocol document, the skill and this
-workstream file; #22 carried the integration, v0.12, `DEC-025` and this finalization, and targets
-#21's branch rather than `main`. That is one change in two pushes — the acceptance checks above
-are met only when both land, and #21 is the PR that reaches `main`. If #21 is abandoned after
-this, the completion recorded here is false and must be undone rather than left standing.
+**The stacking was correct and the merge order defeated it.** #21 carried the protocol document,
+the skill and this workstream file. #22 carried the integration, v0.12, `DEC-025` and the
+finalization, and targeted #21's branch so that #21 would be the single change reaching `main`.
+
+**#21 merged at 19:11:08 UTC; #22 merged into its branch at 19:11:18 — ten seconds too
+late.** By then #21 had already left, so `main` took the protocol document with none of its integration — v0.11 stamps, no
+parking lot, no disposition table, and this file still reading `Phase: REVIEW`. #22's content is
+real and reviewed but sits on an orphaned branch that nothing merges into.
+
+**Both merged with no recorded verdict.** The owner performed both merges, and in `solo` mode a
+merge is where acceptance normally lands — but `DEC-024` is explicit that inferring an acceptance
+*from a merge* is issuing a verdict rather than relaying one, and an agent may not do that. So the
+rows above stay at `Not started`: it is what the record can honestly say, and
+`MERGED_WITHOUT_APPROVAL` against both is correct until the owner records otherwise.
+
+The recovery PR carries #22's content to `main` unchanged — the same two commits, re-applied on the
+post-#21 base. It is not new work and it is not a second change; it is the second half of one
+change, arriving through a third door because the second one closed early.
+
+The lesson belongs in the record rather than in a rule: **a stacked PR is only as ordered as its
+merges are.** Nothing in Build OS enforced the sequence, and nothing here pretends it did.
+
+Until that recovery PR lands, this file's `COMPLETE` is true of the work and false of `main`.
+That is stated rather than hidden, and it is why the finalization above names three rows.
 
 ## Related Decisions
 
@@ -123,4 +144,4 @@ surfaces apply), and `DEC-023` (a finalization commit never writes a verdict it 
 
 ## Related PRs
 
-#21, #22.
+#21, #22, and the recovery PR carrying the integration to `main`.

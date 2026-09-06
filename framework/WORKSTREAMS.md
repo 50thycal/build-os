@@ -1,6 +1,6 @@
 # Workstreams
 
-**Build OS v0.11**
+**Build OS v0.12**
 
 A **workstream** is one meaningful design/build thread — procurement redesign, an
 authentication rewrite, a scoring rebalance, a new simulation system. Several may proceed
@@ -252,6 +252,32 @@ optional and useful — cap it at the last handful and let older entries fall of
 The board is what a new conversation reads first. Everything about its format should serve
 being read in fifteen seconds.
 
+### The active-work limit
+
+**By default a repository carries at most three owner-attention workstreams at once**
+([`FINITE_WORK.md`](FINITE_WORK.md)): one being built, one being reviewed or verified, and one
+investigation or operational concern. Automated monitoring does not count unless it needs the
+owner. A project may declare a different limit in its framework block; three is the default
+because it is roughly what one owner can hold, and a board past it stops being read at all —
+which is the failure the fifteen-second rule above is already fighting.
+
+The limit is not a queue depth. **Promoting a fourth workstream requires completing, pausing or
+abandoning one of the three**, and that is the point: the cost of starting something new is paid
+visibly, by the owner, at the moment they start it. A board that can grow without that
+transaction will grow, because every individual addition looks reasonable.
+
+### The parking lot
+
+Beneath the board, a `## Parked` list holds deferred candidates — one line each, no owner,
+no phase, no PR. It is where a `PARK` disposition lands, and it is deliberately not a backlog:
+nothing schedules it, nothing reports on it, and an agent may not start anything in it. The
+owner reads it when they are choosing what to do next, which is the only moment it is useful.
+
+A parked candidate becomes work by exactly one route: **the owner promotes it**, at which point
+it becomes a workstream under the active-work limit like anything else. Nothing else in Build OS
+reads it, and an agent that finds a parked line describing something it is about to build has
+found an owner decision, not a permission.
+
 Template: `templates/ACTIVE_WORK.template.md`
 
 ---
@@ -290,6 +316,10 @@ Important assumptions currently being made.
 ## Non-Goals
 What this effort deliberately does not cover.
 
+## Acceptance Checks
+What must be true for this workstream to be finished. The finish condition, stated so that
+someone other than its author could tell whether it holds.
+
 ## Build Card
 The current owner-facing Build Card. Use `Not ready` before this phase.
 
@@ -308,8 +338,11 @@ Links/IDs from DECISIONS.md.
 ## Related PRs
 PR references.
 
+## Parked
+Deferred candidates, one line each. `None.` when there are none.
+
 ## Next Step
-The single most useful next action.
+The single most useful next action. `None.` once the workstream is complete.
 ```
 
 Notes on the sections that are most often done badly:
@@ -332,8 +365,21 @@ Notes on the sections that are most often done badly:
   several PRs records one row per PR; a verdict never applies to a PR it does not name. The head is the full 40-character SHA the verdict was reached against —
   an abbreviation is not accepted, because it cannot prove which commit was reviewed. An
   approval that names no head does not open the merge gate. See `REVIEW_PROTOCOL.md`.
+- **Goal, Non-Goals and Acceptance Checks together are the mission contract**
+  ([`FINITE_WORK.md`](FINITE_WORK.md)) — the desired outcome, what is deliberately excluded, the
+  material interrupt risks worth naming, and what counts as finished. They are written when the
+  workstream is established, not reconstructed at the end, because a finish condition invented
+  after the work is a description of where the work stopped.
+- **Parked** holds deferred candidates, at most three on a completed workstream, one line each.
+  It is not a backlog and nothing reads it looking for work: the owner reads it when choosing a
+  next priority, and an agent may not activate anything in it without the owner saying so. A
+  parked candidate that turns out to be required for an acceptance check was never parked — it
+  was in scope, and it comes back into this workstream as `FIX NOW`.
 - **Next Step** is one action, not a plan. If it takes three sentences, the workstream is
-  blocked on something that has not been named.
+  blocked on something that has not been named. On a **completed** workstream it is `None.` and
+  nothing else — not "open a ticket", not "follow up later". An open-ended next step on a
+  finished mission is a tail hiding inside a completed record, and the parking lot exists so it
+  does not have to.
 
 Everything else is short. The file should be readable in two minutes at any phase.
 
@@ -442,13 +488,22 @@ once per session, before the first substantial piece of work. See
 `framework/FRAMEWORK_SYNC.md`. If the project is behind canonical, that is part of the
 orientation; if it is current, say nothing about it.
 
+**Continuation is the default.** A new session resumes the mission that was already running; it
+does not become a new workstream by virtue of being a new chat window, and it does not become
+one because implementation revealed something adjacent. Read `ACTIVE.md` first and assume what
+you find there is the work, unless the owner has said otherwise or nothing is open at all. The
+two paths below are not symmetrical, and the asymmetry is the point ([`FINITE_WORK.md`](FINITE_WORK.md)).
+
 ### For a clearly new idea
 
 1. Identify whether it belongs to an existing workstream. Check `ACTIVE.md` first — new
    ideas are frequently the unresolved part of something already open.
-2. Otherwise establish a new workstream: next free ID, a title, a goal, and the context that
-   produced it.
-3. Begin at `IDEA`/`EXPLORE` and run the Design Room.
+2. Confirm the idea is **the owner's**, and that the board has room for it. An idea an agent
+   arrived at on its own is a `PARK` or a `DISCARD`, not a workstream, and a fourth workstream
+   on a board of three is an owner decision about what stops.
+3. Otherwise establish a new workstream: next free ID, a title, a goal, its non-goals and
+   acceptance checks, and the context that produced it.
+4. Begin at `IDEA`/`EXPLORE` and run the Design Room.
 
 Creating the workstream file can wait until the idea survives first contact — checkpoint 1
 says *a meaningful new workstream*, and half of all raw ideas do not become one.
@@ -456,7 +511,8 @@ says *a meaningful new workstream*, and half of all raw ideas do not become one.
 ### For a continuation
 
 1. Identify the workstream — from what the owner said, or by reading `ACTIVE.md`.
-2. Inspect its current phase and the file's `Open Decisions`, `Assumptions`, and `Next Step`.
+2. Inspect its current phase and the file's `Acceptance Checks`, `Open Decisions`,
+   `Assumptions`, and `Next Step`. The acceptance checks are what tells you when to stop.
 3. Briefly orient the owner — one or two sentences.
 4. Continue from the unresolved point.
 
@@ -522,12 +578,16 @@ When a workstream reaches `COMPLETE`:
 2. **Update `PROJECT_MODEL.md`** with the new current system behavior where material.
 3. **Record consequential rationale in `DECISIONS.md`.**
 4. **Mark the workstream `COMPLETE`** — phase, status, `Updated`, and a final `Next Step` of
-   `None`.
-5. **Remove it from the active-work list** in `ACTIVE.md`.
-6. **Preserve the workstream file** as historical development context, unless project
+   `None.` An open-ended next step here is not a completion; see below.
+5. **Disposition every open observation.** Anything noticed during the work and not done is
+   `PARK`ed to the board's parking lot (at most three, one line each), `DISCARD`ed, or — if an
+   acceptance check depends on it — was never deferrable and the workstream is not complete.
+6. **Remove it from the active-work list** in `ACTIVE.md`, which also frees a slot under the
+   active-work limit.
+7. **Preserve the workstream file** as historical development context, unless project
    retention rules say otherwise.
 
-In the normal v0.5 flow, steps 2–5 happen in the **merge-finalization commit on the PR
+In the normal v0.5 flow, steps 2–6 happen in the **merge-finalization commit on the PR
 itself**, so `main` is true the moment the PR lands. Completion after the fact — a separate
 commit to `main` — remains valid; it is simply the slower path, and the one that gets
 forgotten.
@@ -538,6 +598,13 @@ This establishes two flows:
 Workstream outcome    →  PROJECT_MODEL
 Workstream rationale  →  DECISIONS
 ```
+
+**A completed workstream holds no tail.** Step 5 is what keeps that true, and it is the one
+most easily skipped, because a next step reading "open a ticket for the caching work" feels
+diligent rather than evasive. It is neither: it is active work smuggled into a record that
+claims to be finished, where nothing will schedule it and nothing will read it. Deferred ideas
+live in the parking lot, where they are visibly not being worked on, and the completed
+workstream's next step is `None.` — see [`FINITE_WORK.md`](FINITE_WORK.md).
 
 Steps 2 and 3 are what make `COMPLETE` mean something. A workstream marked complete while
 `PROJECT_MODEL.md` still describes the old behavior has moved the problem rather than
@@ -590,3 +657,7 @@ voices, at which point nobody knows which one is true.
 | Post-merge bookkeeping | Leaving the workstream at `REVIEW` and planning a cleanup PR | `main` describes a state that ended at merge; the cleanup PR never comes |
 | Orphan promotion | Work promoted to significant that never gets the workstream it now needs | Review has nothing to measure the change against, and the decisions made along the way are unrecorded |
 | Approval without a commit | `Review State: Approved`, no reviewed head | Proves nothing, and the gate it opens was never really closed |
+| Discovery as admission | A new workstream opened because an agent noticed something mid-task | Work is created by observation rather than by the owner, and the board outgrows the person who has to read it |
+| Tail in a completed file | `COMPLETE` whose next step is "open a ticket" or "follow up later" | Unfinished work hides inside a record that claims to be finished, and nothing will ever pick it up |
+| Parking lot as backlog | Parked candidates given owners, phases, estimates or a PR | It becomes a second board with none of the first one's limits, and the limit was the whole mechanism |
+| Session as new workstream | A resumed mission restarted as WS-### + 1 because the chat is new | The original acceptance checks are lost, and the same work now exists twice on the board |

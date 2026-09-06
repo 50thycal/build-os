@@ -1,6 +1,6 @@
 # Claude Handoff
 
-**Build OS v0.11**
+**Build OS v0.12**
 
 **GitHub is the authoritative implementation handoff surface. Claude chat is not the
 durable handoff.**
@@ -35,6 +35,39 @@ constraints the owner actually stated, and **classify the work**.
 **The classification is a claim, and it is yours.** Promote to significant the moment the work
 turns out to touch an owner decision, an invariant, or documented behavior — including
 partway through. Never the reverse. When it is genuinely unclear, it is significant.
+
+Intake also fixes what the work **is not**. State the outcome, the acceptance checks, the
+non-goals and the material interrupt risks before writing code — the mission contract of
+[`framework/FINITE_WORK.md`](FINITE_WORK.md) — and record it where the next session will find
+it: the workstream for significant work, the PR handoff for a simple change. A contract written
+at the end is a description of where the work stopped, which is the one thing it cannot be
+allowed to be.
+
+---
+
+## Findings outside the mission
+
+Implementation is where adjacent problems are found, and an implementation agent is the party
+least able to judge whether the owner wants them solved. So every finding outside the mission
+gets exactly one disposition before anything happens to it:
+
+| Disposition | Agent action |
+|---|---|
+| `FIX NOW` | Required by an acceptance check, or an immediate material safety, security, data-loss or real-money risk. Fix it **in this workstream and this PR** |
+| `PARK` | One line in the board's parking lot. No ticket, no branch, no PR, no second session |
+| `DISCARD` | Drop it, or record one line if that stops it being rediscovered |
+| `OWNER DECISION` | Return a `DECISION` result. Do not open the work pre-emptively |
+
+Two of those are the ones that go wrong.
+
+**`FIX NOW` is not an invitation to widen the PR.** It is the disposition for work that was
+always in scope and only looks adjacent — if the original ask cannot honestly ship without it,
+it was never out of scope, and deferring it would be a `SHIP` with a hole in it. Everything
+short of that bar is `PARK` or `DISCARD`.
+
+**A follow-up is never a substitute for correcting an in-scope defect.** Writing "we should fix
+the validation gap in a later pass" into *Follow-up Work* converts a defect into a plan, and
+the plan is not on anybody's board. If it belongs to this mission, fix it here.
 
 ---
 
@@ -273,9 +306,24 @@ cost-clock tuning pass is still to come.
 ```
 
 ### Follow-up Work
-Intentional deferrals, with the reason each was deferred. Distinguish "out of scope per
-the Build Card's non-goals" from "should be done soon" from "will become a problem at
-scale." Do not use this section to park unfinished in-scope work.
+Intentional deferrals, each carrying its disposition and reason. Every line is `PARK` or
+`DISCARD` — an in-scope defect is `FIX NOW` and belongs in the diff, and an owner judgement is a
+`DECISION` result, not a bullet here. Distinguish "out of scope per the Build Card's non-goals"
+from "worth doing, deferred" from "will become a problem at scale."
+
+```markdown
+PARK — Export path re-serialises the ledger twice per request. Wasteful, not a correctness
+problem, and untouched by this change. Parked on the board.
+DISCARD — Considered caching the lookup; measured at 3ms, not worth the invalidation.
+```
+
+**A `PARK` here is a claim that a line exists on the board's parking lot, and it must be true
+when the PR is opened.** Otherwise this section is the only record, and a deferral recorded
+only in a merged PR body is a deferral nobody will ever see again — the transcript-as-memory
+failure with a different surface.
+
+Do not use this section to park unfinished in-scope work. `None` is a common and correct
+answer here, and a long list on a finished mission usually means the mission was not finite.
 
 ### Owner Result
 
@@ -412,6 +460,11 @@ Before considering the work complete:
 - [ ] A significant-work `SHIP` names the merge as its `Next action`, with the verified SHA — never a step still owed by an agent or reviewer
 - [ ] No result is written while finalization is unpushed or the final head is unverified
 - [ ] Simple-classified work says so in the result's `Verification`
+- [ ] Every out-of-scope finding carries exactly one disposition — `FIX NOW`, `PARK`, `DISCARD`, `OWNER DECISION`
+- [ ] No in-scope defect was deferred into *Follow-up Work*, and every `PARK` line exists on the board
+- [ ] No new workstream, ticket, branch or session was created for a finding the owner did not admit
+- [ ] A completing workstream's `Next Step` is `None.`, and its deferrals live in the parking lot
+- [ ] The owner result is 100 words or fewer by default, leads with the outcome, and says whether the original ask is done
 - [ ] The final chat response is one or two lines and leads with the state
 
 Template: `templates/PR_HANDOFF.template.md`

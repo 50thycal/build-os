@@ -2,7 +2,7 @@
 
 <!-- Build OS's own active-work control board. Protocol work only. -->
 
-**Updated:** 2026-08-30 · **Build OS v0.11**
+**Updated:** 2026-09-06 · **Build OS v0.12**
 
 The Project Intelligence Companion program moved to
 [`50thycal/build-os-companion`](https://github.com/50thycal/build-os-companion) on 2026-08-24,
@@ -18,12 +18,25 @@ This board tracks protocol work in this repository: `framework/`, `contracts/`, 
 
 <!-- Phase: IDEA · EXPLORE · MODEL · DECIDE · BUILD_CARD · READY_TO_BUILD · BUILDING · REVIEW
      Status: Active · Paused · Blocked · Abandoned
-     Completed and abandoned workstreams leave this table; their files remain. -->
+     Completed and abandoned workstreams leave this table; their files remain.
+
+     ACTIVE-WORK LIMIT: three (the v0.12 default) — one being built, one being reviewed or
+     verified, one investigation or operational concern. A fourth requires completing, pausing
+     or abandoning one of the three. See framework/FINITE_WORK.md. -->
+
+## Parked
+
+<!-- Deferred candidates. One line each, no ID, no phase, no owner, no estimate. Nothing
+     schedules this and no agent starts anything here; the owner promotes a candidate, or it
+     stays. See framework/FINITE_WORK.md. -->
+
+- None.
 
 ## Recently completed
 
 | ID | Workstream | Completed | Outcome |
 |---|---|---|---|
+| WS-010 | Finite work admission and closure | 2026-09-06 | Discovery no longer creates work; only owner admission does (`DEC-025`). Boards gain an active-work limit of three and a parking lot; a completed workstream's next step is `None.` Protocol and skill in #21; the integration and v0.12 were stranded when #21 merged ahead of #22, and reached `main` through #23 |
 | WS-009 | Agent-invokable skills surface | 2026-08-30 | `skills/` accepted in #17 and integrated in #18 as v0.9; framework stays canonical where both apply (`DEC-022`) |
 | WS-008 | Mobile-first owner interface | 2026-08-30 | Owner layer shipped as v0.6, corrected to v0.7, and v0.8 added operating modes |
 | WS-001 … WS-006 | Companion program | 2026-08-24 | Moved to `50thycal/build-os-companion` with the application (`DEC-011`) |
